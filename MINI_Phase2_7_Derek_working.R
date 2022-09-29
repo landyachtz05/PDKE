@@ -2845,14 +2845,6 @@ for (i in 1:nfiles)        {
   
   plot(RF_Map2)
   
-  # #Get the Name (date) from each map
-  # name <- basename(RF_Map)
-  # nameSplit <- unlist(strsplit(name,"_"))
-  # nameSplit2 <- unlist(strsplit(nameSplit[3] ,".t"))
-  # Year <- nameSplit[2]
-  # Month <- nameSplit2[1]
-  # MY <- paste0(Year,"/",Month)
-  
   #Get the Name (date) from each map (derek's version)
   name <- basename(RF_Map)
   nameSplit <- unlist(strsplit(name,"_"))
@@ -2873,10 +2865,6 @@ for (i in 1:nfiles)        {
 
 head(Cell.AF_Maps)
 tail(Cell.AF_Maps)
-
-# nm<-paste0(RFOLDER,UNIT_N[u],"/", "Cell.AF_Maps_9_6_2022.csv")
-# 
-# write.csv(Cell.AF_Maps, nm)
 
 ##########   Matty's Maps
 
@@ -2904,15 +2892,6 @@ for (i in 1:nfiles) {
   plot(RF_Map2)
   
   ##########   #Get the Name (date) from each map
-  # 
-  # name <- basename(RF_Map)
-  # nameSplit <- unlist(strsplit(name,"_"))
-  # nameSplit2 <- unlist(strsplit(nameSplit[3] ,".t"))
-  # D1 <- nameSplit[6]
-  # Year <- nameSplit[1]
-  # Month <- nameSplit[2]
-  # MY <- paste0(Year,"/",Month)
-  
   # Derek's version
   name <- basename(RF_Map)
   nameSplit <- unlist(strsplit(name,"_"))
@@ -2936,10 +2915,6 @@ for (i in 1:nfiles) {
 head(Cell.ML_Maps)
 tail(Cell.ML_Maps)
 
-# nm<-paste0(RFOLDER,UNIT_N[u],"/", "Cell.ML_Maps_9_6_2022.csv")
-# 
-# write.csv(Cell.ML_Maps, nm)
-
 ##########  Do a comparision with the 23-year overalap period and generate a figure
 
 ##########  Compare Monthly Rainfall fromthe two map products          
@@ -2950,16 +2925,16 @@ tail(Cell.ML_Maps)
 
 ###
 
-### If working with exported RF dataframes ###
-    Cell.AF_Maps2<-read.csv("Haleakala National Park/MINI_Phase2 outputs 1/Cell.AF_Maps_9_6_2022.csv")
-    Cell.AF_Maps2<-data.frame(Cell.AF_Maps2[2:ncol(Cell.AF_Maps2)])
-    head(Cell.AF_Maps2)
-
-    # summary(Cell.AF_Maps2[which(Cell.AF_Maps2$Year<2020),]$RF)
-
-    Cell.ML_Maps2<-read.csv("Haleakala National Park/MINI_Phase2 outputs 1/Cell.ML_Maps_9_6_2022.csv")
-    Cell.ML_Maps2<-Cell.ML_Maps2[2:ncol(Cell.ML_Maps2)]
-    head(Cell.ML_Maps2)
+# ### If working with exported RF dataframes ###
+#     Cell.AF_Maps2<-read.csv("Haleakala National Park/MINI_Phase2 outputs 1/Cell.AF_Maps_9_6_2022.csv")
+#     Cell.AF_Maps2<-data.frame(Cell.AF_Maps2[2:ncol(Cell.AF_Maps2)])
+#     head(Cell.AF_Maps2)
+# 
+#     # summary(Cell.AF_Maps2[which(Cell.AF_Maps2$Year<2020),]$RF)
+# 
+#     Cell.ML_Maps2<-read.csv("Haleakala National Park/MINI_Phase2 outputs 1/Cell.ML_Maps_9_6_2022.csv")
+#     Cell.ML_Maps2<-Cell.ML_Maps2[2:ncol(Cell.ML_Maps2)]
+#     head(Cell.ML_Maps2)
 
 ###
     
@@ -3049,10 +3024,10 @@ if(RFUnit == " in") {MRF100$RF <-  as.numeric(MRF100$RF) * 0.0393701}
 
 write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv"),row.names = F)
 
-### Can read in the csv from above to start script here
-      MRF100<-read.csv("Haleakala National Park/Haleakala National Park Monthly Rainfall_in.csv")
-      # MRF100<-MRF100[2:ncol(MRF100)]
-      
+# ### Can read in the csv from above to start script here
+#       MRF100<-read.csv("Haleakala National Park/Haleakala National Park Monthly Rainfall_in.csv")
+#       # MRF100<-MRF100[2:ncol(MRF100)]
+
 
 head(MRF100)
 tail(MRF100)
