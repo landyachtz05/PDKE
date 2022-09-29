@@ -93,13 +93,13 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
 
 
 ################################################################################
-### count number of drought events and calculate stats
+### count number of drought events and calculate stats (duration, peak, magnitude, mean)
 
   # create binary column of drought (spi_negs>0) yes or no
   spi2$drought<-ifelse(spi2$spi_negs>0, 1, 0)
   head(spi2, 100)
 
-  # make column of consecutive drought months
+  # make column of consecutive drought month count
   library(data.table)
 
   spi2$DRGHT_ct<-with(spi2, (drought == 1)*
@@ -112,7 +112,7 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
   spi3<-spi2[which(spi2$DRGHT_ct >= 1),]
   head(spi3, 20)
 
-  ### create empty event count column and fill
+  ### create another empty event count column and fill
   spi3$event_ct<-0
   for (r in 1:nrow(spi3)) {
 
@@ -131,9 +131,7 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
   event<-unique(spi3$event_ct)
   
   for (x in event) {
-    
     sub<-spi3[which(spi3$event_ct == x),]
-
     if(max(sub$spi_negs)<1) {spi3[which(spi3$event_ct == x),]$event_ct<-0}
   }
   
@@ -148,7 +146,7 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
     event<-data.frame(unique(spi4$event_ct))
     event
     
-    # fill event_Ct2 column with event number
+    # fill event_Ct2 column with final event number
     for (x in 1:nrow(event)){
       
       # get event number
@@ -167,7 +165,7 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
   spi5<-spi5[order(as.Date(spi5$date)),]
   summary(spi5$event_ct2)
   
-  # get rid of wrong event column
+  # get rid of intermediate event column
   spi5<-subset(spi5, select=-c(event_ct))
   colnames(spi5)[which(names(spi5) == "event_ct2")]<-"event_ct"
   
