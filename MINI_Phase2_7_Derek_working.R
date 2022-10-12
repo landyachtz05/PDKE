@@ -117,8 +117,13 @@ NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
 HALE <- NP_ALL
 HALE@data
 
-# Check map
-plot(Coast_OA, main = "Oahu")
+#Kahikinui HHL, Maui
+NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
+HALE <- NP_ALL
+HALE@data
+
+# Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
+plot(Coast_MN, main = "Maui")
 plot(HALE ,add = T, col="red")
 
 
@@ -131,16 +136,16 @@ plot(HALE ,add = T, col="red")
 UNIT_X <-   c(HALE,HALE)
 
  
-##########   ISLAND
-UNIT_I <-  c("OA","OA")
+##########   ISLAND - NEED TO CHANGE MANUALLY BASED ON ISLAND
+UNIT_I <-  c("MN","MN")
 
 ##########  UNIT NAME
 ##########  UNIT NAME (For CCVD Narrative)
-UNIT_N <- as.vector(as.character(c("Waimea Valley Watershed","Waimea Valley Watershed")))
+UNIT_N <- as.vector(as.character(c("Hawaiian Homelands - Kahikinui","Hawaiian Homelands - Kahikinui")))
 
 
 ##########  Short Name (For Figure Titles)
-UNIT_Ns <- as.vector(as.character(c("Waimea Valley","Waimea Valley")))
+UNIT_Ns <- as.vector(as.character(c("Kahikinui","Kahikinui")))
 #20,24,-26 34
 
 
@@ -2614,7 +2619,6 @@ write.csv(Cell.Data_DS,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Downscaling.csv"
 #These graphs make use of North arrow and scale bar from RF Maps
 colfunc2 <- colorRampPalette(brewer.pal(11,"RdBu"))(100)
 BI_brks2<-round(seq(RFdslo, RFdsup , length = 9),0)
-
 
 
 
