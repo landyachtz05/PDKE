@@ -64,8 +64,8 @@ UHimg <- external_img(src = UHfile, height = 1, width = 1)
 USGSfile <- paste0(I_FOLDER,"USGS.png")
 USGSimg <- external_img(src = USGSfile, height = 1, width = 1) 
 
-RISAfile <- paste0(I_FOLDER,"PacificRISA.jpg.png")
-RISAimg <- external_img(src = RISAfile, height = 1, width = 1) 
+# RISAfile <- paste0(I_FOLDER,"PacificRISA.jpg.png")
+# RISAimg <- external_img(src = RISAfile, height = 1, width = 1) 
 
 NOAAfile <- paste0(I_FOLDER,"NOAA.png")
 NOAAimg <- external_img(src = NOAAfile, height = 1, width = 1) 
@@ -79,8 +79,8 @@ USGSimg <- external_img(src = USGSfile, height = 1, width = 1)
 DOFAWfile <- paste0(I_FOLDER,"DOFAW.png")
 DOFAWimg <- external_img(src = DOFAWfile, height = 1, width = 1) 
 
-DLNRfile <- paste0(I_FOLDER,"DLNRpng")
-DLNRimg <- external_img(src = DLNRfile, height = 1, width = 1) 
+DLNRfile <- paste0(I_FOLDER,"DLNR.jpg")
+DLNRimg <- external_img(src = DLNRfile, height = 1, width = 1)
 
 DPlanfile <- paste0(I_FOLDER,"DPlan.png")
 DPlanimg <- external_img(src = DPlanfile, height = 1, width = 1) 
@@ -90,15 +90,27 @@ DPlanimg <- external_img(src = DPlanfile, height = 1, width = 1)
 WRRCfile <- paste0(I_FOLDER,"WRRC-200x200.png")
 WRRCimg <- external_img(src = WRRCfile, height = 1, width = 1) 
 
-SUNfile <- paste0(I_FOLDER,"SUN.jpg")
-SUNimg <- external_img(src = SUNfile, height = 1,width = 1) 
+### original "Part 1: Climate Characteristics" images
+    SUNfile <- paste0(I_FOLDER,"SUN.jpg")
+    SUNimg <- external_img(src = SUNfile, height = 1,width = 1) 
+    
+    RFfile <- paste0(I_FOLDER,"RF.jpg")
+    RFimg <- external_img(src = RFfile , height = 1, width = 1) 
+    
+    RBfile <- paste0(I_FOLDER,"Rainbow.jpg")
+    RBimg <- external_img(src = RBfile, height = 1,width = 1) 
+    
+### Derek's "Part 1: Climate Characteristics" images
+    RGfile <- paste0(I_FOLDER,"climstation.jpg")
+    RGimg <- external_img(src = RGfile, height = 1,width = 1) 
 
-RFfile <- paste0(I_FOLDER,"RF.jpg")
-RFimg <- external_img(src = RFfile , height = 1, width = 1) 
-
-RBfile <- paste0(I_FOLDER,"Rainbow.jpg")
-RBimg <- external_img(src = RBfile, height = 1,width = 1) 
-
+    RFfile <- paste0(I_FOLDER,"Mean Annual Rainfall.jpg")
+    RFimg <- external_img(src = RFfile, height = 1,width = 1) 
+    
+    MODfile <- paste0(I_FOLDER,"modis.jpg")
+    MODimg <- external_img(src = MODfile, height = 1,width = 1) 
+    
+    
 Theromfile <- paste0(I_FOLDER,"therom.jpg")
 Theromimg <- external_img(src = Theromfile , height = 1, width = 1) 
 
@@ -141,7 +153,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-5
+f<-2
 
 
 
@@ -198,7 +210,7 @@ CLIM <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"MEAN Climate.csv"),sep=","
  
 
  
-################ Slide 2 HDKE
+################ Slide 2 PDKE
   
   #S2_TIT<- block_list(
     #fpar(ftext("Pacific Drought Knowledge Exchange", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -492,10 +504,10 @@ TAB1 <- block_list(
   fpar(ftext("Part 2: Inter-Annual Rainfall", FTXTT),fp_p = fp_par(text.align = "center")),
   fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
 
-  InterAn <- paste0("Rainfall in Hawaii can vary greatly from year-to-year due to natural modes of climate variability such as the El Niño-Southern Oscillation ",
+  InterAn <- paste0("Rainfall in Hawaii can vary greatly from year-to-year due to natural modes of climate variability such as the El Ni?o-Southern Oscillation ",
                   "(ENSO). ENSO can be explained as an interaction between the atmosphere and the ocean in the tropical Pacific that results in a somewhat periodic ",
                   "variation between below-normal and above-normal sea surface temperatures. In Hawaii, wet season rainfall is typically low during the ",
-                  "warm (El Niño) phase of ENSO and high during the neutral and Cool (La Niña) Phases. This pattern is reversed in the dry season although it is not as pronounced as in the wet season. ",
+                  "warm (El Ni?o) phase of ENSO and high during the neutral and Cool (La Ni?a) Phases. This pattern is reversed in the dry season although it is not as pronounced as in the wet season. ",
                   "ENSO is the dominant mode of climate variability in Hawaii.")
  
             
@@ -512,7 +524,7 @@ MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
 
 EN_TIT<- block_list(
   fpar(ftext("Wet Season Rainfall", FTXTT),fp_p = fp_par(text.align = "center")),
-  fpar(ftext("vs El Niño/La Niña", FTXTT),fp_p = fp_par(text.align = "center")))
+  fpar(ftext("vs El Ni?o/La Ni?a", FTXTT),fp_p = fp_par(text.align = "center")))
 
 SEL_RFW <- round(MEIRF[1,2],0)
 #  WetM # Wet-Season Avg
@@ -521,7 +533,7 @@ DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
 #DifWRF <- 100-DifWRF
 
 MEIW <- paste0("93-years of monthly wet season rainfall (1920-2012) are compared with the Multivariate ENSO Index (MEI) to determine how rainfall is influenced ",
-                  "by five different ENSO phases. During the strong El Niño phase, average monthly wet season rainfall (",SEL_RFW, RFUnit,"/month) is ", DifWRF,"% drier than the long-term average (",WSeaMRF_M, RFUnit,"/month).")
+                  "by five different ENSO phases. During the strong El Ni?o phase, average monthly wet season rainfall (",SEL_RFW, RFUnit,"/month) is ", DifWRF,"% drier than the long-term average (",WSeaMRF_M, RFUnit,"/month).")
 
 fp_TxW <- fp_text(italic = TRUE, color = "black", font.size = 18) 
 fp_MEIW  <- fpar(ftext(MEIW, fp_TxW))
@@ -1025,7 +1037,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                  " occurring in ", MONLIST[RFnm],". On average, wet season months (Nov-Apr) receive ",SeaD,RFUnit," of more rainfall than dry season months (May-Oct). ",
                  "Seasonal rainfall can vary within the unit as well, with dry season rainfall ranging from ",D_RF_R, RFUnit3," and wet season rainfall ",
                  "ranging from ",W_RF_R, RFUnit3," across the ",EL_Dif,ELUnit, " elevation gradient. ",
-                 "Rainfall can also vary considerably from year-to-year with the driest years occurring during a Strong El Niño event, when on ",
+                 "Rainfall can also vary considerably from year-to-year with the driest years occurring during a Strong El Ni?o event, when on ",
                  "average, ", DifWRF,"% less rainfall is received, relative to the long-term average. ",
                  "The average temperature at ",SNameF," is ", TAA,TUnit," but temperature ranges from ",TAn, TUnit, " to ", TAx, TUnit," over the course of the year. ",
                  "Drought is a reoccurring feature in the climate system of ", SNameF, " with a total of ",
@@ -1205,19 +1217,19 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
       ph_with(fp_HDKE,ph_location_type("body"))%>%
       ph_with(value = "2", location = ph_location_type(type = "sldNum"))%>%
       ph_with(value = EWCimg, location = ph_location(label = "my_name",
-                      left = 0.6, top = 6.1, width = 1.4, height = 1.4)) %>%
+                      left = 1.1, top = 6.1, width = 1.4, height = 1.4)) %>%
       ph_with(value = CASCimg, location = ph_location(label = "my_name",
-                      left = 2, top = 6.3, width = 1, height = 1)) %>%
+                      left = 2.6, top = 6.3, width = 1, height = 1)) %>%
       ph_with(value = FSimg, location = ph_location(label = "my_name",
-                      left = 3.1, top = 6.3, width = 1, height = 1)) %>%
-      ph_with(value = RISAimg, location = ph_location(label = "my_name",
-                      left = 4.2, top = 6.3, width = 1.4, height = 1)) %>%
+                      left = 3.8, top = 6.3, width = 1, height = 1)) %>%
+      # ph_with(value = RISAimg, location = ph_location(label = "my_name",
+      #                 left = 4.2, top = 6.3, width = 1.4, height = 1)) %>%
       ph_with(value = WRRCimg, location = ph_location(label = "my_name",
-                      left = 5.61, top = 6.3, width = 1.1, height = 1)) %>%
+                      left = 5, top = 6.3, width = 1.1, height = 1)) %>%
       ph_with(value = NOAAimg, location = ph_location(label = "my_name",
-                      left = 6.8, top = 6.3, width = 1, height = 1)) %>%
+                      left = 6.3, top = 6.3, width = 1, height = 1)) %>%
       ph_with(value = UHimg, location = ph_location(label = "my_name",
-                      left = 7.9, top = 6.3, width = 1, height = 1)) %>%
+                      left = 7.5, top = 6.3, width = 1, height = 1)) %>%
      ph_with(value = PDKE_L, location = ph_location(label = "my_name",
                       left = 0, top = 0, width = 10, height = 2))%>%
     
@@ -1238,13 +1250,14 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   ph_with(P1_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_PART1,ph_location_type("body"))%>%
   ph_with(value = "4", location = ph_location_type(type = "sldNum"))%>%
-  ph_with(value = SUNimg, location = ph_location(label = "my_name",
-                                                 left = 1.8, top = 5, width = 2, height = 2)) %>%
+  ph_with(value = MODimg, location = ph_location(label = "my_name",
+                                                 left = 1.1, top = 5, width = 2.6, height = 2)) %>%
+  ph_with(value = RGimg, location = ph_location(label = "my_name",
+                                                  left = 3.8, top = 5, width = 2.4, height = 2)) %>%
   ph_with(value = RFimg, location = ph_location(label = "my_name",
-                                                  left = 4, top = 5, width = 2, height = 2)) %>%
-  ph_with(value = RBimg, location = ph_location(label = "my_name",
-                                                  left = 6.2, top = 5, width = 2, height = 2)) %>%
-  
+                                                  left = 6.4, top = 5, width = 2.4, height = 2)) %>%
+
+    
 #Slide 5 
     add_slide("Two Content","Office Theme") %>%
     ph_with(S5_TIT,       ph_location_type("title")) %>%
