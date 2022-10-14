@@ -1025,7 +1025,7 @@ Cell.CL_Year[6,2:14] <- MEANCF3
 Jan <- raster(Mean_CLIM[71])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
 Jan_CropTA <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jan_CropTA <- (Jan_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Jan_CropTA <- (Jan_CropTA * 1.8) + 32}
 JanMTA   <- round(cellStats(Jan_CropTA, 'mean'),1)
 JanMTAx   <- round(cellStats(Jan_CropTA, 'max'),1)
 JanMTAn   <- round(cellStats(Jan_CropTA, 'min'),1)
@@ -1033,7 +1033,7 @@ JanMTAn   <- round(cellStats(Jan_CropTA, 'min'),1)
 Feb <- raster(Mean_CLIM[70])
 Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
 Feb_CropTA <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Feb_CropTA <- (Feb_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Feb_CropTA <- (Feb_CropTA * 1.8) + 32}
 FebMTA   <- round(cellStats(Feb_CropTA, 'mean'),1)
 FebMTAx   <- round(cellStats(Feb_CropTA, 'max'),1)
 FebMTAn   <- round(cellStats(Feb_CropTA, 'min'),1)
@@ -1041,7 +1041,7 @@ FebMTAn   <- round(cellStats(Feb_CropTA, 'min'),1)
 Mar <- raster(Mean_CLIM[74])
 Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
 Mar_CropTA <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Mar_CropTA <- (Mar_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Mar_CropTA <- (Mar_CropTA * 1.8) + 32}
 MarMTA   <- round(cellStats(Mar_CropTA, 'mean'),1)
 MarMTAx   <- round(cellStats(Mar_CropTA, 'max'),1)
 MarMTAn   <- round(cellStats(Mar_CropTA, 'min'),1)
@@ -1049,7 +1049,7 @@ MarMTAn   <- round(cellStats(Mar_CropTA, 'min'),1)
 Apr <- raster(Mean_CLIM[67])
 Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
 Apr_CropTA <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Apr_CropTA <- (Apr_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Apr_CropTA <- (Apr_CropTA * 1.8) + 32}
 AprMTA   <- round(cellStats(Apr_CropTA, 'mean'),1)
 AprMTAx   <- round(cellStats(Apr_CropTA, 'max'),1)
 AprMTAn   <- round(cellStats(Apr_CropTA, 'min'),1)
@@ -1057,7 +1057,7 @@ AprMTAn   <- round(cellStats(Apr_CropTA, 'min'),1)
 May <- raster(Mean_CLIM[75])
 May_Mask <- mask(x = May, mask = UNIT_X[[u]])
 May_CropTA <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {May_CropTA <- (May_CropTA * 1.8) + 32}
+if(TUnit == "°F") {May_CropTA <- (May_CropTA * 1.8) + 32}
 MayMTA   <- round(cellStats(May_CropTA, 'mean'),1)
 MayMTAx   <- round(cellStats(May_CropTA, 'max'),1)
 MayMTAn   <- round(cellStats(May_CropTA, 'min'),1)
@@ -1065,7 +1065,7 @@ MayMTAn   <- round(cellStats(May_CropTA, 'min'),1)
 Jun <- raster(Mean_CLIM[73])
 Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
 Jun_CropTA <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jun_CropTA <- (Jun_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Jun_CropTA <- (Jun_CropTA * 1.8) + 32}
 JunMTA   <- round(cellStats(Jun_CropTA, 'mean'),1)
 JunMTAx   <- round(cellStats(Jun_CropTA, 'max'),1)
 JunMTAn   <- round(cellStats(Jun_CropTA, 'min'),1)
@@ -1073,7 +1073,7 @@ JunMTAn   <- round(cellStats(Jun_CropTA, 'min'),1)
 Jul <- raster(Mean_CLIM[72])
 Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
 Jul_CropTA <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jul_CropTA <- (Jul_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Jul_CropTA <- (Jul_CropTA * 1.8) + 32}
 JulMTA   <- round(cellStats(Jul_CropTA, 'mean'),1)
 JulMTAx   <- round(cellStats(Jul_CropTA, 'max'),1)
 JulMTAn   <- round(cellStats(Jul_CropTA, 'min'),1)
@@ -1081,7 +1081,7 @@ JulMTAn   <- round(cellStats(Jul_CropTA, 'min'),1)
 Aug <- raster(Mean_CLIM[68])
 Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
 Aug_CropTA <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Aug_CropTA <- (Aug_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Aug_CropTA <- (Aug_CropTA * 1.8) + 32}
 AugMTA   <- round(cellStats(Aug_CropTA, 'mean'),1)
 AugMTAx   <- round(cellStats(Aug_CropTA, 'max'),1)
 AugMTAn   <- round(cellStats(Aug_CropTA, 'min'),1)
@@ -1089,7 +1089,7 @@ AugMTAn   <- round(cellStats(Aug_CropTA, 'min'),1)
 Sep <- raster(Mean_CLIM[78])
 Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
 Sep_CropTA <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Sep_CropTA <- (Sep_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Sep_CropTA <- (Sep_CropTA * 1.8) + 32}
 SepMTA   <- round(cellStats(Sep_CropTA, 'mean'),1)
 SepMTAx   <- round(cellStats(Sep_CropTA, 'max'),1)
 SepMTAn   <- round(cellStats(Sep_CropTA, 'min'),1)
@@ -1097,7 +1097,7 @@ SepMTAn   <- round(cellStats(Sep_CropTA, 'min'),1)
 Oct <- raster(Mean_CLIM[77]) 
 Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
 Oct_CropTA <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Oct_CropTA <- (Oct_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Oct_CropTA <- (Oct_CropTA * 1.8) + 32}
 OctMTA   <- round(cellStats(Oct_CropTA, 'mean'),1)
 OctMTAx   <- round(cellStats(Oct_CropTA, 'max'),1)
 OctMTAn   <- round(cellStats(Oct_CropTA, 'min'),1)
@@ -1105,7 +1105,7 @@ OctMTAn   <- round(cellStats(Oct_CropTA, 'min'),1)
 Nov <- raster(Mean_CLIM[76]) 
 Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
 Nov_CropTA <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Nov_CropTA <- (Nov_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Nov_CropTA <- (Nov_CropTA * 1.8) + 32}
 NovMTA   <- round(cellStats(Nov_CropTA, 'mean'),1)
 NovMTAx   <- round(cellStats(Nov_CropTA, 'max'),1)
 NovMTAn   <- round(cellStats(Nov_CropTA, 'min'),1)
@@ -1113,7 +1113,7 @@ NovMTAn   <- round(cellStats(Nov_CropTA, 'min'),1)
 Dec <- raster(Mean_CLIM[69]) 
 Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
 Dec_CropTA <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Dec_CropTA <- (Dec_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Dec_CropTA <- (Dec_CropTA * 1.8) + 32}
 DecMTA   <- round(cellStats(Dec_CropTA, 'mean'),1)
 DecMTAx   <- round(cellStats(Dec_CropTA, 'max'),1)
 DecMTAn   <- round(cellStats(Dec_CropTA, 'min'),1)
@@ -1121,7 +1121,7 @@ DecMTAn   <- round(cellStats(Dec_CropTA, 'min'),1)
 Ann <- raster(Mean_CLIM[66]) 
 Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
 Ann_CropTA <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Ann_CropTA <- (Ann_CropTA * 1.8) + 32}
+if(TUnit == "°F") {Ann_CropTA <- (Ann_CropTA * 1.8) + 32}
 AnnMTA   <- round(cellStats(Ann_CropTA, 'mean'),1)
 AnnMTAx   <- round(cellStats(Ann_CropTA, 'max'),1)
 AnnMTAn   <- round(cellStats(Ann_CropTA, 'min'),1)
@@ -1140,7 +1140,7 @@ Jan <- raster(Mean_CLIM[84])
 crs(Jan) <- crs(EXAMP)
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
 Jan_CropTX <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jan_CropTX <- (Jan_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Jan_CropTX <- (Jan_CropTX * 1.8) + 32}
 JanMTX  <- round(cellStats(Jan_CropTX , 'mean'),1)
 JanMTXx   <- round(cellStats(Jan_CropTX, 'max'),1)
 JanMTXn   <- round(cellStats(Jan_CropTX, 'min'),1)
@@ -1149,7 +1149,7 @@ Feb <- raster(Mean_CLIM[83])
 crs(Feb) <- crs(EXAMP)
 Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
 Feb_CropTX  <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Feb_CropTX <- (Feb_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Feb_CropTX <- (Feb_CropTX * 1.8) + 32}
 FebMTX   <- round(cellStats(Feb_CropTX , 'mean'),1)
 FebMTXx   <- round(cellStats(Feb_CropTX, 'max'),1)
 FebMTXn   <- round(cellStats(Feb_CropTX, 'min'),1)
@@ -1158,7 +1158,7 @@ Mar <- raster(Mean_CLIM[87])
 crs(Mar) <- crs(EXAMP)
 Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
 Mar_CropTX  <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Mar_CropTX <- (Mar_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Mar_CropTX <- (Mar_CropTX * 1.8) + 32}
 MarMTX   <- round(cellStats(Mar_CropTX , 'mean'),1)
 MarMTXx   <- round(cellStats(Mar_CropTX, 'max'),1)
 MarMTXn   <- round(cellStats(Mar_CropTX, 'min'),1)
@@ -1167,7 +1167,7 @@ Apr <- raster(Mean_CLIM[80])
 crs(Apr) <- crs(EXAMP)
 Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
 Apr_CropTX  <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Apr_CropTX <- (Apr_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Apr_CropTX <- (Apr_CropTX * 1.8) + 32}
 AprMTX   <- round(cellStats(Apr_CropTX , 'mean'),1)
 AprMTXx   <- round(cellStats(Apr_CropTX, 'max'),1)
 AprMTXn   <- round(cellStats(Apr_CropTX, 'min'),1)
@@ -1176,7 +1176,7 @@ May <- raster(Mean_CLIM[88])
 crs(May) <- crs(EXAMP)
 May_Mask <- mask(x = May, mask = UNIT_X[[u]])
 May_CropTX  <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {May_CropTX <- (May_CropTX * 1.8) + 32}
+if(TUnit == "°F") {May_CropTX <- (May_CropTX * 1.8) + 32}
 MayMTX    <- round(cellStats(May_CropTX, 'mean'),1)
 MayMTXx   <- round(cellStats(May_CropTX, 'max'),1)
 MayMTXn   <- round(cellStats(May_CropTX, 'min'),1)
@@ -1185,7 +1185,7 @@ Jun <- raster(Mean_CLIM[86])
 crs(Jun) <- crs(EXAMP)
 Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
 Jun_CropTX  <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jun_CropTX <- (Jun_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Jun_CropTX <- (Jun_CropTX * 1.8) + 32}
 JunMTX   <- round(cellStats(Jun_CropTX , 'mean'),1)
 JunMTXx   <- round(cellStats(Jun_CropTX, 'max'),1)
 JunMTXn   <- round(cellStats(Jun_CropTX, 'min'),1)
@@ -1194,7 +1194,7 @@ Jul <- raster(Mean_CLIM[85])
 crs(Jul) <- crs(EXAMP)
 Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
 Jul_CropTX  <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jul_CropTX <- (Jul_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Jul_CropTX <- (Jul_CropTX * 1.8) + 32}
 JulMTX    <- round(cellStats(Jul_CropTX, 'mean'),1)
 JulMTXx   <- round(cellStats(Jul_CropTX, 'max'),1)
 JulMTXn   <- round(cellStats(Jul_CropTX, 'min'),1)
@@ -1203,7 +1203,7 @@ Aug <- raster(Mean_CLIM[81])
 crs(Aug) <- crs(EXAMP)
 Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
 Aug_CropTX  <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Aug_CropTX <- (Aug_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Aug_CropTX <- (Aug_CropTX * 1.8) + 32}
 AugMTX   <- round(cellStats(Aug_CropTX, 'mean'),1)
 AugMTXx   <- round(cellStats(Aug_CropTX, 'max'),1)
 AugMTXn   <- round(cellStats(Aug_CropTX, 'min'),1)
@@ -1212,7 +1212,7 @@ Sep <- raster(Mean_CLIM[91])
 crs(Sep) <- crs(EXAMP)
 Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
 Sep_CropTX  <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Sep_CropTX <- (Sep_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Sep_CropTX <- (Sep_CropTX * 1.8) + 32}
 SepMTX   <- round(cellStats(Sep_CropTX, 'mean'),1)
 SepMTXx   <- round(cellStats(Sep_CropTX, 'max'),1)
 SepMTXn   <- round(cellStats(Sep_CropTX, 'min'),1)
@@ -1221,7 +1221,7 @@ Oct <- raster(Mean_CLIM[90])
 crs(Oct) <- crs(EXAMP)
 Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
 Oct_CropTX  <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Oct_CropTX <- (Oct_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Oct_CropTX <- (Oct_CropTX * 1.8) + 32}
 OctMTX   <- round(cellStats(Oct_CropTX, 'mean'),1)
 OctMTXx   <- round(cellStats(Oct_CropTX, 'max'),1)
 OctMTXn   <- round(cellStats(Oct_CropTX, 'min'),1)
@@ -1230,7 +1230,7 @@ Nov <- raster(Mean_CLIM[89])
 crs(Nov) <- crs(EXAMP)
 Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
 Nov_CropTX  <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Nov_CropTX <- (Nov_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Nov_CropTX <- (Nov_CropTX * 1.8) + 32}
 NovMTX   <- round(cellStats(Nov_CropTX, 'mean'),1)
 NovMTXx   <- round(cellStats(Nov_CropTX, 'max'),1)
 NovMTXn   <- round(cellStats(Nov_CropTX, 'min'),1)
@@ -1239,7 +1239,7 @@ Dec <- raster(Mean_CLIM[82])
 crs(Dec) <- crs(EXAMP)
 Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
 Dec_CropTX  <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Dec_CropTX <- (Dec_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Dec_CropTX <- (Dec_CropTX * 1.8) + 32}
 DecMTX   <- round(cellStats(Dec_CropTX, 'mean'),1)
 DecMTXx   <- round(cellStats(Dec_CropTX, 'max'),1)
 DecMTXn   <- round(cellStats(Dec_CropTX, 'min'),1)
@@ -1248,7 +1248,7 @@ Ann <- raster(Mean_CLIM[79])
 crs(Ann) <- crs(EXAMP)
 Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
 Ann_CropTX <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Ann_CropTX <- (Ann_CropTX * 1.8) + 32}
+if(TUnit == "°F") {Ann_CropTX <- (Ann_CropTX * 1.8) + 32}
 AnnMTX   <- round(cellStats(Ann_CropTX, 'mean'),1)
 AnnMTXx   <- round(cellStats(Ann_CropTX, 'max'),1)
 AnnMTXn   <- round(cellStats(Ann_CropTX, 'min'),1)
@@ -1270,7 +1270,7 @@ Jan <- raster(Mean_CLIM[97])
 crs(Jan) <- crs(EXAMP)
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
 Jan_CropTN <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jan_CropTN <- (Jan_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Jan_CropTN <- (Jan_CropTN * 1.8) + 32}
 JanMTN   <- round(cellStats(Jan_CropTN, 'mean'),1)
 JanMTNx   <- round(cellStats(Jan_CropTN , 'max'),1)
 JanMTNn   <- round(cellStats(Jan_CropTN , 'min'),1)
@@ -1279,7 +1279,7 @@ Feb <- raster(Mean_CLIM[96])
 crs(Feb) <- crs(EXAMP)
 Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
 Feb_CropTN <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Feb_CropTN <- (Feb_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Feb_CropTN <- (Feb_CropTN * 1.8) + 32}
 FebMTN  <- round(cellStats(Feb_CropTN, 'mean'),1)
 FebMTNx   <- round(cellStats(Feb_CropTN , 'max'),1)
 FebMTNn   <- round(cellStats(Feb_CropTN , 'min'),1)
@@ -1288,7 +1288,7 @@ Mar <- raster(Mean_CLIM[100])
 crs(Mar) <- crs(EXAMP)
 Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
 Mar_CropTN <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Mar_CropTN <- (Mar_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Mar_CropTN <- (Mar_CropTN * 1.8) + 32}
 MarMTN   <- round(cellStats(Mar_CropTN, 'mean'),1)
 MarMTNx   <- round(cellStats(Mar_CropTN , 'max'),1)
 MarMTNn   <- round(cellStats(Mar_CropTN , 'min'),1)
@@ -1297,7 +1297,7 @@ Apr <- raster(Mean_CLIM[93])
 crs(Apr) <- crs(EXAMP)
 Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
 Apr_CropTN <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Apr_CropTN <- (Apr_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Apr_CropTN <- (Apr_CropTN * 1.8) + 32}
 AprMTN   <- round(cellStats(Apr_CropTN, 'mean'),1)
 AprMTNx   <- round(cellStats(Apr_CropTN , 'max'),1)
 AprMTNn   <- round(cellStats(Apr_CropTN , 'min'),1)
@@ -1306,7 +1306,7 @@ May <- raster(Mean_CLIM[101])
 crs(May) <- crs(EXAMP)
 May_Mask <- mask(x = May, mask = UNIT_X[[u]])
 May_CropTN <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {May_CropTN <- (May_CropTN * 1.8) + 32}
+if(TUnit == "°F") {May_CropTN <- (May_CropTN * 1.8) + 32}
 MayMTN   <- round(cellStats(May_CropTN, 'mean'),1)
 MayMTNx   <- round(cellStats(May_CropTN , 'max'),1)
 MayMTNn   <- round(cellStats(May_CropTN , 'min'),1)
@@ -1315,7 +1315,7 @@ Jun <- raster(Mean_CLIM[99])
 crs(Jun) <- crs(EXAMP)
 Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
 Jun_CropTN <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jun_CropTN <- (Jun_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Jun_CropTN <- (Jun_CropTN * 1.8) + 32}
 JunMTN   <- round(cellStats(Jun_CropTN, 'mean'),1)
 JunMTNx   <- round(cellStats(Jun_CropTN , 'max'),1)
 JunMTNn   <- round(cellStats(Jun_CropTN , 'min'),1)
@@ -1324,7 +1324,7 @@ Jul <- raster(Mean_CLIM[98])
 crs(Jul) <- crs(EXAMP)
 Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
 Jul_CropTN <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Jul_CropTN <- (Jul_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Jul_CropTN <- (Jul_CropTN * 1.8) + 32}
 JulMTN   <- round(cellStats(Jul_CropTN, 'mean'),1)
 JulMTNx   <- round(cellStats(Jul_CropTN , 'max'),1)
 JulMTNn   <- round(cellStats(Jul_CropTN , 'min'),1)
@@ -1333,7 +1333,7 @@ Aug <- raster(Mean_CLIM[94])
 crs(Aug) <- crs(EXAMP)
 Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
 Aug_CropTN <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Aug_CropTN <- (Aug_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Aug_CropTN <- (Aug_CropTN * 1.8) + 32}
 AugMTN   <- round(cellStats(Aug_CropTN, 'mean'),1)
 AugMTNx   <- round(cellStats(Aug_CropTN , 'max'),1)
 AugMTNn   <- round(cellStats(Aug_CropTN , 'min'),1)
@@ -1342,7 +1342,7 @@ Sep <- raster(Mean_CLIM[104])
 crs(Sep) <- crs(EXAMP)
 Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
 Sep_CropTN <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Sep_CropTN <- (Sep_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Sep_CropTN <- (Sep_CropTN * 1.8) + 32}
 SepMTN   <- round(cellStats(Sep_CropTN, 'mean'),1)
 SepMTNx   <- round(cellStats(Sep_CropTN , 'max'),1)
 SepMTNn   <- round(cellStats(Sep_CropTN , 'min'),1)
@@ -1351,7 +1351,7 @@ Oct <- raster(Mean_CLIM[103])
 crs(Oct) <- crs(EXAMP)
 Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
 Oct_CropTN <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Oct_CropTN <- (Oct_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Oct_CropTN <- (Oct_CropTN * 1.8) + 32}
 OctMTN   <- round(cellStats(Oct_CropTN, 'mean'),1)
 OctMTNx   <- round(cellStats(Oct_CropTN , 'max'),1)
 OctMTNn   <- round(cellStats(Oct_CropTN , 'min'),1)
@@ -1360,7 +1360,7 @@ Nov <- raster(Mean_CLIM[102])
 crs(Nov) <- crs(EXAMP)
 Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
 Nov_CropTN <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Nov_CropTN <- (Nov_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Nov_CropTN <- (Nov_CropTN * 1.8) + 32}
 NovMTN   <- round(cellStats(Nov_CropTN, 'mean'),1)
 NovMTNx   <- round(cellStats(Nov_CropTN , 'max'),1)
 NovMTNn   <- round(cellStats(Nov_CropTN , 'min'),1)
@@ -1369,7 +1369,7 @@ Dec <- raster(Mean_CLIM[95])
 crs(Dec) <- crs(EXAMP)
 Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
 Dec_CropTN <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Dec_CropTN <- (Dec_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Dec_CropTN <- (Dec_CropTN * 1.8) + 32}
 DecMTN   <- round(cellStats(Dec_CropTN, 'mean'),1)
 DecMTNx   <- round(cellStats(Dec_CropTN , 'max'),1)
 DecMTNn   <- round(cellStats(Dec_CropTN , 'min'),1)
@@ -1378,7 +1378,7 @@ Ann <- raster(Mean_CLIM[92])
 crs(Ann) <- crs(EXAMP)
 Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
 Ann_CropTN <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Ann_CropTN <- (Ann_CropTN * 1.8) + 32}
+if(TUnit == "°F") {Ann_CropTN <- (Ann_CropTN * 1.8) + 32}
 AnnMTN   <- round(cellStats(Ann_CropTN, 'mean'),1)
 AnnMTNx   <- round(cellStats(Ann_CropTN , 'max'),1)
 AnnMTNn   <- round(cellStats(Ann_CropTN , 'min'),1)
@@ -1515,7 +1515,7 @@ Tair_P <- raster(Mean_CLIM[66])
 names(Tair_P) = "Mean Air Temp."
 Tair_P_Mask <- mask(x = Tair_P, mask = UNIT_X[[u]])
 Tair_P_Crop <- crop(x = Tair_P_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") {Tair_P_Crop <- (Tair_P_Crop * 1.8) + 32}
+if(TUnit == "°F") {Tair_P_Crop <- (Tair_P_Crop * 1.8) + 32}
 Tair_P_M   <- round(cellStats(Tair_P_Crop,  'mean'),1)
 Tair_PName <- names(Tair_P)
 
@@ -1542,7 +1542,7 @@ crs(Tmax_P)  <- crs(EXAMP)
 names(Tmax_P) = "Max Air Temp."
 Tmax_P_Mask <- mask(x = Tmax_P, mask = UNIT_X[[u]])
 Tmax_P_Crop <- crop(x = Tmax_P_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") { Tmax_P_Crop <- (Tmax_P_Crop  * 1.8) + 32}
+if(TUnit == "°F") { Tmax_P_Crop <- (Tmax_P_Crop  * 1.8) + 32}
 Tmax_P_M   <- round(cellStats(Tmax_P_Crop, 'mean'),1)
 Tmax_PName <- names(Tmax_P)
 
@@ -1551,7 +1551,7 @@ crs(Tmin_P)  <- crs(EXAMP)
 names(Tmin_P) = "Mean Air Temp."
 Tmin_P_Mask <- mask(x = Tmin_P, mask = UNIT_X[[u]])
 Tmin_P_Crop <- crop(x = Tmin_P_Mask, y = extent(UNIT_X[[u]]))
-if(TUnit == "?F") { Tmin_P_Crop <- (Tmin_P_Crop  * 1.8) + 32}
+if(TUnit == "°F") { Tmin_P_Crop <- (Tmin_P_Crop  * 1.8) + 32}
 Tmin_P_M   <- round(cellStats(Tmin_P_Crop, 'mean'),1)
 Tmin_PName <- names(Tmin_P)
 
@@ -2761,8 +2761,8 @@ dev.off()
 
 colfunc3 <- colorRampPalette(brewer.pal(9,"Reds"))(100)
 
-if(TUnit == "?C") {BI_brksF<-round(seq(0, 7 , length = 7),0)}
-if(TUnit == "?F") {BI_brksF<-round(seq(0, 9 , length = 9),0)}
+if(TUnit == "°C") {BI_brksF<-round(seq(0, 7 , length = 7),0)}
+if(TUnit == "°F") {BI_brksF<-round(seq(0, 9 , length = 9),0)}
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," DS_Temp2100.png"),width=6.5*dpi,height=4*dpi,res=dpi)
 
