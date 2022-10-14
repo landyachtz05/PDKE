@@ -85,6 +85,12 @@ DLNRimg <- external_img(src = DLNRfile, height = 1, width = 1)
 DPlanfile <- paste0(I_FOLDER,"DPlan.png")
 DPlanimg <- external_img(src = DPlanfile, height = 1, width = 1) 
 
+PIDPfile <- paste0(I_FOLDER,"PIDP.png")
+PIDPimg <- external_img(src = PIDPfile, height = 1, width = 1)
+
+CLfile <- paste0(I_FOLDER,"Clark.png")
+CLimg <- external_img(src = CLfile, height = 1, width = 1)
+
 ############################ Pictures
 
 WRRCfile <- paste0(I_FOLDER,"WRRC-200x200.png")
@@ -600,7 +606,7 @@ fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 ####################  SLID 15 FIVE TYPES OF DROUght######################################
 
 
-TIT_D <- fpar(ftext("5-Types of Drought", FTXTT),fp_p = fp_par(text.align = "center") )
+TIT_D <- fpar(ftext("Five Types of Drought", FTXTT),fp_p = fp_par(text.align = "center") )
 fp_D_M <-  block_list(
   fpar(ftext( "Meteorological Drought.", fp_Fig4)),
   fpar(ftext( "Defined as a lack of rainfall" , fp_Fig3)))
@@ -1200,7 +1206,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
        ph_with(value = format(Sys.Date()), location = ph_location_type(type = "dt"))%>%
     #Add subtitle 
        ph_with(SUB,ph_location_type("subTitle")) %>%
-    # #add logos 
+    # #add logos
     #    ph_with(value = EWCimg, location = ph_location(label = "my_name",
     #                   left = 4.38, top = 6.0, width = 1.4, height = 1.4)) %>%
     #    ph_with(value = CASCimg, location = ph_location(label = "my_name",
@@ -1216,20 +1222,21 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
       #ph_with(S2_TIT, ph_location_type("title",position_left = TRUE)) %>%
       ph_with(fp_HDKE,ph_location_type("body"))%>%
       ph_with(value = "2", location = ph_location_type(type = "sldNum"))%>%
-     #  ph_with(value = EWCimg, location = ph_location(label = "my_name",
-     #                  left = 1.1, top = 6.1, width = 1.4, height = 1.4)) %>%
-     #  ph_with(value = CASCimg, location = ph_location(label = "my_name",
-     #                  left = 2.6, top = 6.3, width = 1, height = 1)) %>%
-     #  ph_with(value = FSimg, location = ph_location(label = "my_name",
-     #                  left = 3.8, top = 6.3, width = 1, height = 1)) %>%
-     #  # ph_with(value = RISAimg, location = ph_location(label = "my_name",
-     #  #                 left = 4.2, top = 6.3, width = 1.4, height = 1)) %>%
-     #  ph_with(value = WRRCimg, location = ph_location(label = "my_name",
-     #                  left = 5, top = 6.3, width = 1.1, height = 1)) %>%
-     #  ph_with(value = NOAAimg, location = ph_location(label = "my_name",
-     #                  left = 6.3, top = 6.3, width = 1, height = 1)) %>%
-     #  ph_with(value = UHimg, location = ph_location(label = "my_name",
-     #                  left = 7.5, top = 6.3, width = 1, height = 1)) %>%
+      # Logos
+      # ph_with(value = EWCimg, location = ph_location(label = "my_name",
+      #                 left = 1.1, top = 6.1, width = 1.4, height = 1.4)) %>%
+      # ph_with(value = CASCimg, location = ph_location(label = "my_name",
+      #                 left = 2.6, top = 6.3, width = 1, height = 1)) %>%
+      # ph_with(value = FSimg, location = ph_location(label = "my_name",
+      #                 left = 3.8, top = 6.3, width = 1, height = 1)) %>%
+      # # ph_with(value = RISAimg, location = ph_location(label = "my_name",
+      # #                 left = 4.2, top = 6.3, width = 1.4, height = 1)) %>%
+      # ph_with(value = WRRCimg, location = ph_location(label = "my_name",
+      #                 left = 5, top = 6.3, width = 1.1, height = 1)) %>%
+      # ph_with(value = NOAAimg, location = ph_location(label = "my_name",
+      #                 left = 6.3, top = 6.3, width = 1, height = 1)) %>%
+      # ph_with(value = UHimg, location = ph_location(label = "my_name",
+      #                 left = 7.5, top = 6.3, width = 1, height = 1)) %>%
      ph_with(value = PDKE_L, location = ph_location(label = "my_name",
                       left = 0, top = 0, width = 10, height = 2))%>%
     
@@ -1366,9 +1373,9 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(fp_Part3,ph_location_type("body"))%>%
   ph_with(value = "14", location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = Droughtimg, location = ph_location(label = "my_name",
-                                                 left = 2.5, top = 4.5, width = 2, height = 2)) %>%
+                                                 left = 1.9, top = 4.5, width = 3, height = 2)) %>%
   ph_with(value = Fireimg, location = ph_location(label = "my_name",
-                                                 left = 5.5, top = 4.5, width = 2, height = 2)) %>%
+                                                 left = 5.45, top = 4.5, width = 3, height = 2)) %>%
     
 ###  Slide 15    
     
@@ -1568,36 +1575,34 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(value = "26", location = ph_location_type(type = "sldNum"))%>%
     ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
                                                  left = 7.3, top = 1.9, width = 2.3, height = 2.83))%>%
-  
- 
+
     #Slide 27 #Acknowledgements
     add_slide("Title and Content","Office Theme") %>%
     ph_with(S26_TIT, ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_Ack, ph_location_type("body"))%>%
     ph_with(value = "27", location = ph_location_type(type = "sldNum"))%>%
     ph_with(value = EWCimg, location = ph_location(label = "my_name",
-                                                   left = 0.85, top = 3.5, width = 1.4, height = 1.4)) %>%
+                                                   left = 0.05, top = 3.5, width = 1.4, height = 1.4)) %>%
     ph_with(value = CASCimg, location = ph_location(label = "my_name",
-                                                    left = 2.25, top = 3.7, width = 1, height = 1)) %>%
+                                                    left = 1.35, top = 3.7, width = 1, height = 1)) %>%
     ph_with(value = FSimg, location = ph_location(label = "my_name",
-                                                  left = 3.35, top = 3.7, width = 1, height = 1)) %>%
-  
-    # Replace RISA with PIDP
-    # ph_with(value = RISAimg, location = ph_location(label = "my_name",
-    #                                                 left = 4.45, top = 3.7, width = 1.4, height = 1)) %>%
+                                                  left = 2.4, top = 3.7, width = 1.1, height = 1)) %>%
+    ph_with(value = PIDPimg, location = ph_location(label = "my_name",
+                                                    left = 3.5, top = 3.7, width = 1.6, height = 1)) %>%
     ph_with(value = WRRCimg, location = ph_location(label = "my_name",
-                                                    left = 5.9, top = 3.7, width = 1.1, height = 1)) %>%
+                                                    left = 5.1, top = 3.7, width = 1.05, height = 1)) %>%
     ph_with(value = NOAAimg, location = ph_location(label = "my_name",
-                                                    left = 7.05, top = 3.7, width = 1, height = 1)) %>%
+                                                    left = 6.3, top = 3.7, width = 1, height = 1)) %>%
     ph_with(value = UHimg, location = ph_location(label = "my_name",
-                                                  left = 8.15, top = 3.7, width = 1, height = 1)) %>%
+                                                  left = 7.4, top = 3.7, width = 1, height = 1)) %>%
+    ph_with(value = CLimg, location = ph_location(label = "my_name",
+                                                  left = 8.5, top = 3.7, width = 1, height = 1)) %>%
     ph_with(value = CITA, location = ph_location(label = "my_name",
                                                    left = 0.85, top = 5.1, width = 8, height = 1.4))%>%
     ph_with(value = Draft, location = ph_location(label = "my_name",
                                                  left = 0.85, top = 6.6, width = 8, height = 0.75))%>%
     ph_with(value = PDKE_S, location = ph_location(label = "my_name",
                                                 left = 0, top = 0, width = 1.5, height = 1.5))%>%
- 
   
   
     #Slide 28  ########## References 
@@ -1664,7 +1669,7 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 2, top = 1, width = 6, height = 6))%>%
 
   
-  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio",RFUnit2,".pptx"))
+  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio.pptx"))
   
   
 
