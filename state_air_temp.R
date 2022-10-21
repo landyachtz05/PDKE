@@ -64,7 +64,59 @@ table
 
 # write to csv
 setwd("E:/PDKE/CCVD/air_temp")
-write.csv(table, "hawaii_airtemp.csv")
+write.csv(table, "kahikinui_airtemp.csv")
+
+
+################################################################################
+
+##### Monthly air temp for whole time series
+
+setwd("E:/PDKE/CCVD/air_temp")
+
+dat<-read.csv("kahikinui_airtemp.csv")
+
+
+dat<-table
+
+head(dat)
+tail(dat)
+
+# convert all celcius to farenheit
+dat$min<-(dat$min*(9/5)) + 32
+dat$max<-(dat$max*(9/5)) + 32
+dat$mean<-(dat$mean * (9/5)) + 32
+
+# date column
+dat$date<-as.Date(paste0(dat$year,"-",dat$month,"-01"))
+
+##### add annual mean values (from code below this one)
+dat2<-merge(dat,dat.y[,c("year","mean")], by="year", all.x=T)
+head(dat2, 20)
+
+# set y-axis limits
+ylow<-min(dat2$mean.x)*.95
+yhi<-max(dat2$mean.x)*1.0005
+
+# set slope
+slope<-formatC((coef(lm(dat2$mean.x~dat2$date))[2]), format="e", digits=2)
+slope
+
+ggplot(dat2, aes(x=date,y=mean.x)) +
+  geom_line(color="grey60") +
+  geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
+  geom_smooth(method=lm, se=F, color="black") +
+  stat_cor(method="pearson", label.x=as.Date("2012-01-01"), label.y=58) +
+  scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
+  ylim(ylow,yhi) +
+  labs(title="Monthly Air Temperature",
+       y="Temperature (F)", x="") +
+  geom_hline(yintercept=0) +
+  annotate("text", x=as.Date("2015-07-01"), y=56.8, 
+           label=paste0("Slope = ",slope)) +
+  theme(panel.background=element_rect(fill=NA, color="black"),
+        panel.grid.major=element_line(color="grey90"),
+        panel.grid.minor=element_blank())
+
 
 
 ################################################################################
@@ -76,32 +128,48 @@ library(ggpubr)
 
 setwd("E:/PDKE/CCVD/air_temp")
 
-dat<-read.csv("hawaii_airtemp.csv")
+dat<-read.csv("kahikinui_airtemp.csv")
 
 head(dat)
 tail(dat)
 
-# convert celcius to farenheit
-dat$meanF<-(dat$mean * (9/5)) + 32
+# convert all celcius to farenheit
+dat$min<-(dat$min*(9/5)) + 32
+dat$max<-(dat$max*(9/5)) + 32
+dat$mean<-(dat$mean * (9/5)) + 32
 
 # aggregate monthly to annual air temp
-dat.y<-aggregate(meanF ~ year, dat, mean)
-dat.y$meanF<-round(dat.y$meanF, digits=2)
+dat.y<-aggregate(mean ~ year, dat, mean)
+dat.y$mean<-round(dat.y$mean, digit=2)
+dat.y$meanmin<-round((aggregate(mean ~ year,dat, min))$mean, digits=2)
+dat.y$meanmax<-round((aggregate(mean ~ year,dat, max))$mean, digits=2)
+dat.y$min<-round((aggregate(min ~ year, dat, min))$min, digits=2)
+dat.y$max<-round((aggregate(max ~ year, dat, max))$max, digits=2)
+
+
+
 head(dat.y)
-summary(dat.y$mean)
 
 # make date column
 dat.y$date<-as.Date(paste0(dat.y$year,"-01-01"))
 
-ggplot(dat.y, aes(x=date, y=meanF)) +
-  geom_line(size=1.2, color="red") +
-  geom_smooth(method=lm, se=F, size=1.2) +
-  stat_cor(method="pearson", label.x=as.Date("2011-01-01"), label.y=63.5) +
-  scale_x_date(date_breaks = "2 years", labels = date_format(format="%Y")) +
-  theme_bw() +
-  labs(title="Annual Air Temperature",
-       y = "Temperature (F)", x = "Year")
+slope<-formatC((coef(lm(dat.y$mean~dat.y$date))[2]), format="e", digits=2)
+slope
 
+ggplot(dat.y, aes(x=date, y=mean)) +
+  geom_line(size=1.2, color="orange") +
+  geom_smooth(method=lm, se=F, size=1, color="black") +
+  stat_cor(method="pearson", label.x=as.Date("1991-01-01"), label.y=58) +
+  scale_x_date(date_breaks = "2 years", labels = date_format(format="%Y")) +
+  labs(title="Annual Air Temperature and Extremes",
+       y = "Temperature (F)", x = "Year") +
+  geom_line(aes(x=date,y=min), size=1.2, color="blue") +
+  geom_line(aes(x=date,y=max), size=1.2, color="red") +
+  annotate("text", x=as.Date("1994-07-01"), y=54, 
+           label=paste0("Slope = ",slope)) +
+  theme(panel.background=element_rect(fill=NA, color="black"),
+        panel.grid.major=element_line(color="grey90"),
+        panel.grid.minor=element_blank())
 
 ################################################################################
 ##### Monthly averages and deviation from those normals #####
@@ -110,7 +178,7 @@ ggplot(dat.y, aes(x=date, y=meanF)) +
 dat2<-dat
 head(dat2)
 
-month.avg<-aggregate(meanF ~ month, dat2, mean)
+month.avg<-aggregate(mean ~ month, dat2, mean)
 month.avg
 
 # make month name column
