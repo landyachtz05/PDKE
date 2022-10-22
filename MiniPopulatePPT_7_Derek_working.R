@@ -159,7 +159,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-2
+f<-4
 
 
 
@@ -521,7 +521,7 @@ fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17)
 fp_InterAn <- fpar(ftext(InterAn, fp_Tx))
 
 ENSOfile <- paste0(I_FOLDER,"ENSO_New.png")
-ENSO2img <- external_img(src = ENSOfile, height = 1,width = 1) 
+ENSO2img <- external_img(src = ENSOfile, height = 1.2,width = 1.2) 
 
 
 ################ Slide 12 ENSO vs Rainfall 
@@ -559,7 +559,6 @@ TAB2 <- block_list(
   fpar(ftext("Table 2. ENSO phases and abbreviations corresponding to Figure 8.", fp_Fig)))
 
 
-
 #################### Slide 13 ###############################
 
 S13_TIT<- block_list(
@@ -583,8 +582,29 @@ FIG_9 <- block_list(
                      "p is a measure of the statistical significance."), fp_Fig2)))
 
 
+#################### Slide 14 (NEW) Air Temperature Monthly and Annual #########################
+S14_TIT<- block_list(
+  fpar(ftext("Trends in Air Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
-################ Slide 14 PART 3 Drought and Fire Occurrence ###############
+Trend <- paste0("Linear trends (black line) in average monthly (gray) and annual (orange) air temperature are calculated over a 28-year record at ",SNameF,". A positive slope value indicates an increase in temperature over time.
+
+The red line represents the maximum monthly temperature reached within each year, and the blue line represents the minimum.")
+
+fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
+fp_Trend <- fpar(ftext(Trend, fp_Tx))
+
+Trendfile1 <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_monthly_airtemp.png")
+Trendimg1 <- external_img(src = Trendfile1, height = 1,width = 2)
+
+Trendfile2 <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_annual_airtemp.png")
+Trendimg2 <- external_img(src = Trendfile2, height = 1,width = 2)
+
+FIG_10_11 <- block_list(
+  fpar(ftext(paste0("Figures 10 & 11. 28-year (1990 – 2018) air temperature time series at ",SNameF," with linear trend. R2 is the strength of the relationship. When the p-value is less than 0.05, the trend is determined to be statistically significant."), fp_Fig2)))
+
+
+
+################ Slide 15 PART 3 Drought and Fire Occurrence ###############
 #Today, 
 #increased wildland fire activity, 
 #and damage to terrestrial and aquatic habitats - all of which can contribute to substantial economic losses# 
@@ -603,7 +623,7 @@ fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 
 
 
-####################  SLID 15 FIVE TYPES OF DROUght######################################
+####################  SLID 16 FIVE TYPES OF DROUght######################################
 
 
 TIT_D <- fpar(ftext("Five Types of Drought", FTXTT),fp_p = fp_par(text.align = "center") )
@@ -630,7 +650,7 @@ fp_D_S<-  block_list(
 
 
 
-#################### Slide 16 ###############################
+#################### Slide 17 ###############################
 
 S15_TIT<- block_list(
   fpar(ftext("Identifying Droughts Using the", FTXTT),fp_p = fp_par(text.align = "center")),
@@ -649,14 +669,14 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   SPIfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," SPI.png")
   SPIimg <- external_img(src = SPIfile, height = 2,width = 2) 
 
-  FIG_10 <- block_list(
-   fpar(ftext(paste0("Figure 10. 100-year (1920-2019) SPI-12 time series at ", 
+  FIG_12 <- block_list(
+   fpar(ftext(paste0("Figure 12. 100-year (1920-2019) SPI-12 time series at ", 
                       SNameF ," positive SPI (blue) indicate wet periods, negative ", 
                      "SPI (red) indicate dry periods."), fp_Fig)))
 
 
   
-  #################### Slide 17 ###############################
+  #################### Slide 18 ###############################
   
   S16_TIT<- block_list(
     fpar(ftext("A 100-Year History of Drought", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -730,12 +750,12 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   DHistfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"Drought_History.png")
   DHistimg <- external_img(src = DHistfile, height = 2,width = 4) 
 
-  FIG_11 <- block_list(
-    fpar(ftext(paste0("Figure 11. 100-year (1920-2019) SPI time series (reversed axis) at ", SNameF ,
+  FIG_13 <- block_list(
+    fpar(ftext(paste0("Figure 13. 100-year (1920-2019) SPI time series (reversed axis) at ", SNameF ,
                        ". Dashed lines show, moderate (yellow), severe (red), and extreme (dark red), drought thresholds."), fp_Fig)))
   
   
-  #################### Slide 18 ###############################
+  #################### Slide 19 ###############################
   
   
   DT_TIT<- block_list(
@@ -752,7 +772,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   #See Slide 10
   
   
-  #################### Slide 19 ############################### 
+  #################### Slide 20 ############################### 
   
   SPICNT<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought Count.csv"),sep=",")
   
@@ -765,10 +785,10 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   SPI_12_SMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"Drought_HistoryS_12.png")
   SPI12_SMimg <- external_img(src = SPI_12_SMfile, height = 2,width = 4)
   
-  FIG_12 <- block_list(
-    fpar(ftext(paste0("Figure 12. 30-year (1990-2019) SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
-  FIG_13 <- block_list(
-    fpar(ftext(paste0("Figure 13. 30-year (1990-2019) SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+  FIG_14 <- block_list(
+    fpar(ftext(paste0("Figure 14. 30-year (1990-2019) SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+  FIG_15 <- block_list(
+    fpar(ftext(paste0("Figure 15. 30-year (1990-2019) SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
   SPI3v12<- block_list(
     fpar(ftext(paste0("The SPI-3 provides a comparison of the precipitation over a specific 3-month period and reflects short- and medium-term moisture ", 
                        "conditions over the 30-year period (1990-2019). A total of ", SPICNT[1,3], " droughts were observed at ",
@@ -776,7 +796,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                        "A relatively normal 3-month period could occur in the middle of a longer-term drought that would only be visible at longer time scales. Looking at longer time scales ",
                        "would prevent a misinterpretation that a drought might be over."), fp_Txa)))
 
-  #################### Slide 20 ###############################
+  #################### Slide 21 ###############################
   
   S18_TIT<- block_list(
     fpar(ftext(paste("Fire Occurrence",ISL), FTXTT),fp_p = fp_par(text.align = "center")))
@@ -795,11 +815,11 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   FireMimg <- external_img(src = FireMfile, height = 4,width = 4) 
   
   
-  FIG_14 <- block_list(
-    fpar(ftext(paste0 ("Figure 14. The map shows wildfires that have occurred on the island of ", ISL, " between 1999 and 2019.") , fp_Fig)))
+  FIG_16 <- block_list(
+    fpar(ftext(paste0 ("Figure 16. The map shows wildfires that have occurred on the island of ", ISL, " between 1999 and 2019.") , fp_Fig)))
   
   
-  ################ Slide 21 PART 4 Downscaling ###############
+  ################ Slide 22 PART 4 Downscaling ###############
   
   P4_TIT<- block_list(
     fpar(ftext("Part 4: Future Climate", FTXTT),fp_p = fp_par(text.align = "center")),
@@ -825,7 +845,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext("and both scenarios will be shown here.", fp_NM3)))
    
   
-  #################### Slide 22 ###############################
+  #################### Slide 23 ###############################
   
   S20_TIT<- block_list(
     fpar(ftext("Average Rainfall Change 2100", FTXTT),fp_p = fp_par(text.align = "center")),
@@ -881,14 +901,14 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   RF10085file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_RF_8.5.png")
   RF10085img <- external_img(src = RF10085file, height = 4,width = 4) 
   
-  FIG_15<- block_list(
-    fpar(ftext(paste0("Figure 15. Downscaled future rainfall projections (% Change; ", 
+  FIG_17<- block_list(
+    fpar(ftext(paste0("Figure 17. Downscaled future rainfall projections (% Change; ", 
                       "(2100) at ",SNameF,", Dynamical Downscaling (DyDS), ",
                       "Statistical Downscaling (StDs), for annual (ANN), dry season (DRY) ", 
                       "and wet season (WET)."), fp_Fig)))
 
   
-##################### Slide 23 #################################################
+##################### Slide 24 #################################################
   
   S21_TIT<- block_list(
     fpar(ftext("Average Rainfall Change", FTXTT),fp_p = fp_par(text.align = "center")),
@@ -938,15 +958,15 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   RF40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDsRF2040.png")
   RF40img <- external_img(src = RF40file) 
   
-  FIG_16<- block_list(
-           fpar(ftext(paste0("Figure 16. Downscaled future rainfall projections (% Change; ",
+  FIG_18<- block_list(
+           fpar(ftext(paste0("Figure 18. Downscaled future rainfall projections (% Change; ",
                              "2040-2070) at ",SNameF,", for the Statistical Downscaling (StDs) ",
                              "approach, for annual (ANN), dry season (DRY), and wet season ",
                              "(WET) for RCP 4.5 (left) and RCP 8.5 (right)."), fp_Fig)))
 
   
   
-#################### Slide 24 Temperature 2100
+#################### Slide 25 Temperature 2100
   
   S22_TIT<- block_list(
     fpar(ftext("End-of-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -983,13 +1003,13 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   TA100file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_Temp2100.png")
   TA100img <- external_img(src = TA100file) 
   
-  FIG_17 <- block_list(
-    fpar(ftext(paste0("Figure 17. Downscaled projected change in mean temperature ",  
+  FIG_19 <- block_list(
+    fpar(ftext(paste0("Figure 19. Downscaled projected change in mean temperature ",  
                       "(Year 2100) at ",SNameF,", Dynamical Downscaling (DyDs), ",  
                       "Statistical Downscaling (StDs)."), fp_Fig)))
   
   
-#################### Slide 25 Temperature 2040
+#################### Slide 26 Temperature 2040
   
   S23_TIT<- block_list(
     fpar(ftext("Mid-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -1022,13 +1042,13 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   TA40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDs_Temp2040.png")
   TA40img <- external_img(src = TA40file) 
   
-  FIG_18 <- block_list(
-    fpar(ftext(paste0("Figure 18. Downscaled Future temperature projections ",
+  FIG_20 <- block_list(
+    fpar(ftext(paste0("Figure 20. Downscaled Future temperature projections ",
                       "(2040-2070) at ",SNameF," for the Statistical ", 
                       "Downscaling (StDs) approach."), fp_Fig)))
   
   
-  ################ Slide 26 Summary and Conclusions ###############
+  ################ Slide 27 Summary and Conclusions ###############
   
   
   S24_TIT<- block_list(
@@ -1058,7 +1078,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                  fp_Summary <- fpar(ftext(Summary, fp_Tx))
 
  
-   ################ Slide 27 Resource PAGE ############### 
+   ################ Slide 28 Resource PAGE ############### 
                  
                  #Note See if you can make clickable Links 
                  
@@ -1091,7 +1111,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                  #ph_hyperlink(doc,
                  #             ph_label = "Content Placeholder 2", href = "https://cran.r-project.org")
                  
-  ################ Slide 28 Acknowledgements ###############
+  ################ Slide 29 Acknowledgements ###############
                 
                  
                  S26_TIT<- block_list(
@@ -1121,7 +1141,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   Draft <- block_list(
     fpar(ftext       ("For the most up-to-date version of this portfolio contact Ryan Longman: rlongman@Hawai'i.edu for more information.", fp_CITA3)))
 
-   ############## Slide 29 Works Cited ###########
+   ############## Slide 30 Works Cited ###########
   
   S27_TIT<- block_list(
     fpar(ftext("Works Cited", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -1131,7 +1151,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
   
   
-  ############### Slide 30 ANNEX I ###############
+  ############### Slide 31 ANNEX I ###############
   
   
   RF100<- paste0("The 100-year monthly rainfall dataset was drawn from two unique gridded products. We used data from Frazier et al. (2016) ",
@@ -1152,7 +1172,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
 
   
-    ################ Slide 31 ANNEX II #############
+    ################ Slide 32 ANNEX II #############
   
 
   DownA<- paste0("Two types of downscaling products were used in this analysis. Here we explain some of the nuances between the two. ",
@@ -1169,7 +1189,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
  
   
-  ################ Slide 32 ANNEX III #############
+  ################ Slide 33 ANNEX III #############
   
   Roadfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Forest_Roads.png")
   
@@ -1329,7 +1349,7 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(value =   ACLIM_T, location = ph_location(label = "my_name",
                                                       left = 0.3, top = 1.8, width = 7, height = 3.5))%>%
 
-    
+
 #Slide 11   
 add_slide("Two Content","Office Theme") %>%
   ph_with(P2_TIT,ph_location_type("title",position_left = TRUE)) %>%
@@ -1337,11 +1357,9 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = "11", location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = "https://www.climate.gov/enso", location = ph_location_type(type = "dt"))%>%
   ph_with(value = ENSO2img, location = ph_location(label = "my_name",
-                                           left = 5.5, top = 2, width = 3, height = 4)) %>%
-  
+                                           left = 5.5, top = 2.2, width = 3.3, height = 4.3)) %>%
+
     
-    
-  
   #Slide 12 
 add_slide("Two Content","Office Theme") %>%
   ph_with(EN_TIT,ph_location_type("title")) %>%
@@ -1366,8 +1384,19 @@ add_slide("Two Content","Office Theme") %>%
                                                 left = 5.3, top = 6.4, width = 4.3, height = 1.4))%>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (In Prep); See Annex I", location = ph_location_type(type = "dt"))%>%
  
-  
-#Slide 14 #Part 3
+
+  #Slide 14 (NEW - Air Temp)  
+  add_slide("Two Content","Office Theme") %>%
+  ph_with(S14_TIT,         ph_location_type("title")) %>%
+  ph_with(fp_Trend,        ph_location(label = "my_name", left = 0.5, top = 1.5, width = 4.2, height = 5)) %>%
+  ph_with(value = Trendimg1, location = ph_location(label = "my_name", left = 4.8, top = 1.5, width = 4.8, height = 2.4)) %>%
+  ph_with(value = Trendimg2, location = ph_location(label = "my_name", left = 4.8, top = 3.9, width = 4.8, height = 2.4)) %>%
+    
+  ph_with(value = FIG_10_11, location = ph_location(label = "my_name", 
+                                                left = 5.3, top = 6.1, width = 4.3, height = 1.4))%>%
+
+    
+#Slide 15 #Part 3
   add_slide("Title and Content","Office Theme") %>%
   ph_with(P3_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_Part3,ph_location_type("body"))%>%
@@ -1377,7 +1406,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = Fireimg, location = ph_location(label = "my_name",
                                                  left = 5.45, top = 4.5, width = 3, height = 2)) %>%
     
-###  Slide 15    
+###  Slide 16    
     
     add_slide("Title and Content","Office Theme") %>%
     ph_with(TIT_D,ph_location_type("title",position_left = TRUE)) %>%
@@ -1407,27 +1436,27 @@ add_slide("Two Content","Office Theme") %>%
   
   
   
-  #Slide 16 
+  #Slide 17 
   add_slide("Two Content","Office Theme") %>%
   ph_with(S15_TIT,       ph_location_type("title")) %>%
   ph_with(fp_SPI,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = "16", location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = SPIimg, ph_location_type("body",position_right = TRUE)) %>%
-  ph_with(value = FIG_10, location = ph_location(label = "my_name",
+  ph_with(value = FIG_12, location = ph_location(label = "my_name",
                                                 left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
   ph_with(value = SPIimg, location = ph_location(label = "my_name",
                                                 left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (In Prep)", location = ph_location_type(type = "dt"))%>%
 
  
-  #Slide 17
+  #Slide 18
 
   add_slide("Two Content","Office Theme") %>%
   ph_with(S16_TIT,         ph_location_type("title")) %>%
   ph_with(fp_DHist,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = "17", location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = DHistimg, ph_location_type("body",position_right = TRUE)) %>%
-  ph_with(value = FIG_11, location = ph_location(label = "my_name",
+  ph_with(value = FIG_13, location = ph_location(label = "my_name",
                              left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
   ph_with(value = DHistimg, location = ph_location(label = "my_name",
                              left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
@@ -1435,7 +1464,7 @@ add_slide("Two Content","Office Theme") %>%
  
     
     
-  #   #Slide 18 #Drought Table (Derek moved to annex)
+  #   #Slide 19 #Drought Table (Derek moved to annex)
   # 
   #   
   # mypowerpoint <- read_pptx() %>%
@@ -1469,7 +1498,7 @@ add_slide("Two Content","Office Theme") %>%
   # 
   # 
     
-    #Slide 18
+    #Slide 19
     add_slide("Title and Content","Office Theme") %>%
     ph_with(SP_TIT,ph_location_type("title",position_left = TRUE)) %>%
     #ph_with(value = "Lucas et al. (In Review)", location = ph_location_type(type = "dt"))%>%
@@ -1478,27 +1507,27 @@ add_slide("Two Content","Office Theme") %>%
                                                        left = 0.4, top = 1.8, width = 4.25, height = 2.62)) %>%
     ph_with(value = SPI12_SMimg , location = ph_location(label = "my_name",
                                                          left = 5.1, top = 1.8, width = 4.25, height = 2.62)) %>%
-    ph_with(value = FIG_12, location = ph_location(label = "my_name",
+    ph_with(value = FIG_14, location = ph_location(label = "my_name",
                                                    left = 0.5, top = 4.35, width = 4, height = 0.5)) %>%
-    ph_with(value = FIG_13, location = ph_location(label = "my_name",
+    ph_with(value = FIG_15, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 4.35, width = 4, height = 0.5)) %>%
     ph_with(value = SPI3v12, location = ph_location(label = "my_name",
                                                     left = 0.2, top = 4.85, width = 9.68, height = 2.5)) %>%
     
     
     
-   #Slide 19
+   #Slide 20
    add_slide("Two Content","Office Theme") %>%
    ph_with(S18_TIT,  ph_location_type("title")) %>%
    ph_with(fp_Fire,        ph_location_type("body",position_right = FALSE)) %>%
    ph_with(value = "19", location = ph_location_type(type = "sldNum")) %>%
    ph_with(value = FireMimg, ph_location_type("body",position_right = TRUE)) %>%
-   ph_with(value = FIG_14, location = ph_location(label = "my_name",
+   ph_with(value = FIG_16, location = ph_location(label = "my_name",
                                                  left = 5.3, top = 6.1, width = 4.3, height = 1.4))%>%
    ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (In Review)", location = ph_location_type(type = "dt"))%>% 
   
 
-   #Slide 20 #Part 4
+   #Slide 21 #Part 4
    add_slide("Title and Content","Office Theme") %>%
    ph_with(P4_TIT, ph_location_type("title",position_left = TRUE)) %>%
    ph_with(fp_Part4,ph_location_type("body"))%>%
@@ -1510,19 +1539,20 @@ add_slide("Two Content","Office Theme") %>%
                                                      left = 0.5, top = 4.5, width = 6.3, height = 2)) %>%
   
   
-  #Slide 21
+  #Slide 22
   add_slide("Two Content","Office Theme") %>%
   ph_with(S20_TIT,   ph_location_type("title")) %>%
   ph_with(RF_Down,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = "21", location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = RF10085img, ph_location_type("body",position_right = TRUE)) %>%
-  ph_with(value = FIG_15, location = ph_location(label = "my_name",
+  ph_with(value = FIG_17, location = ph_location(label = "my_name",
                                                  left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Elison Timm et al., 2015; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = RF10085img, location = ph_location(label = "my_name",
                                                    left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
   
-    #Slide 22
+   
+    #Slide 23
     add_slide("Two Content","Office Theme") %>%
     ph_with(S21_TIT,         ph_location_type("title")) %>%
     ph_with(RF_Down4,        ph_location_type("body",position_right = FALSE)) %>%
@@ -1536,39 +1566,39 @@ add_slide("Two Content","Office Theme") %>%
     
     
     
-    #Slide 23
+    #Slide 24
     add_slide("Two Content","Office Theme") %>%
     ph_with(S22_TIT,       ph_location_type("title")) %>%
     ph_with(TA_Down,        ph_location_type("body",position_right = FALSE)) %>%
     ph_with(value = "23", location = ph_location_type(type = "sldNum")) %>%
     #ph_with(value = TA100img, ph_location_type("body",position_right = TRUE)) %>%
-    ph_with(value = FIG_17, location = ph_location(label = "my_name",
+    ph_with(value = FIG_19, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
     ph_with(my_pres, value = "Elison Timm 2017; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
     ph_with(value = TA100img, location = ph_location(label = "my_name",
                                                        left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
     
-    #Slide 24
+    #Slide 25
     add_slide("Two Content","Office Theme") %>%
     ph_with(S23_TIT,         ph_location_type("title")) %>%
     ph_with(TA_Down4,        ph_location_type("body",position_right = FALSE)) %>%
     ph_with(value = "24", location = ph_location_type(type = "sldNum")) %>%
     #ph_with(value = TA40img, ph_location_type("body",position_right = TRUE)) %>%
-    ph_with(value = FIG_18, location = ph_location(label = "my_name",
+    ph_with(value = FIG_20, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
     ph_with(my_pres, value = "Elison Timm 2017; See Annex II", location = ph_location_type(type = "dt"))%>% 
     ph_with(value = TA40img, location = ph_location(label = "my_name",
                                                      left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
     
     
-    #Slide 25 #Summary
+    #Slide 26 #Summary
     add_slide("Title and Content","Office Theme") %>%
     ph_with(S24_TIT,   ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_Summary,ph_location_type("body"))%>%
     #ph_with(value = "25", location = ph_location_type(type = "sldNum"))%>%
  
   
-    #Slide 26#Respirces 
+    #Slide 27#Respirces 
     add_slide("Title and Content","Office Theme") %>%
     ph_with(S25_TIT, ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_RES, ph_location_type("body"))%>%
@@ -1576,7 +1606,7 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
                                                  left = 7.3, top = 1.9, width = 2.3, height = 2.83))%>%
 
-    #Slide 27 #Acknowledgements
+    #Slide 28 #Acknowledgements
     add_slide("Title and Content","Office Theme") %>%
     ph_with(S26_TIT, ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_Ack, ph_location_type("body"))%>%
@@ -1605,7 +1635,7 @@ add_slide("Two Content","Office Theme") %>%
                                                 left = 0, top = 0, width = 1.5, height = 1.5))%>%
   
   
-    #Slide 28  ########## References 
+    #Slide 29  ########## References 
 
     add_slide("Title Only","Office Theme") %>%
     ph_with(S27_TIT,  ph_location_type("title",position_left = TRUE)) %>%
@@ -1615,7 +1645,7 @@ add_slide("Two Content","Office Theme") %>%
     
     
     
-    #Slide 29  ############## Annex I
+    #Slide 30  ############## Annex I
     
     add_slide("Two Content","Office Theme") %>%
     ph_with("Annex I: 100-Year Rainfall ",ph_location_type("title")) %>%
@@ -1627,7 +1657,7 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(my_pres, value = "Frazier et al., 2016; Lucas et al., (In Review)", location = ph_location_type(type = "dt"))%>% 
     
     
-    #Slide 30  ############## Annex II
+    #Slide 31  ############## Annex II
     
     add_slide("Title and Content","Office Theme") %>%
     ph_with("Annex II: Climate Downscaling in Hawaii ",ph_location_type("title")) %>%
@@ -1636,7 +1666,7 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(value = Downimg, location = ph_location(label = "my_name",
                                                     left = 3.5, top = 5, width = 3, height = 2)) %>%
   
-    #Slide 31 ############### Annex III
+    #Slide 32 ############### Annex III
 
     add_slide("Title and Content","Office Theme") %>%
     ph_with("Annex III: Drought Events (1920 - 2019)",ph_location_type("title")) %>%
@@ -1662,14 +1692,14 @@ add_slide("Two Content","Office Theme") %>%
                                        left = 7.85, top = 2.5, width = 2, height = 4)) else .} %>%
 
   
-  #Slide 32 (or whatever the last slide is)  ############## PDKE 
+  #Slide 33 (or whatever the last slide is)  ############## PDKE 
   
   add_slide("Title and Content","Office Theme") %>%
   ph_with(value = PDKE_S, location = ph_location(label = "my_name",
                                                  left = 2, top = 1, width = 6, height = 6))%>%
 
   
-  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio.pptx"))
+  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_testing.pptx"))
   
   
 
