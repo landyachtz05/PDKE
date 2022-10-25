@@ -1,9 +1,9 @@
 ###### Drought Bar Graphs ######
 
 # use the "Drought History" spreadsheet created in MINI_Phase2
-setwd("E:/PDKE/CCVD/MINI_Phase2/Waimea Valley Watershed_mixed_data/")
+setwd("E:/PDKE/CCVD/MINI_Phase2/Hawaiian Homelands - Kahikinui/")
 
-dat<-read.csv("Waimea Valley Watershed Drought History.csv")
+dat<-read.csv("Hawaiian Homelands - Kahikinui Drought History.csv")
 dat
 
 # make dataframe with one year per row and duration, intensity and mag columns
@@ -28,8 +28,8 @@ dat2[which(dat2$year == sy),]$mag<-t$Magnitude
 
 }
 
-dat2
 dat2$date<-as.Date(paste0(dat2$year,"-01-01"))
+dat2
 
 ##### Plots
 library(ggplot2)

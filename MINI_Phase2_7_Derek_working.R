@@ -29,6 +29,7 @@ library(parallel)
 library(plyr)
 library(SPEI)
 library(sf)
+library(ggpubr)
 
 
 ##########   This code will the generate the inputs for a CCVD portfolio
@@ -112,10 +113,10 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NPALL@data$UNIT_CODE
 # HALE <- NPALL[NPALL@data$UNIT_CODE == "HALE",]  #"Haleakala National Park"
 
-#Waimea Valley
-NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
-HALE <- NP_ALL
-HALE@data
+# #Waimea Valley
+# NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
+# HALE <- NP_ALL
+# HALE@data
 
 #Kahikinui HHL, Maui
 NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
@@ -4544,7 +4545,7 @@ for (i in years) {
 table
 
 # write to csv
-write.csv(table, paste0(RFOLDER,UNIT_N[u],"_monthly_airtemp.csv"))
+write.csv(table, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp.csv"))
 
 ###### Monthly air temperature time series
 dat<-table
