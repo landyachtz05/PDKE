@@ -508,6 +508,9 @@ for (x in 1:nrow(LC_ct2)) {
   
 LC_ct2
 
+# write to table
+write.csv(LC_ct2, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Landcover.csv"),row.names = F)
+
 # set class names as leveled factors
 LC_ct2$class_name<-factor(LC_ct2$class_name, 
                           levels=c("Developed","Cropland","Grass/Shrub","Tree Cover",
@@ -520,25 +523,27 @@ LC3<-paste0(LC_ct2[3,]$class_name,"(",LC_ct2[3,]$pct,")")
 
 ### Plot Bar Graph
 # set bargraph ylim
-ylim<-max(LC_ct2$acres) + (max(LC_ct2$acres)*0.1)
+ylim<-max(LC_ct2$acres) + (max(LC_ct2$acres)*0.15)
 
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LC_barchart.png"),width=5*dpi,height=5*dpi,res=dpi) 
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LC_barchart.png"),width=5*dpi,height=3*dpi,res=dpi) 
 
 print(ggplot(LC_ct2, aes(x=class_name, y=acres, fill=class_name)) +
   geom_col(width=0.9, position = position_dodge(0.7), color="black") +
   theme_bw() +
   ylim(0,ylim)+
-    scale_fill_manual(values = c("Developed" = "black",
-                                 "Cropland" = "darkgoldenrod1",
-                                 "Grass/Shrub" = "darkolivegreen1",
-                                 "Tree Cover" = "darkgreen",
-                                 "Water" = "blue",
-                                 "Wetland" = "aquamarine",
-                                 "Barren" = "chocolate4")) +
-geom_text(aes(label = pct), vjust = -0.8) +
-theme(axis.text.x = element_text(angle=35, vjust = .65, size=12)) +
-labs(title=paste0("Landcover"," ",UNIT_N[u]), y="Area (acres)", x="") +
-theme(legend.position="none"))
+  scale_fill_manual(values = c("Developed" = "black",
+                               "Cropland" = "darkgoldenrod1",
+                               "Grass/Shrub" = "darkolivegreen1",
+                               "Tree Cover" = "darkgreen",
+                               "Water" = "blue",
+                               "Wetland" = "aquamarine",
+                               "Barren" = "chocolate4")) +
+  geom_text(aes(label = pct), vjust = -0.8, size=4.5) +
+  theme(axis.text.x = element_text(angle=35, vjust = .65, size=14)) +
+  labs(y="Area (acres)", x="", ) +
+  theme(legend.position="none") +
+  theme(axis.title.y=element_text(size=15), 
+        axis.text.y=element_text(size=14)))
 
 dev.off()   
 
@@ -556,24 +561,32 @@ summary(LC_CropI2)
 # export map
 TITF<-paste0("Landcover"," ",Iname)
 
-dpi=300
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LCMap.png"),width=9*dpi,height=5*dpi,res=dpi) 
-unique(LC_CropI2)
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LCMap.png"),width=7*dpi,height=5*dpi,res=dpi) 
 
+par(mar=c(1,1,2,0.5))
 plot(LC_CropI2, legend=F, col=c("black","darkgoldenrod1","darkolivegreen1","darkgreen",
                      "aquamarine","blue","chocolate4"),
      xaxt='n', yaxt='n')
-plot(SHAPE, lwd=1, border="black", lwd=2, add=T)
 plot(CoastM, add=T)
+plot(SHAPE, lwd=1, border="red", lwd=2, add=T)
 title(TITF , line = 0.5,cex.main = 1.5)
 
-legend("topright",legend=c("Developed","Cropland","Grass/Shrub","Tree Cover","Water",
-                "Wetland","Barren"),
-       fill=c("black","darkgoldenrod1","darkolivegreen1","darkgreen",
-               "blue","aquamarine","chocolate4"))
+dev.off()
 
 
-dev.off()  
+# # export map legend
+# png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LCMap_legend.png"), 
+#     width=dpi, height=dpi) 
+# 
+# plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+# legend("center", 
+#        legend=c("Developed","Cropland","Grass/Shrub","Tree Cover","Water",
+#                 "Wetland","Barren"),
+#        fill=c("black","darkgoldenrod1","darkolivegreen1","darkgreen",
+#                "blue","aquamarine","chocolate4"))
+# 
+# dev.off()
+
 
 ########## Mean Climate Extract 
 
