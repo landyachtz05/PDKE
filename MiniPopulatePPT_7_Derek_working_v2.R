@@ -162,7 +162,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-2
+f<-6
 
 
 
@@ -213,6 +213,11 @@ LAND <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Landcover.csv"),sep=",")
   FTXTT3 <- fp_text(italic = TRUE, color = "darkred", font.size = 40)
   FTXTT4 <- fp_text(color = "black", font.size = 38)
   
+  fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
+  
+  #May or may not be used
+  fp_TxB <- fp_text(italic = TRUE, color = "black", font.size = 20) 
+  
   ############# Slide 1 TITLE 
     
   #Slide one Title 
@@ -234,11 +239,6 @@ LAND <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Landcover.csv"),sep=",")
               "Drought Knowledge Exchange (PDKE) funded by the Pacific Islands Climate Adaptation Science Center, focuses on ",
               "facilitating knowledge exchange between the research community and resource managers and user groups, thereby expanding the utility ",
               "of climate and drought-related products for resource managers.") 
-  
-  #Font Type consider moving up to top 
-fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
-#May or may not be used
-fp_TxB <- fp_text(italic = TRUE, color = "black", font.size = 20) 
 
 # Text for slide as a variable 
 fp_HDKE <- fpar(ftext(HDKE, fp_TxB))
@@ -318,18 +318,14 @@ FIG_2 <- block_list(
   fpar(ftext(paste0("Figure 2. Elevation for the Island of ",ISL," with ",SNameF," outlined in black. ",
                     "The maps shown in the following slides will be for the ",SNameF," area only."), fp_Fig)))
 
-#MRead in elevation figure 
+#Read in elevation figure 
     Elevfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," ELMap.png")
     Elevimg <- external_img(src = Elevfile, height = 3,width = 3) 
 
-    
-    
 ############### Slide 6.1 (NEW) Landcover
 
 S6.1_TIT<- block_list(
   fpar(ftext("Landcover", FTXTT),fp_p = fp_par(text.align = "center")))
-
-LAND
 
 #Pulling from table that was read in
 LC1 <- LAND[1,5]
@@ -337,19 +333,26 @@ LC2 <- LAND[2,5]
 LC3 <- LAND[3,5]
 
 #Body text
-LAND_T<- paste0("The three most common types of landcover in ",SNameF," are ",LC1,", ",LC2,", and ",LC3,". Each landcover type is exhibits different climate change impacts and management needs.")
+LAND_T<- paste0("The three most common types of landcover in ",SNameF," are ",LC1,", ",LC2,", and ",LC3,". Each landcover type exhibits different climate change impacts and management needs.")
 LAND_T
 
 M_LAND <-  block_list(
   fpar(ftext(LAND_T, fp_Tx)))
 
 #Read in landcover figures 
-Elevfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," ELMap.png")
-Elevimg <- external_img(src = Elevfile, height = 3,width = 3) 
+LCbarfile <- paste0(R_FOLDER,NameF,"/",NameF," LC_barchart.png")
+LCbarimg <- external_img(src = LCbarfile, height = 3,width = 3)
+
+LCmapfile <- paste0(R_FOLDER,NameF,"/",NameF," LCMap.png")
+LCmapimg <- external_img(src = LCmapfile, height = 3, width = 3)
+
+LCmapimg <- external_img(src = LCmapfile)
+
+
   
 # Figure 3.1 caption 
 FIG_3.1 <- block_list(
-  fpar(ftext(paste0("Figure 3. A bar graph showing amount and percent of each landcover type within ",SNameF,"."), fp_Fig)))
+  fpar(ftext(paste0("Figure 3. Bar graph showing amount and percent of each landcover type within ",SNameF,"."), fp_Fig)))
 
 # Figure 3.2 caption
 FIG_3.2 <- block_list(
@@ -1335,21 +1338,22 @@ mypowerpoint <- read_pptx() %>%
     ph_with(value = Elevimg, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = FIG_2, location = ph_location(label = "my_name",
                                                   left = 5.1, top = 5.6, width = 4.2, height = 1.4))%>%
+
 #Slide 6.1
   add_slide("Two Content","Office Theme") %>%
   ph_with(S6.1_TIT,       ph_location_type("title")) %>%
-  ph_with(M_LAND,        ph_location_type("body",position_right = FALSE, width=5)) %>%
+  # ph_with(M_LAND,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(value = M_LAND, location = ph_location(label = "my_name", left = 0.5, top = 1.1, width = 4.65, height = 3)) %>%
   ph_with(value = "6", location = ph_location_type(type = "sldNum")) %>%
-  ph_with(value = LClegimg, location = ph_location(label = "my_name", left = 6.9, top = 2, width = 1.5, height = 2.2)) %>%
+  ph_with(value = LClegimg, location = ph_location(label = "my_name", left = 7.8, top = 0.9, width = 1.5, height = 1.7)) %>%
+  ph_with(value = LCbarimg, location = ph_location(label = "my_name", left = 0.5, top = 4, width = 4, height = 3)) %>%
+  ph_with(value = LCmapimg, location = ph_location(label = "my_name", left = 5, top = 2.8, width = 4.9, height = 3.8)) %>%
   ph_with(value = FIG_3.1, location = ph_location(label = "my_name",
-                                                left = 0.5, top = 5.9, width = 4.2, height = 1.4))%>%
+                                                left = 0.5, top = 6.2, width = 4.2, height = 1.4))%>%
   ph_with(value = FIG_3.2, location = ph_location(label = "my_name",
-                                                  left = 5.1, top = 5.9, width = 4.2, height = 1.4))%>%
+                                                  left = 5.1, top = 6.2, width = 4.2, height = 1.4))%>%
   
     print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v2_test6.pptx"))
-  
-    
-    
     
     
 #Slide 6 

@@ -113,18 +113,18 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NPALL@data$UNIT_CODE
 # HALE <- NPALL[NPALL@data$UNIT_CODE == "HALE",]  #"Haleakala National Park"
 
-# #Waimea Valley
-# NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
-# HALE <- NP_ALL
-# HALE@data
-
-#Kahikinui HHL, Maui
-NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
+#Waimea Valley
+NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
 HALE <- NP_ALL
 HALE@data
 
+# #Kahikinui HHL, Maui
+# NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
+# HALE <- NP_ALL
+# HALE@data
+
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
-plot(Coast_MN, main = "Maui")
+plot(Coast_OA, main = "Oahu")
 plot(HALE ,add = T, col="red")
 
 
@@ -137,15 +137,15 @@ plot(HALE ,add = T, col="red")
 UNIT_X <-   c(HALE,HALE)
  
 ##########   ISLAND - NEED TO CHANGE MANUALLY BASED ON ISLAND
-UNIT_I <-  c("MN","MN")
+UNIT_I <-  c("OA","OA")
 
 ##########  UNIT NAME
 ##########  UNIT NAME (For CCVD Narrative)
-UNIT_N <- as.vector(as.character(c("Hawaiian Homelands - Kahikinui","Hawaiian Homelands - Kahikinui")))
+UNIT_N <- as.vector(as.character(c("Waimea Valley Watershed","Waimea Valley Watershed")))
 
 
 ##########  Short Name (For Figure Titles)
-UNIT_Ns <- as.vector(as.character(c("Kahikinui","Kahikinui")))
+UNIT_Ns <- as.vector(as.character(c("Waimea Valley","Waimea Valley")))
 #20,24,-26 34
 
 
@@ -169,7 +169,6 @@ MeanRF_ALL = dir(paste0(IFOLDER,"Mean_RF_Data/StateMaps/"), pattern="*x.adf", re
 
 
 ##########   FIRE OCCURRENCE
-
 #Fire Occurrence Shape 2019 (From Clay)
 u<-1
 
@@ -561,7 +560,11 @@ summary(LC_CropI2)
 # export map
 TITF<-paste0("Landcover"," ",Iname)
 
+dpi=300
+
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LCMap.png"),width=7*dpi,height=5*dpi,res=dpi) 
+
+paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LCMap.png")
 
 par(mar=c(1,1,2,0.5))
 plot(LC_CropI2, legend=F, col=c("black","darkgoldenrod1","darkolivegreen1","darkgreen",
