@@ -113,18 +113,24 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NPALL@data$UNIT_CODE
 # HALE <- NPALL[NPALL@data$UNIT_CODE == "HALE",]  #"Haleakala National Park"
 
-#Waimea Valley
-NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
-HALE <- NP_ALL
-HALE@data
-
-# #Kahikinui HHL, Maui
-# NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
+# #Waimea Valley
+# NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
 # HALE <- NP_ALL
 # HALE@data
 
+#Kahikinui HHL, Maui
+NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
+HALE <- NP_ALL
+HALE@data
+NM <- "Hawaiian Homelands - Kahikinui"
+NM_s <- "Kahikinui"
+
+# Set island
+ILE<-"Maui"
+ILE_s<-"MN"
+
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
-plot(Coast_OA, main = "Oahu")
+plot(Coast_MN, main = ILE)
 plot(HALE ,add = T, col="red")
 
 
@@ -137,15 +143,16 @@ plot(HALE ,add = T, col="red")
 UNIT_X <-   c(HALE,HALE)
  
 ##########   ISLAND - NEED TO CHANGE MANUALLY BASED ON ISLAND
-UNIT_I <-  c("OA","OA")
+UNIT_I <-  c(ILE_s,ILE_s)
 
 ##########  UNIT NAME
 ##########  UNIT NAME (For CCVD Narrative)
-UNIT_N <- as.vector(as.character(c("Waimea Valley Watershed","Waimea Valley Watershed")))
-
+UNIT_N <- as.vector(as.character(c(NM,NM)))
 
 ##########  Short Name (For Figure Titles)
-UNIT_Ns <- as.vector(as.character(c("Waimea Valley","Waimea Valley")))
+UNIT_Ns <- as.vector(as.character(c(NM_s, NM_s)))
+
+
 #20,24,-26 34
 
 
@@ -250,9 +257,6 @@ colnames(Cell.DataCLR) <- c("Unit","Elev","RF","Tavg","Tmax","Tmin","RH","SM","K
 Cell.RF_Year <-data.frame(matrix(ncol = 15, nrow = UNIT_C))
 colnames(Cell.RF_Year) <- c("Unit","Mean ELEV","JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC","ANN")
 Cell.RF_Year[1] <- UNIT_N
-
-
-
 
 u<-1
 # for (u in 1:1) {
@@ -546,7 +550,6 @@ print(ggplot(LC_ct2, aes(x=class_name, y=acres, fill=class_name)) +
 
 dev.off()   
 
-
 # 
 # Cell.DataCL[u,14:16] <- c(LC1,LC2,LC3)
 # Cell.DataCLR[1,12:14] <- c(LC1,LC2,LC3)
@@ -563,8 +566,6 @@ TITF<-paste0("Landcover"," ",Iname)
 dpi=300
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LCMap.png"),width=7*dpi,height=5*dpi,res=dpi) 
-
-paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," LCMap.png")
 
 par(mar=c(1,1,2,0.5))
 plot(LC_CropI2, legend=F, col=c("black","darkgoldenrod1","darkolivegreen1","darkgreen",
@@ -2846,7 +2847,7 @@ print("Frazier et al 2016")
 PWW_T <- UNIT_X[[u]]
 
 #########   Load RF MAPS
-
+RF_Map_Path_A
 RF_Tif_files = dir(RF_Map_Path_A, pattern="*.tif", recursive=T, full.names=T)  #Monthly RF
 nfiles <- length(RF_Tif_files)
 
@@ -3029,7 +3030,7 @@ legend("topleft",c(paste("R2 = ",LM1R),paste("MBE = ",MBE),paste("MAE = ",MAE)))
 
 dev.off()
 
-##########   Create a 100-Year timeseries and do analyais
+##########   Create a 100-Year timeseries and do analysis
 
 ##########   Merge Datasets to create common 100-year period 
 

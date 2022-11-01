@@ -164,10 +164,6 @@ RANL
 # LOOP 
 f<-2
 
-
-
-
-
 #for(f in 1:NF) {
 #for(f in 79:82) {
 
@@ -186,7 +182,7 @@ CLIM <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"MEAN Climate.csv"),sep=","
   SNameF <- CLIM[1,15]
 
 ## Read in landcover file
-LAND <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Landcover.csv"),sep=",")
+LAND <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Landcover.csv"),sep=",")
 
   #Font styles 
   #Suggetions Type_Color_Size  ex B_DR_40
@@ -264,7 +260,6 @@ MAPimg <- external_img(src = MAPfile, height = 1,width = 1)
 
 
 FIG_1 <- block_list(fpar(ftext(paste0("Figure 1. Map of ",ISL," with ",SNameF," in red."), fp_Fig)))
-
 
 
 ################ Slide 4 PART 1
@@ -1410,7 +1405,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = "12", location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = "https://www.climate.gov/enso", location = ph_location_type(type = "dt"))%>%
   ph_with(value = ENSO2img, location = ph_location(label = "my_name",
-                                           left = 5.5, top = 2.2, width = 3.3, height = 4.3)) %>%
+                                           left = 5.5, top = 2, width = 3.5, height = 4.5)) %>%
 
     
   #Slide 12 
@@ -1720,7 +1715,6 @@ add_slide("Two Content","Office Theme") %>%
 
   
   print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v2.pptx"))
-  
   
 
     
