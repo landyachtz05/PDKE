@@ -3001,7 +3001,7 @@ Mx <- max(D_Comp)
 
 FNAME <- paste0("RF_Compare_23_",UNIT_Ns[u],".csv")
 
-##########   Comparision Figures For the two datasets
+##########   Comparison Figures For the two datasets
 
 LM1 <- lm(MRF_A3~MRF_N3)
 LM1P <- round(coefficients(summary(LM1))[2,4],4)
