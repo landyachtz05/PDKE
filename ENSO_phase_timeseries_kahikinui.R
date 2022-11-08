@@ -68,101 +68,56 @@ setwd("E:/PDKE/CCVD/MINI_Phase2/Hawaiian Homelands - Kahikinui/")
 table<-read.csv("Hawaiian Homelands - Kahikinui Monthly Rainfall_in.csv")
 head(table)
 
+### make season column
+table$season<-NA
+
+for (i in 1:nrow(table)) {
+  
+  s<-table[i,]
+  
+  if(s$Month>4 && s$Month<11) {table[i,]$season<-"dry"}
+  if(s$Month<5 || s$Month>10) {table[i,]$season<-"wet"}
+}
+
+# calculate season-year rainfall sums
+table2<-aggregate(RF ~ Year + season, table, mean)
+table2
+
 #################################################################################
 ###### Assign ENSO phases to season-years (1990 dry, 1990 wet, 1991 dry, 1991 wet, etc.)
 
-# combine ENSO phase and rainfall tables (1950 - 2012)
-
-# add date column if not already there
-table$date<-as.Date(paste0(table$Date,"/01"), format="%Y/%m/%d")
-head(table)
-summary(table$RF)
-
-head(table)
+# combine ENSO phase and rainfall tables
+head(table2)
 head(enso)
 
-# add month-year date column to enso and remove full date column so it isn't used
-# in the join
-library(stringr)
-enso$Year<-str_sub(enso$date, end=-7)
-enso<-subset(enso, select=-c(date))
-
 library(plyr)
-dfs<-list(table, enso)
-table2<-join_all(dfs, match="all")
-table2
+dfs<-list(table2, enso)
+table3<-join_all(dfs, match="all")
+head(table3, 20)
+tail(table3)
 
-### make season column
-table2$season<-NA
+# remove rows with no data (past 2011)
+table3<-table3[which(!is.na(table3$MEI_W)),]
 
-for (i in 1:nrow(table2)) {
+# make single MEI and s.phase columns with value based on season
+table3$MEI<-NA
+table3$s.phase<-NA
+
+for (i in 1:nrow(table3)) {
   
-  s<-table2[i,]
+  s<-table3[i,]
   
-  if(s$Month>4 && s$Month<11) {table2[i,]$season<-"dry"}
-  if(s$Month<5 || s$Month>10) {table2[i,]$season<-"wet"}
+  if(s$season == "wet") {table3[i,]$MEI<-s$MEI_W}
+  if(s$season == "dry") {table3[i,]$MEI<-s$MEI_D}
+  if(s$season == "wet") {table3[i,]$s.phase<-s$phase.w}
+  if(s$season == "dry") {table3[i,]$s.phase<-s$phase.d}
 }
 
-# make MEI column 
+# remove unneeded MEI and phase columns
+table3<-table3[c(1,2,3,9,10)]
+head(table3)
 
-# loop through years and aggregate season ONI values
-for (y in year) {
-  
-  b<-table2[which(table2$Year.y == y),]
-  
-  # find min and max ONI values for each season-year
-  h<-aggregate(delta_t ~ season, b, max)
-  l<-aggregate(delta_t ~ season, b, min)
-  
-  # for each season, determine which value is larger (absolute) and assign ENSO phases
-  seas<-as.list(unique(table2$season))
-  
-  for (s in seas) {
-    
-    h2<-h[which(h$season == s),]
-    l2<-l[which(l$season == s),]
-    l2
-    
-    if(abs(h2$delta_t) > abs(l2$delta_t)) {seasons[nrow(seasons) + 1,]$delta_t <- h2$delta_t}
-    if(abs(h2$delta_t) < abs(l2$delta_t)) {seasons[nrow(seasons) + 1,]$delta_t <- l2$delta_t}
-    
-    if(seasons[nrow(seasons),]$delta_t>1.5) {seasons[nrow(seasons),]$s.phase <- "SEL"}
-    if(seasons[nrow(seasons),]$delta_t<=1.5 & seasons[nrow(seasons),]$delta_t>=0.5) {seasons[nrow(seasons),]$s.phase <- "WEL"}
-    if(seasons[nrow(seasons),]$delta_t>(-0.5) & seasons[nrow(seasons),]$delta_t<0.5) {seasons[nrow(seasons),]$s.phase <- "NUT"}
-    if(seasons[nrow(seasons),]$delta_t<=(-0.5) & seasons[nrow(seasons),]$delta_t>=(-1.5)) {seasons[nrow(seasons),]$s.phase <- "WLA"}
-    if(seasons[nrow(seasons),]$delta_t<(-1.5)) {seasons[nrow(seasons),]$s.phase <- "SLA"}
-    
-    seasons[nrow(seasons),]$year<-y
-    seasons[nrow(seasons),]$season<-s
-  }
-}
-
-head(seasons, 10)
-
-# fix table2 year column name
-colnames(table2)[which(names(table2) == "Year.y")] <- "year"
-
-### add column of rainfall values (sum of season-year)
-# calculate sum of each season-year rainfall
-head(table2)
-
-rain.seas<-aggregate(RF ~ year+season, table2, sum)
-
-colnames(rain.seas)[3]<-"rain_sum"
-
-rain.seas
-
-seasons
-
-# add to seasonal phase dataset
-seasons2<-merge(seasons, rain.seas, all=T)
-seasons2
-
-write.csv(seasons2, "Kahikinui_ENSO_phase_seasonyear_rainfall.csv")
-
-
-
-
+write.csv(table3, "Kahikinui_ENSO_phase_seasonyear_monthlyrainfall_MEI.csv")
 
 ################################################################################
 ################################################################################
@@ -170,159 +125,141 @@ write.csv(seasons2, "Kahikinui_ENSO_phase_seasonyear_rainfall.csv")
 ### rainy season (July-December)
 library(ggplot2)
 
-head(seasons2)
-unique(seasons2$s.phase)
-
-# remove NA seasons
-seasons2<-seasons2[which(!is.na(seasons2$s.phase)),]
-
-# # get months column
-# rain2$month<-as.numeric(substring(rain2$month_year, 6))
-
-### 3 phases
-seasons2$pval<-ifelse(seasons2$s.phase=="SEL" | seasons2$s.phase == "WEL",1,0)
-seasons2$pval<-ifelse(seasons2$s.phase=="NUT", 2, seasons2$pval)
-seasons2$pval<-ifelse(seasons2$s.phase=="WLA" | seasons2$s.phase == "SLA",3, seasons2$pval)
-summary(seasons2$pval)
+unique(table3$s.phase)
 
 ### 5 phases
 # assign values to ENSO phases
-seasons2$pval5<-ifelse(seasons2$s.phase=="SEL",1,0)
-seasons2$pval5<-ifelse(seasons2$s.phase=="WEL",2,seasons2$pval5)
-seasons2$pval5<-ifelse(seasons2$s.phase=="NUT",3,seasons2$pval5)
-seasons2$pval5<-ifelse(seasons2$s.phase=="WLA",4,seasons2$pval5)
-seasons2$pval5<-ifelse(seasons2$s.phase=="SLA",5,seasons2$pval5)
-summary(seasons2$pval5)
+table3$pval5<-ifelse(table3$s.phase=="SEL",1,0)
+table3$pval5<-ifelse(table3$s.phase=="WEL",2,table3$pval5)
+table3$pval5<-ifelse(table3$s.phase=="NUT",3,table3$pval5)
+table3$pval5<-ifelse(table3$s.phase=="WLA",4,table3$pval5)
+table3$pval5<-ifelse(table3$s.phase=="SLA",5,table3$pval5)
+summary(table3$pval5)
 
-head(seasons2)
+head(table3)
 
 ########################################################
 ### keep only wet season months
-season.w<-subset(seasons2, season == "wet")
+season.w<-subset(table3, season == "wet")
 head(season.w)
 
 ### stats
 # count
 library(dplyr)
 count<-season.w %>% count(s.phase, sort=T)
-count
-c.sel<-as.numeric(count[4,]$n)
+countc.sel<-as.numeric(count[which(count$s.phase == "SEL"),]$n)
 c.sel<-paste0("count = ",c.sel)
-
-c.wel<-as.numeric(count[2,]$n)
+c.wel<-as.numeric(count[which(count$s.phase == "WEL"),]$n)
 c.wel<-paste0("count = ",c.wel)
-
-c.nut<-as.numeric(count[1,]$n)
+c.nut<-as.numeric(count[which(count$s.phase == "NUT"),]$n)
 c.nut<-paste0("count = ",c.nut)
-
-c.wla<-as.numeric(count[3,]$n)
+c.wla<-as.numeric(count[which(count$s.phase == "WLA"),]$n)
 c.wla<-paste0("count = ",c.wla)
-
-c.sla<-as.numeric(count[5,]$n)
+c.sla<-as.numeric(count[which(count$s.phase == "SLA"),]$n)
 c.sla<-paste0("count = ",c.sla)
 
-# min, mean, max
+# min, mean, max rainfall
 stats<-summary(season.w[which(season.w$s.phase == "SEL"),])
-
-sel.min<-stats[1,5]
+sel.min<-stats[1,3]
 sel.min<-sub(".*:","",sel.min)
-sel.min<-sub(" .*","",sel.min)
+# sel.min<-sub(" .*","",sel.min)
 sel.min<-paste0("min = ",sel.min)
 
-sel.mean<-stats[4,5]
+sel.mean<-stats[4,3]
 sel.mean<-sub(".*:","",sel.mean)
-sel.mean<-sub(" .*","",sel.mean)
+# sel.mean<-sub(" .*","",sel.mean)
 sel.mean<-paste0("mean = ",sel.mean)
 
-sel.max<-stats[6,5]
+sel.max<-stats[6,3]
 sel.max<-sub(".*:","",sel.max)
-sel.max<-sub(" .*","",sel.max)
+# sel.max<-sub(" .*","",sel.max)
 sel.max<-paste0("max = ",sel.max)
 
 stats<-summary(season.w[which(season.w$s.phase == "WEL"),])
 
-wel.min<-stats[1,5]
+wel.min<-stats[1,3]
 wel.min<-sub(".*:","",wel.min)
-wel.min<-sub(" .*","",wel.min)
-wel.min<-paste0("min = ",wel.min)
+# wel.min<-sub(" .*","",wel.min)
+wel.min<-paste0("min =",wel.min)
 
-wel.mean<-stats[4,5]
+wel.mean<-stats[4,3]
 wel.mean<-sub(".*:","",wel.mean)
-wel.mean<-sub(" .*","",wel.mean)
+# wel.mean<-sub(" .*","",wel.mean)
 wel.mean<-paste0("mean = ",wel.mean)
 
-wel.max<-stats[6,5]
+wel.max<-stats[6,3]
 wel.max<-sub(".*:","",wel.max)
-wel.max<-sub(" .*","",wel.max)
+# wel.max<-sub(" .*","",wel.max)
 wel.max<-paste0("max = ",wel.max)
 
 stats<-summary(season.w[which(season.w$s.phase == "NUT"),])
 
-nut.min<-stats[1,5]
+nut.min<-stats[1,3]
 nut.min<-sub(".*:","",nut.min)
-nut.min<-sub(" .*","",nut.min)
-nut.min<-paste0("min = ",nut.min)
+# nut.min<-sub(" .*","",nut.min)
+nut.min<-paste0("min =",nut.min)
 
-nut.mean<-stats[4,5]
+nut.mean<-stats[4,3]
 nut.mean<-sub(".*:","",nut.mean)
-nut.mean<-sub(" .*","",nut.mean)
+# nut.mean<-sub(" .*","",nut.mean)
 nut.mean<-paste0("mean = ",nut.mean)
 
-nut.max<-stats[6,5]
+nut.max<-stats[6,3]
 nut.max<-sub(".*:","",nut.max)
-nut.max<-sub(" .*","",nut.max)
+# nut.max<-sub(" .*","",nut.max)
 nut.max<-paste0("max = ",nut.max)
 
 stats<-summary(season.w[which(season.w$s.phase == "WLA"),])
 
-wla.min<-stats[1,5]
+wla.min<-stats[1,3]
 wla.min<-sub(".*:","",wla.min)
-wla.min<-sub(" .*","",wla.min)
-wla.min<-paste0("min = ",wla.min)
+# wla.min<-sub(" .*","",wla.min)
+wla.min<-paste0("min =",wla.min)
 
-wla.mean<-stats[4,5]
+wla.mean<-stats[4,3]
 wla.mean<-sub(".*:","",wla.mean)
-wla.mean<-sub(" .*","",wla.mean)
+# wla.mean<-sub(" .*","",wla.mean)
 wla.mean<-paste0("mean = ",wla.mean)
 
-wla.max<-stats[6,5]
+wla.max<-stats[6,3]
 wla.max<-sub(".*:","",wla.max)
-wla.max<-sub(" .*","",wla.max)
+# wla.max<-sub(" .*","",wla.max)
 wla.max<-paste0("max = ",wla.max)
 
 stats<-summary(season.w[which(season.w$s.phase == "SLA"),])
 
-sla.min<-stats[1,5]
+sla.min<-stats[1,3]
 sla.min<-sub(".*:","",sla.min)
-sla.min<-sub(" .*","",sla.min)
+# sla.min<-sub(" .*","",sla.min)
 sla.min<-paste0("min = ",sla.min)
 
-sla.mean<-stats[4,5]
+sla.mean<-stats[4,3]
 sla.mean<-sub(".*:","",sla.mean)
-sla.mean<-sub(" .*","",sla.mean)
+# sla.mean<-sub(" .*","",sla.mean)
 sla.mean<-paste0("mean = ",sla.mean)
 
-sla.max<-stats[6,5]
+sla.max<-stats[6,3]
 sla.max<-sub(".*:","",sla.max)
-sla.max<-sub(" .*","",sla.max)
+# sla.max<-sub(" .*","",sla.max)
 sla.max<-paste0("max = ",sla.max)
 
 # get average rainfall value across all phases
-avg.w<-mean(season.w$rain_sum)
+avg.w<-mean(season.w$RF)
 avg.w<-round(avg.w, digits=2)
 
 # create average rainfall value label
 label<-paste("average rainfall = ",avg.w, sep="")
 
 # set ylims
-ycount<-2850
-ymin<-2750
-ymean<-2650
-ymax<-2550
+ycount<-max(season.w$RF*1.2)
+ymin<-max(season.w$RF*1.15)
+ymean<-max(season.w$RF*1.1)
+ymax<-max(season.w$RF*1.05)
+avg<-max(season.w$RF*1.3)
 
-ggplot(season.w, aes(x=reorder(s.phase, pval5), y=rain_sum)) +
+ggplot(season.w, aes(x=reorder(s.phase, pval5), y=RF)) +
   geom_boxplot() +
-  ylim(100,2950) +
+  # ylim(100,2950) +
   labs(title="Seasonal rainfall by ENSO category (rainy season)",
        y = "Seasonal Rainfall (mm)", x= "ENSO catogory") +
   geom_hline(yintercept=avg.w, linetype="dashed", color="blue", size=1) +
@@ -333,7 +270,7 @@ ggplot(season.w, aes(x=reorder(s.phase, pval5), y=rain_sum)) +
   annotate("text",x="WLA",y=ycount,label=c.wla) +
   annotate("text",x="SLA",y=ycount,label=c.sla) +
   
-  annotate("text", x="WEL", y=250, label=label) +
+  annotate("text", x="WEL", y=avg, label=label) +
   
   annotate("text",x="SEL",y=ymin,label=sel.min) +
   annotate("text",x="SEL",y=ymean,label=sel.mean) +
@@ -357,7 +294,7 @@ ggplot(season.w, aes(x=reorder(s.phase, pval5), y=rain_sum)) +
 
 ######################################################
 ### keep only dry season months
-season.d<-subset(seasons2, season == "dry")
+season.d<-subset(table3, season == "dry")
 head(season.d)
 
 season.d[which(season.d$pval5 == 1),]
@@ -533,10 +470,10 @@ ggplot(season.d, aes(x=reorder(s.phase, pval5), y=rain_sum)) +
 ################################################################################
 ### barplot
 
-seasons3<-seasons2
+seasons3<-table3
 head(seasons3)
 
-# remove delta_t column from seasons2 so it isn't used in the join
+# remove delta_t column from table3 so it isn't used in the join
 seasons4<-subset(seasons3, select=-c(delta_t))
 head(seasons4)
 
