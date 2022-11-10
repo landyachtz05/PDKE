@@ -633,10 +633,10 @@ head(rain6)
 # plot
 ggplot(data=rain6, 
        aes(x=Season, y=RANCH_RF, group=x)) +
-  geom_bar(aes(fill=x), position = "dodge", stat="identity", color="black", 
-           alpha=.7, width=0.7) +
+  geom_bar(aes(fill=x), position = position_dodge(width=0.7), stat="identity", color="black", 
+           alpha=.7, width=.55) +
   labs(title="Average Seasonal Rainfall by ENSO Phase",
-       y = "Rainfall (mm)", x= "Season") +
+       y = "Rainfall (inches)", x= "Season") +
   scale_fill_manual(values=c("red3", "darkgoldenrod1", "forestgreen", "royalblue1", "blue3"),
                     limits=c("SEL","WEL","NUT","WLA","SLA")) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
