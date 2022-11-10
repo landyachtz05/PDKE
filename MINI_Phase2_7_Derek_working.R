@@ -118,19 +118,26 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # HALE <- NP_ALL
 # HALE@data
 
-#Kahikinui HHL, Maui
-NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
+# #Kahikinui HHL, Maui
+# NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Hawaiian Homelands - Kahikinui"
+# NM_s <- "Kahikinui"
+
+#Parker Ranch, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/parker_ranch_polygon.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Hawaiian Homelands - Kahikinui"
-NM_s <- "Kahikinui"
+NM <- "Parker Ranch"
+NM_s <- "Parker Ranch"
 
 # Set island
-ILE<-"Maui"
-ILE_s<-"MN"
+ILE<-"Big Island"
+ILE_s<-"BI"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
-plot(Coast_MN, main = ILE)
+plot(Coast_BI, main = ILE)
 plot(HALE ,add = T, col="red")
 
 
@@ -3048,9 +3055,10 @@ if(RFUnit == " in") {MRF100$RF <-  as.numeric(MRF100$RF) * 0.0393701}
 
 write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv"),row.names = F)
 
-# ### Can read in the csv from above to start script here
-#       MRF100<-read.csv("Haleakala National Park/Haleakala National Park Monthly Rainfall_in.csv")
-#       # MRF100<-MRF100[2:ncol(MRF100)]
+### Can read in the csv from above to start script here
+      setwd("E:/PDKE/CCVD/MINI_Phase2/Parker Ranch/")
+      MRF100<-read.csv("Parker Ranch Monthly Rainfall_in.csv")
+      # MRF100<-MRF100[2:ncol(MRF100)]
 
 
 head(MRF100)
@@ -4275,6 +4283,11 @@ Cell.MEI[1:5,1] <- c("Strong EL","Weak EL", "Neutral","Weak LA","Strong LA")
 MEI_W <- MEI$MEI_W
 MEI_D <- MEI$MEI_D
 
+head(MRF100)
+
+# # If starting this section from monthly rainfall csv
+# Cell.AF_Maps<-MRF100[which(MRF100$Year<2013),]
+
 MRF  =  Cell.AF_Maps[c(1:1116),]
 head(MRF)
 
@@ -4289,6 +4302,7 @@ colnames(MRF3)[4] <- "RANCH_RF"
 RF6 <- as.numeric(MRF3$RANCH_RF)
 SixMo <-colMeans(matrix(RF6, nrow=6))  #Will Need to change This 
 
+# Don't do this if starting from monthly rainfall (inches) csv
 if(RFUnit == " in") {SixMo <-  SixMo * 0.0393701} 
 
 SixMo[seq(1,length(SixMo),2)]
@@ -4311,13 +4325,19 @@ NUT_W  <- subset(NUT_Wx,MEI_W2 < 0.5)
 
 ##########   Strong and Weak EL Wet Season 
 W0_X_EL <- ELN_W[,2]
-ELN_W_Weak <- subset(ELN_W , W0_X_EL  < 1)
-ELN_W_Strong <- subset(ELN_W , W0_X_EL  > 1)
+# ELN_W_Weak <- subset(ELN_W , W0_X_EL  < 1)
+# ELN_W_Strong <- subset(ELN_W , W0_X_EL  > 1)
+
+ELN_W_Weak <- subset(ELN_W , W0_X_EL  <= 1.5)
+ELN_W_Strong <- subset(ELN_W , W0_X_EL  > 1.5)
 
 ##########   Strong and Weak La Wet Season 
 W0_X_LA <- LAN_W[,2]
-LAN_W_Weak <- subset(LAN_W , W0_X_LA  > -1)
-LAN_W_Strong <- subset(LAN_W , W0_X_LA  < -1)
+# LAN_W_Weak <- subset(LAN_W , W0_X_LA  > -1)
+# LAN_W_Strong <- subset(LAN_W , W0_X_LA  < -1)
+
+LAN_W_Weak <- subset(LAN_W , W0_X_LA  >= -1.5)
+LAN_W_Strong <- subset(LAN_W , W0_X_LA  < -1.5)
 
 ##########   DRY Season 
 ELN_D <- subset(L0_D, MEI_D > 0.5)
@@ -4328,13 +4348,19 @@ NUT_D  <- subset(NUT_Dx,MEI_D2 < 0.5)
 
 ##########   Strong and Weak EL Dry Season 
 D0_X_EL <- ELN_D[,2]
-ELN_D_Weak <- subset(ELN_D , D0_X_EL  < 1)
-ELN_D_Strong <- subset(ELN_D , D0_X_EL  > 1)
+# ELN_D_Weak <- subset(ELN_D , D0_X_EL  < 1)
+# ELN_D_Strong <- subset(ELN_D , D0_X_EL  > 1)
+
+ELN_D_Weak <- subset(ELN_D , D0_X_EL  <= 1.5)
+ELN_D_Strong <- subset(ELN_D , D0_X_EL  > 1.5)
 
 ##########   Strong and Weak La Dry Season 
 D0_X_LA <- LAN_D[,2]
-LAN_D_Weak <- subset(LAN_D , D0_X_LA  > -1)
-LAN_D_Strong <- subset(LAN_D , D0_X_LA  < -1)
+# LAN_D_Weak <- subset(LAN_D , D0_X_LA  > -1)
+# LAN_D_Strong <- subset(LAN_D , D0_X_LA  < -1)
+
+LAN_D_Weak <- subset(LAN_D , D0_X_LA  >= -1.5)
+LAN_D_Strong <- subset(LAN_D , D0_X_LA  < -1.5)
 
 ##########   SUBSET 
 EL_W_S <- ELN_W_Strong[,1]
@@ -4350,7 +4376,6 @@ LA_D_W <- LAN_D_Weak[,1]
 NU_D <- NUT_D[,1]
 
 ##########   Counting the number in each phase 
-
 C_EL_W_S <- sum(!is.na(EL_W_S)) 
 C_EL_W_W <- sum(!is.na(EL_W_W)) 
 C_LA_W_S <- sum(!is.na(LA_W_S))
@@ -4578,40 +4603,6 @@ dat$mean<-(dat$mean * (9/5)) + 32
 # date column
 dat$date<-as.Date(paste0(dat$year,"-",dat$month,"-01"))
 
-##### add annual mean values (from code below this one)
-dat2<-merge(dat,dat.y[,c("year","mean")], by="year", all.x=T)
-head(dat2, 20)
-
-# set y-axis limits
-ylow<-min(dat2$mean.x)*.95
-yhi<-max(dat2$mean.x)*1.0005
-
-# set slope
-slope<-formatC((coef(lm(dat2$mean.x~dat2$date))[2]), format="e", digits=2)
-slope
-
-dpi=300
-
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp.png"),width=6*dpi,height=3*dpi,res=dpi)
-
-ggplot(dat2, aes(x=date,y=mean.x)) +
-  geom_line(color="grey60") +
-  geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
-  geom_smooth(method=lm, se=F, color="black") +
-  stat_cor(method="pearson", label.x=as.Date("2012-01-01"), label.y=58) +
-  scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
-  ylim(ylow,yhi) +
-  labs(title="Monthly Air Temperature",
-       y="Temperature (F)", x="") +
-  geom_hline(yintercept=0) +
-  annotate("text", x=as.Date("2015-07-01"), y=56.8, 
-           label=paste0("Slope = ",slope)) +
-  theme(panel.background=element_rect(fill=NA, color="black"),
-        panel.grid.major=element_line(color="grey90"),
-        panel.grid.minor=element_blank())
-
-dev.off()
-
 #############################
 ### Annual air temp trend
 
@@ -4650,6 +4641,39 @@ ggplot(dat.y, aes(x=date, y=mean)) +
 
 dev.off()
 
+##### add annual mean values
+dat2<-merge(dat,dat.y[,c("year","mean")], by="year", all.x=T)
+head(dat2, 20)
+
+# set y-axis limits
+ylow<-min(dat2$mean.x)*.95
+yhi<-max(dat2$mean.x)*1.0005
+
+# set slope
+slope<-formatC((coef(lm(dat2$mean.x~dat2$date))[2]), format="e", digits=2)
+slope
+
+dpi=300
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp.png"),width=6*dpi,height=3*dpi,res=dpi)
+
+ggplot(dat2, aes(x=date,y=mean.x)) +
+  geom_line(color="grey60") +
+  geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
+  geom_smooth(method=lm, se=F, color="black") +
+  stat_cor(method="pearson", label.x=as.Date("2012-01-01"), label.y=58) +
+  scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
+  ylim(ylow,yhi) +
+  labs(title="Monthly Air Temperature",
+       y="Temperature (F)", x="") +
+  geom_hline(yintercept=0) +
+  annotate("text", x=as.Date("2015-07-01"), y=56.8, 
+           label=paste0("Slope = ",slope)) +
+  theme(panel.background=element_rect(fill=NA, color="black"),
+        panel.grid.major=element_line(color="grey90"),
+        panel.grid.minor=element_blank())
+
+dev.off()
 
 
 
