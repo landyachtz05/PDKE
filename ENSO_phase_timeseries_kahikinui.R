@@ -99,42 +99,43 @@ for (i in r) {
 }
 
 # aggregate rainfall over consecutive seasons
-t2<-aggregate(RANCH_RF ~ sc, table2, mean)
+t2<-aggregate(RF ~ sc, table2, mean)
 t2
 
 ### merge other columns back in and reduce to one row per season count
-t1<-table2[c(2,3,5,6)]
-head(t1, 20)
-
-# make empty dataframe
-t<-data.frame("Year")
-t$Month<-NA
-t$Season<-NA
-t$sc<-NA
-
-# loop through rows and only write row to new table
-# if sc is greater than the previous sc
-for (i in 1:nrow(t1)) {
-
-  # current sc
-  x<-t1[i,]$sc
-  # previous sc
-  n<-t1[i-1,]$sc
-
-  # keep the first row (sc 1)
-  if(i==1) {t[i,]<-t1[i,]}
-  if(i==1) {n<-1}
-  if(i>1 && x>n) {t[x,]<-t1[i,]}
-}
-
-head(t)
-
-t3<-left_join(t,t2)
-t3
-
-# remove month column, fix year colname
-t3<-t3[c(1,3,4,5)]
-colnames(t3)[which(names(t3) == "X.Year.")] <- "Year"
+  t1<-table2[c(2,3,5,6)]
+  head(t1, 20)
+  
+  # make empty dataframe
+  t<-data.frame("Year")
+  t$Month<-NA
+  t$Season<-NA
+  t$sc<-NA
+  
+  # loop through rows and only write row to new table
+  # if sc is greater than the previous sc
+  for (i in 1:nrow(t1)) {
+  
+    # current sc
+    x<-t1[i,]$sc
+    # previous sc
+    n<-t1[i-1,]$sc
+  
+    # keep the first row (sc 1)
+    if(i==1) {t[i,]<-t1[i,]}
+    if(i==1) {n<-1}
+    if(i>1 && x>n) {t[x,]<-t1[i,]}
+  }
+  
+  head(t)
+  
+  library(m)
+  t3<-left_join(t,t2)
+  t3
+  
+  # remove month column, fix year colname
+  t3<-t3[c(1,3,4,5)]
+  colnames(t3)[which(names(t3) == "X.Year.")] <- "Year"
 
 #################################################################################
 ###### Assign ENSO phases to season-years (1990 dry, 1990 wet, 1991 dry, 1991 wet, etc.)
