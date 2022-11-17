@@ -79,7 +79,7 @@ for (i in 1:nrow(table)) {
   }
   
   # aggregate rainfall over consecutive seasons
-  t2<-aggregate(RF ~ sc, table2, mean)
+  t2<-aggregate(RF ~ sc, table2, sum)
   head(t2)
   
   ### merge other columns back in and reduce to one row per season count
@@ -114,6 +114,7 @@ for (i in 1:nrow(table)) {
     t3<-left_join(t,t2)
     
     # remove month column, fix year colname (Year, Season, SC, RF)
+    # t3 should now contain total season-year rainfall values (sum of each season-year)
     t3<-t3[c(1,3,4,5)]
     colnames(t3)[which(names(t3) == "X.Year.")] <- "Year"
     head(t3)
@@ -200,6 +201,7 @@ head(table3)
   
 ### Plot
 # set order of ENSO phases for plotting
+library(ggplot2)
 rain7$x2<-factor(rain7$x2, levels=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina"))
 
 # set ylim
@@ -297,6 +299,9 @@ for (i in 1:nrow(rain6)) {
 }
 
 ### Plot
+  # set order of seasons for plotting
+  rain6$Season<-factor(rain6$Season, levels=c("wet","dry"))
+  
   # set order of ENSO phases for plotting
   rain6$x2<-factor(rain6$x2, levels=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina"))
   
