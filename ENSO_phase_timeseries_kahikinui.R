@@ -58,8 +58,9 @@ library(scales)
           axis.text.y=element_text(size=12))
 
 # load Kahikinui monthly rainfall
-setwd("E:/PDKE/CCVD/MINI_Phase2/Parker Ranch/")
-table<-read.csv("Parker Ranch Monthly Rainfall_in.csv")
+setwd("E:/PDKE/CCVD/")
+table<-read.csv("statewide_monthly_rainfall_1920_2012.csv")
+colnames(table)<-c("X","Year","Month","RF")
 head(table)
 tail(table)
 
@@ -98,8 +99,8 @@ for (i in r) {
   n<-n+1
 }
 
-# aggregate rainfall over consecutive seasons
-t2<-aggregate(RF ~ sc, table2, mean)
+# aggregate rainfall over consecutive seasons and calculate season total rainfall
+t2<-aggregate(RF ~ sc, table2, sum)
 t2
 
 ### merge other columns back in and reduce to one row per season count
@@ -129,7 +130,8 @@ t2
   
   head(t)
   
-  library(m)
+  # join in the seasonal rainfall by SC
+  library(dplyr)
   t3<-left_join(t,t2)
   t3
   
@@ -173,7 +175,7 @@ for (i in 1:nrow(table3)) {
 table3<-table3[c(1,2,3,4,10,11)]
 head(table3, 20)
 
-write.csv(table3, "Kahikinui_ENSO_phase_seasonyear_meanrainfall_MEI.csv")
+# write.csv(table3, "Kahikinui_ENSO_phase_seasonyear_meanrainfall_MEI.csv")
 
 ################################################################################
 ################################################################################
@@ -305,20 +307,20 @@ sla.max<-sub(".*:","",sla.max)
 sla.max<-paste0("max = ",sla.max)
 
 # get average rainfall value across all phases
-avg.w<-mean(season.w$RANCH_RF)
+avg.w<-mean(season.w$RF)
 avg.w<-round(avg.w, digits=2)
 
 # create average rainfall value label
 label<-paste("average rainfall = ",avg.w, sep="")
 
 # set ylims
-ycount<-max(season.w$RANCH_RF*1.2)
-ymin<-max(season.w$RANCH_RF*1.15)
-ymean<-max(season.w$RANCH_RF*1.1)
-ymax<-max(season.w$RANCH_RF*1.05)
-avg<-max(season.w$RANCH_RF*1.3)
+ycount<-max(season.w$RF*1.2)
+ymin<-max(season.w$RF*1.15)
+ymean<-max(season.w$RF*1.1)
+ymax<-max(season.w$RF*1.05)
+avg<-max(season.w$RF*1.3)
 
-ggplot(season.w, aes(x=reorder(x, pval5), y=RANCH_RF)) +
+ggplot(season.w, aes(x=reorder(x, pval5), y=RF)) +
   geom_boxplot() +
   # ylim(100,2950) +
   labs(title="Seasonal rainfall by ENSO category (rainy season)",
@@ -469,25 +471,25 @@ sla.max<-sub(".*:","",sla.max)
 sla.max<-paste0("max = ",sla.max)
 
 # get average rainfall value across all phases
-avg.d<-mean(season.d$RANCH_RF)
+avg.d<-mean(season.d$RF)
 avg.d<-round(avg.d, digits=2)
 
 # create average rainfall value label
 label<-paste("average rainfall = ",avg.d, sep="")
 
 # set ylims
-ycount<-max(season.d$RANCH_RF*1.2)
-ymin<-max(season.d$RANCH_RF*1.15)
-ymean<-max(season.d$RANCH_RF*1.1)
-ymax<-max(season.d$RANCH_RF*1.05)
-avg<-max(season.d$RANCH_RF*1.3)
+ycount<-max(season.d$RF*1.2)
+ymin<-max(season.d$RF*1.15)
+ymean<-max(season.d$RF*1.1)
+ymax<-max(season.d$RF*1.05)
+avg<-max(season.d$RF*1.3)
 
-ggplot(season.d, aes(x=reorder(x, pval5), y=RANCH_RF)) +
+ggplot(season.d, aes(x=reorder(x, pval5), y=RF)) +
   geom_boxplot() +
   # ylim(100,2950) +
   labs(title="Seasonal rainfall by ENSO category (dry season)",
        y = "Seasonal Rainfall (mm)", x= "ENSO catogory") +
-  geom_hline(yintercept=avg.w, linetype="dashed", color="blue", size=1) +
+  geom_hline(yintercept=avg.d, linetype="dashed", color="blue", size=1) +
   
   annotate("text",x="SEL",y=ycount,label=c.sel) +
   annotate("text",x="WEL",y=ycount,label=c.wel) +
@@ -520,55 +522,14 @@ ggplot(season.d, aes(x=reorder(x, pval5), y=RANCH_RF)) +
 
 
 ################################################################################
-### barplot
+### Seasonal rainfall by ENSO phase barplot
 
 rain4<-table3
 head(rain4)
 
-# add s.phase and rain_sum columns
-# library(dplyr)
-# rain4<-left_join(table2, seasons4)
-
-# rain4$month<-as.factor(rain4$month)
-# head(rain4, 20)
-
-# # If there's "NA" in the rain_sum or s.phase columns
-# for (i in 1:nrow(rain4)) {
-#   if(is.na(rain4[i,]$rain_sum)) {rain4[i,]$rain_sum<-rain4[i-1,]$rain_sum}
-#   if(is.na(rain4[i,]$s.phase)) {rain4[i,]$s.phase<-rain4[i-1,]$s.phase}
-#   
-# }
-# 
-head(rain4,100)
-
-# ### See if all months are represented by each ENSO phase
-# # list of enso phases
-# p<-unique(rain4$phase5)
-# p
-# 
-# d2<-data.frame()
-# 
-# for (i in p) {
-# 
-#   d<-setNames(data.frame(matrix(ncol = 2, nrow = 1)),
-#               c("phase","months"))
-#   d$phase<-i
-#   sub<-rain4[which(rain4$phase5 == i),]
-#   m<-as.numeric(unique(sub$month))
-#   s<-sum(unique(m))
-#   if(s == 78) {d$months<-c("ALL")}
-#   if(s != 78) {d$months<-c("NOT ALL")}
-#   d2<-rbind(d2, d)
-# }
-# 
-# d2
-
 ### count how many seasons are in each ENSO phase
 # make season.year column
 rain4$season.year<-paste0(rain4$Year,"_",rain4$Season)
-
-rain4<-rain4[order(rain4$phase5, rain4$Year, rain4$month),]
-rain4<-rain4[order(rain4$month_year),]
 
 head(rain4)
 
@@ -615,7 +576,8 @@ dat_all
 
 
 # aggregate over each s.phase and season
-rain5<-aggregate(RANCH_RF ~ x + Season, rain4, FUN=mean)
+head(rain4)
+rain5<-aggregate(RF ~ x + Season, rain4, FUN=mean)
 rain5
 
 # add season.year count column
@@ -628,12 +590,12 @@ rain6$x<-factor(rain6$x, levels=c("SEL","WEL","NUT","WLA","SLA"))
 rain6$Season<-factor(rain6$Season, levels=c("wet","dry"))
 
 # set ylim
-ylim<-max(rain6$RANCH_RF)*1.2
+ylim<-max(rain6$RF)*1.2
 
 head(rain6)
 # plot
 ggplot(data=rain6, 
-       aes(x=Season, y=RANCH_RF, group=x)) +
+       aes(x=Season, y=RF, group=x)) +
   geom_bar(aes(fill=x), position = position_dodge(width=0.7), stat="identity", color="black", 
            alpha=.7, width=.55) +
   labs(title="Average Seasonal Rainfall by ENSO Phase",
@@ -644,16 +606,6 @@ ggplot(data=rain6,
   guides(fill=guide_legend(title="ENSO Phase")) +
   geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
   theme_bw()
-
-
-# calculate average rainfall value for each month and ENSO phase
-table3<-aggregate(rainfall ~ month + phase5, table2, FUN=mean)
-table3
-
-table4<-aggregate(RANCH_RF ~ x, rain7, FUN=mean)
-table4
-barplot(table4$RANCH_RF ~ table4$x)
-
 
 
 ################################################################################
@@ -671,7 +623,7 @@ table5<-left_join(table2, table3)
 table5
 
 # aggregate over season-phase and month
-rain7<-aggregate(RANCH_RF ~ Month + x, table5, FUN=mean)
+rain7<-aggregate(RF ~ Month + x, table5, FUN=mean)
 rain7
 
 ### plot in inches ###
@@ -682,11 +634,11 @@ rain7$x<-factor(rain7$x, levels=c("SEL","WEL","WLA","SLA","NUT"))
 rain7$Month<-factor(rain7$Month, levels=c(11,12,1,2,3,4,5,6,7,8,9,10))
 
 # set ylim
-ymin<-min(rain7$RANCH_RF)*0.7
-ymax<-max(rain7$RANCH_RF)*1.3
+ymin<-min(rain7$RF)*0.7
+ymax<-max(rain7$RF)*1.3
 
 ggplot(data=rain7, 
-       aes(x=Month, y=RANCH_RF, group=(x))) +
+       aes(x=Month, y=RF, group=(x))) +
   geom_line(aes(color=x), stat="identity", size=1.2) +
   # geom_smooth(method="lm", formula=y~poly(x,9), se=F) +
   labs(title="Average Monthly Rainfall by ENSO Phase",
@@ -705,3 +657,29 @@ ggplot(data=rain7,
         axis.title.x=element_text(size=14),
         legend.text=element_text(size=12),
         legend.title=element_text(size=12))
+
+
+################################################################################
+# Average monthly rainfall by ENSO phase barplot
+rain7
+
+rain8<-aggregate(RF ~ x, rain7, FUN=sum)
+
+# set order of ENSO phases for plotting
+rain8$x<-factor(rain8$x, levels=c("SEL","WEL","NUT","WLA","SLA"))
+
+# set ylim
+ylim<-max(rain8$RF * 1.5)
+ggplot(data=rain8, 
+       aes(x=x, y=RF, group=x)) +
+  geom_bar(aes(fill=x), position = position_dodge(width=0.7), stat="identity", color="black", 
+           alpha=.7, width=.55) +
+  labs(title="Total Rainfall by ENSO Phase",
+       y = "Rainfall (inches)", x= "Season") +
+  scale_fill_manual(values=c("red3", "darkgoldenrod1", "forestgreen", "royalblue1", "blue3"),
+                    limits=c("SEL","WEL","NUT","WLA","SLA")) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
+  guides(fill=guide_legend(title="ENSO Phase")) +
+  # geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
+  theme_bw()
+
