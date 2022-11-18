@@ -153,6 +153,7 @@ D_SOCimg <- external_img(src = D_SOCfile , height = 1, width = 1)
 D_ECOfile <- paste0(I_FOLDER,"ECO_D.png")
 D_ECOimg <- external_img(src = D_ECOfile , height = 1, width = 1)
 
+
 #media
 D_AGfileM <- paste0(I_FOLDER,"Media1_SPI.MP4")
 D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
@@ -294,10 +295,8 @@ El_Min <-  round(CLIM[3,2],0)
 EL_Dif <- El_Max - El_Min
 ISL<- CLIM[1,14]
 
-
 ELEV_T<- paste0(SNameF," is located on the Island of ", ISL, " and covers a vertical elevation range of ", EL_Dif, ELUnit, ". In Hawaii, climate gradients can change ",
                       "significantly over short distances due to changes in elevation, topography, and orientation to the prevailing winds.")
-
 
 M_Elev <-  block_list(
   fpar(ftext(ELEV_T, fp_Tx)),
@@ -369,10 +368,8 @@ FIG_3.2 <- block_list(
     ETR   <- paste("  Spatial Range: ", CLIM[3,10], " to ", CLIM[2,10], RFUnit) 
     CFR   <- paste("  Spatial Range: ", CLIM[3,11], " to ", CLIM[2,11], " Ratio") 
     
-
     fp_NM31 <- fp_text(font.size = 17, color = "darkgreen")
     fp_NM33 <- fp_text(font.size = 15, color = "black")
-    
     
 M_Climate <-  block_list(
   fpar(ftext("RF- Rainfall", fp_NM31)),
@@ -401,9 +398,6 @@ FIG_3 <- block_list(
 #Mean CLIM Figure 
 Climfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate.png")
 Climimg <- external_img(src = Climfile, height = 3,width = 3) 
-
-
-
 
 ###############   Slide 7 Climograph 
 
@@ -445,8 +439,6 @@ FIG_4 <- block_list(
 Climofile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climograph.png")
 Climoimg <- external_img(src = Climofile, height = 3,width = 3) 
 
-
-
 ###############   Slide 8 TA And RF
 
 S8_TIT<- block_list(
@@ -465,7 +457,6 @@ FIG_5 <- block_list(
 FIG_6 <- block_list(
   fpar(ftext(paste0("Figure 8. Mean monthly temperature at ",SNameF,
                     " with area average shown in heading of each plot."), fp_Fig)))
-
 
 ###############   Slide 9 Seasonal Rainfall 
 
@@ -541,60 +532,65 @@ TAB1 <- block_list(
                     "evapotranspiration; SM is soil moisture; S is shortwave downward radiation: ANN, is annual total for rainfall and annual average for all other variables."), fp_Fig)))
 
 
-################ Slide 11 PART 2
+################ Slide 12
 
   P2_TIT<- block_list(
   fpar(ftext("Part 2: Inter-Annual Rainfall", FTXTT),fp_p = fp_par(text.align = "center")),
   fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
 
-  InterAn <- paste0("Rainfall in Hawaii can vary greatly from year-to-year due to natural modes of climate variability such as the El Niño-Southern Oscillation ",
-                  "(ENSO). ENSO can be explained as an interaction between the atmosphere and the ocean in the tropical Pacific that results in a somewhat periodic ",
-                  "variation between below-normal and above-normal sea surface temperatures. In Hawaii, wet season rainfall is typically low during the ",
-                  "warm (El Niño) phase of ENSO and high during the neutral and Cool (La Niña) Phases. This pattern is reversed in the dry season although it is not as pronounced as in the wet season. ",
-                  "ENSO is the dominant mode of climate variability in Hawaii.")
- 
-            
-fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17) 
-fp_InterAn <- fpar(ftext(InterAn, fp_Tx))
+  InterAn <-  block_list(
+    fpar(ftext(paste0("Rainfall in Hawaii can vary greatly from year-to-year due to natural climatic systems such as the El Niño-Southern Oscillation (ENSO). ",
+                      "ENSO is a periodic fluctuation of ocean temperatures in the tropical Pacific, and this has a strong influence on rainfall variability. ",
+                      "ENSO consists of five phases, as shown in the graph below."),fp_Txa)))
+
+# fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17) 
+# fp_InterAn <- fpar(ftext(InterAn, fp_Tx))
+
+MEIfile<-paste0(I_FOLDER,"ENSO_timeseries.png")
+MEIimg<-external_img(src=MEIfile, height = 1, width = 2)
 
 ENSOfile <- paste0(I_FOLDER,"ENSO_New.png")
 ENSO2img <- external_img(src = ENSOfile, height = 1.2,width = 1.2) 
 
+FIG_10.1 <- block_list(
+  fpar(ftext(paste0("Figure 10. Timeseries of changes in sea surface temperature (SST) and associated ENSO phase from 1950 - 2022. ",SNameF,"."), fp_Fig)))
 
-################ Slide 12 ENSO vs Rainfall 
+################ Slide 13 Seasonal Rainfall and ENSO
 
-MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
+# MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
 
 EN_TIT<- block_list(
-  fpar(ftext("Wet Season Rainfall", FTXTT),fp_p = fp_par(text.align = "center")),
-  fpar(ftext("vs El Niño/La Niña", FTXTT),fp_p = fp_par(text.align = "center")))
+  fpar(ftext("Seasonal Rainfall and ENSO", FTXTT),fp_p = fp_par(text.align = "center")))
 
-SEL_RFW <- round(MEIRF[1,2],0)
-#  WetM # Wet-Season Avg
+# SEL_RFW <- round(MEIRF[1,2],0)
+# #  WetM # Wet-Season Avg
 
-DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
-#DifWRF <- 100-DifWRF
+# DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
+# #DifWRF <- 100-DifWRF
 
-MEIW <- paste0("93-years of monthly wet season rainfall (1920-2012) are compared with the Multivariate ENSO Index (MEI) to determine how rainfall is influenced ",
-                  "by five different ENSO phases. During the strong El Niño phase, average monthly wet season rainfall (",SEL_RFW, RFUnit,"/month) is ", DifWRF,"% drier than the long-term average (",WSeaMRF_M, RFUnit,"/month).")
+# MEIW <- paste0("93-years of monthly wet season rainfall (1920-2012) are compared with the Multivariate ENSO Index (MEI) to determine how rainfall is influenced ",
+#                   "by five different ENSO phases. During the strong El Niño phase, average monthly wet season rainfall (",SEL_RFW, RFUnit,"/month) is ", DifWRF,"% drier than the long-term average (",WSeaMRF_M, RFUnit,"/month).")
 
+MEI1 <- paste0("Overall, Parker Ranch is driest during La Nina phases (Fig. 11), however seasonal rainfall variability is not so “cut and dry”.")
 fp_TxW <- fp_text(italic = TRUE, color = "black", font.size = 18) 
-fp_MEIW  <- fpar(ftext(MEIW, fp_TxW))
+fp_MEI1  <- fpar(ftext(MEI1, fp_TxW))
 
-ENSOKfile <- paste0(I_FOLDER,"ENSOKEY.png")
-ENSOKimg <- external_img(src = ENSOKfile, height = 5,width = 2) 
+MEI2 <- paste0("In Hawaii, the Warm (El Niño) phase typically brings below average rainfall during the wet season, and above average rainfall in the dry season. This pattern is reversed for the Cool (La Niña) phase (Fig. 12).
 
+These patterns can influence drought conditions and wildfire susceptibility. Management activities may benefit from incorporating ENSO-influenced seasonal rainfall variability.")
+fp_MEI2  <- fpar(ftext(MEI2, fp_TxW))
 
-MEIWfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"MEI_WET.png")
-MEIWimg <- external_img(src = MEIWfile, height = 2.5,width = 2.5) 
+MEIMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"ENSO_rf_barplot.png")
+MEIMimg <- external_img(src = MEIMfile, height = 1,width = 2.5) 
 
-FIG_8 <- block_list(
-  fpar(ftext(paste0("Figure 10. Boxplot of wet season monthly rainfall ",
-                    "grouped by ENSO category. ",SNameF,"."), fp_Fig)))
+MEISfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"ENSO_season_barplot.png")
+MEISimg <- external_img(src = MEIMfile, height = 1,width = 2.5) 
 
-TAB2 <- block_list(
-  fpar(ftext("Table 2. ENSO phases and abbreviations corresponding to Figure 8.", fp_Fig)))
+FIG_11.1 <- block_list(
+  fpar(ftext("Barplot of average monthly rainfall by ENSO phase.", fp_Fig)))
 
+FIG_12.1 <- block_list(
+  fpar(ftext(paste0("Figure 12. Barplot of average seasonal rainfall grouped by ENSO phase. Numbers above the bars are how many seasons from 1920 to 2012 fell within each ENSO phase."), fp_Fig)))
 
 #################### Slide 13 ###############################
 
@@ -1397,18 +1393,21 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(value =   ACLIM_T, location = ph_location(label = "my_name",
                                                       left = 0.3, top = 1.8, width = 7, height = 3.5))%>%
 
-
-#Slide 11   
+#Slide 12.1
 add_slide("Two Content","Office Theme") %>%
   ph_with(P2_TIT,ph_location_type("title",position_left = TRUE)) %>%
-  ph_with(fp_InterAn,        ph_location_type("body",position_right = FALSE)) %>%
+  # ph_with(fp_InterAn,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(value = InterAn, location = ph_location(label = "my_name",
+                                                    left = 0.6, top = 1.5, width = 5, height = 3)) %>%
   ph_with(value = "12", location = ph_location_type(type = "sldNum"))%>%
-  ph_with(value = "https://www.climate.gov/enso", location = ph_location_type(type = "dt"))%>%
   ph_with(value = ENSO2img, location = ph_location(label = "my_name",
-                                           left = 5.5, top = 2, width = 3.5, height = 4.5)) %>%
-
-    
-  #Slide 12 
+                                           left = 6, top = 1.5, width = 3.2, height = 4.4)) %>%
+  ph_with(value = MEIimg, location = ph_location(label = "my_name",
+                                                 left = .3, top = 4.5, width = 5.3, height = 2.7)) %>%
+  ph_with(value = FIG_10.1, location = ph_location(label = "my_name",
+                                                  left = 6, top = 5.9, width = 3.4, height = 1))%>%
+  
+  #Slide 12.2
 add_slide("Two Content","Office Theme") %>%
   ph_with(EN_TIT,ph_location_type("title")) %>%
   ph_with(fp_MEIW,        ph_location_type("body",position_right = FALSE)) %>%
@@ -1421,7 +1420,12 @@ add_slide("Two Content","Office Theme") %>%
                                                   left = 1.5, top = 5.5, width = 2.1, height = 1.1)) %>%
   ph_with(value = TAB2, location = ph_location(label = "my_name",
                                                   left = 0.8, top = 4.5, width = 4, height = 1.4))%>%
-    
+
+  
+  
+  
+  
+  
   #Slide 13 
   add_slide("Two Content","Office Theme") %>%
   ph_with(S13_TIT,         ph_location_type("title")) %>%
