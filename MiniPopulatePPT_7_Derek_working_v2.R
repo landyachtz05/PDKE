@@ -216,14 +216,13 @@ LAND <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Landcover.csv"),sep=",")
   fp_TxB <- fp_text(italic = TRUE, color = "black", font.size = 20) 
   
   ############# Slide 1 TITLE 
-    
+  ISL<- CLIM[1,14]
+  
   #Slide one Title 
   #Standardize S1_TIT
   TIT <- fpar(ftext("Climate Change, Climate Variability, & Drought Portfolio", fp_BR3),fp_p = fp_par(text.align = "center") )
-  SUB <- fpar(ftext(NameF, fp_BR),fp_p = fp_par(text.align = "center") )
- 
-
- 
+  SUB <- fpar(ftext(paste0(NameF,", ",ISL),fp_BR),fp_p = fp_par(text.align = "center") )
+  
 ################ Slide 2 PDKE
   
   #S2_TIT<- block_list(
@@ -250,17 +249,14 @@ fp_HDKE <- fpar(ftext(HDKE, fp_TxB))
 
   CCVD<- paste0("The climate change, climate variability, and drought (CCVD) portfolio is a comprehensive synthesis ",
               "of climate and drought information developed specifically for ", NameF, " (",SNameF,"). This portfolio is designed to ",
-              "provide both research scientists and land managers with relevant climate and drought information ",
+              "provide both researchers and land managers with relevant climate and drought information ",
               "needed to inform land management and guide future research and extension.") 
 
   fp_CCVD <- fpar(ftext(CCVD, fp_Tx))
 
 #Map Figure 
 MAPfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Map.png")
-# MAPimg <- external_img(src = MAPfile, height = 1,width = 1)
-
 MAPimg <- external_img(src = MAPfile) 
-MAPimg
 
 plot(load.image(MAPimg))
 FIG_1 <- block_list(fpar(ftext(paste0("Figure 1. Map of ",ISL," with ",SNameF," in red."), fp_Fig)))
@@ -312,8 +308,7 @@ M_Elev <-  block_list(
   
 # Figure 2 caption 
 FIG_2 <- block_list(
-  fpar(ftext(paste0("Figure 2. Elevation for the Island of ",ISL," with ",SNameF," outlined in black. ",
-                    "The maps shown in the following slides will be for the ",SNameF," area only."), fp_Fig)))
+  fpar(ftext(paste0("Figure 2. Elevation for the Island of ",ISL," with ",SNameF," outlined in black."), fp_Fig)))
 
 #Read in elevation figure 
     Elevfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," ELMap.png")
@@ -349,7 +344,8 @@ FIG_3.1 <- block_list(
 
 # Figure 3.2 caption
 FIG_3.2 <- block_list(
-  fpar(ftext(paste0("Figure 4. Landcover mapping for the island of ", ISL," with ",SNameF," outlined in red."), fp_Fig)))
+  fpar(ftext(paste0("Figure 4. Landcover mapping for the island of ", ISL," with ",SNameF," outlined in red.",
+                    "The maps shown in the following slides will be for the ",SNameF," area only."), fp_Fig)))
 
 ###############   Slide 6 Mean Climate 
     
@@ -579,9 +575,9 @@ DifDRF <- round(((DryM - SLA_RFD) / DryM) * 100,0)
 
 MEI2 <- paste0("In Hawaii, the Warm (El Niño) phase typically brings below average rainfall during the wet season, and above average rainfall in the dry season. This pattern is reversed for the Cool (La Niña) phase.
 
-At Parker Ranch, the wet season during a Strong El Nino is ",DifWRF,"% dryer than the long-term average, and the dry season during a Strong La Nina is ",DifDRF,"% dryer than average. These patterns can influence drought conditions and wildfire susceptibility, and management activities can benefit from incorporating this ENSO-influenced seasonal rainfall variability.")
+At Parker Ranch, the wet season during a Strong El Nino is ",DifWRF,"% dryer than the long-term average, and the dry season during a Strong La Nina is ",DifDRF,"% dryer than average. These patterns influence drought conditions and wildfire susceptibility, and management activities can benefit from incorporating this ENSO-influenced seasonal rainfall variability.")
 MEI3 <-  block_list(
-  fpar(ftext(MEI2, fp_Tx)))
+  fpar(ftext(MEI2, fp_Txa)))
 
 MEISfile <- paste0(R_FOLDER,NameF,"/",NameF,"ENSO_season_barplot.png")
 MEISimg <- external_img(src = MEISfile, height = 1,width = 2.5) 
@@ -841,7 +837,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   fp_Fire <- fpar(ftext(FIRE, fp_Tx))
   
   FireMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Fire.png")
-  FireMimg <- external_img(src = FireMfile, height = 4,width = 4) 
+  FireMimg <- external_img(src = FireMfile) 
   
   
   FIG_16 <- block_list(
@@ -1264,7 +1260,6 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
        ph_with(value = PDKE_L, location = ph_location(label = "my_name",
                       left = 0, top = 0.3, width = 10, height = 2))%>%
 
-  
     #Slide 2 
     add_slide("Title and Content","Office Theme") %>%
       #ph_with(S2_TIT, ph_location_type("title",position_left = TRUE)) %>%
@@ -1328,14 +1323,14 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   # ph_with(M_LAND,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = M_LAND, location = ph_location(label = "my_name", left = 0.5, top = 1.1, width = 4.65, height = 3)) %>%
   ph_with(value = "6", location = ph_location_type(type = "sldNum")) %>%
-  ph_with(value = LClegimg, location = ph_location(label = "my_name", left = 7.5, top = 1.7, width = 1.5, height = 1.5)) %>%
+  ph_with(value = LClegimg, location = ph_location(label = "my_name", left = 7.5, top = 1.4, width = 1.5, height = 1.5)) %>%
   ph_with(value = LCbarimg, location = ph_location(label = "my_name", left = 0.5, top = 4, width = 4.7, height = 2.8)) %>%
   ph_with(value = LCmapimg, location = ph_location(label = "my_name",
-                                                    left = 5.5, top = 3.5)) %>%
+                                                    left = 5.5, top = 3.2)) %>%
   ph_with(value = FIG_3.1, location = ph_location(label = "my_name",
                                                 left = 0.5, top = 6.2, width = 4.2, height = 1.4))%>%
   ph_with(value = FIG_3.2, location = ph_location(label = "my_name",
-                                                  left = 5.5, top = 6.2, width = 3.5, height = 1.4))%>%
+                                                  left = 5.5, top = 6, width = 3.5, height = 1.4))%>%
 
 #Slide 6 
   add_slide("Two Content","Office Theme") %>%
@@ -1521,18 +1516,17 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = SPI3v12, location = ph_location(label = "my_name",
                                                   left = 0.2, top = 4.85, width = 9.68, height = 2.5)) %>%
   
-    
-    
    #Slide 20
    add_slide("Two Content","Office Theme") %>%
    ph_with(S18_TIT,  ph_location_type("title")) %>%
    ph_with(fp_Fire,        ph_location_type("body",position_right = FALSE)) %>%
    ph_with(value = "21", location = ph_location_type(type = "sldNum")) %>%
-   ph_with(value = FireMimg, ph_location_type("body",position_right = TRUE)) %>%
+   # ph_with(value = FireMimg, ph_location_type("body",position_right = TRUE)) %>%
+   ph_with(value = FireMimg, location = ph_location(label = "my_name",
+                                                    left = 5.2, top = 1.7, height = 4.5, width = 4.5)) %>%
    ph_with(value = FIG_16, location = ph_location(label = "my_name",
-                                                 left = 5.3, top = 6.1, width = 4.3, height = 1.4))%>%
+                                                 left = 5.2, top = 6.1, width = 4.3, height = 1.4))%>%
    ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (In Review)", location = ph_location_type(type = "dt"))%>% 
-  
 
    #Slide 21 #Part 4
    add_slide("Title and Content","Office Theme") %>%
