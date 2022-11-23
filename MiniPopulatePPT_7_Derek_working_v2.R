@@ -257,9 +257,12 @@ fp_HDKE <- fpar(ftext(HDKE, fp_TxB))
 
 #Map Figure 
 MAPfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Map.png")
-MAPimg <- external_img(src = MAPfile, height = 1,width = 1) 
+# MAPimg <- external_img(src = MAPfile, height = 1,width = 1)
 
+MAPimg <- external_img(src = MAPfile) 
+MAPimg
 
+plot(load.image(MAPimg))
 FIG_1 <- block_list(fpar(ftext(paste0("Figure 1. Map of ",ISL," with ",SNameF," in red."), fp_Fig)))
 
 
@@ -314,7 +317,7 @@ FIG_2 <- block_list(
 
 #Read in elevation figure 
     Elevfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," ELMap.png")
-    Elevimg <- external_img(src = Elevfile, height = 3,width = 3) 
+    Elevimg <- external_img(src = Elevfile) 
 
 ############### Slide 6.1 (NEW) Landcover
 
@@ -338,12 +341,8 @@ LCbarfile <- paste0(R_FOLDER,NameF,"/",NameF," LC_barchart.png")
 LCbarimg <- external_img(src = LCbarfile, height = 3,width = 3)
 
 LCmapfile <- paste0(R_FOLDER,NameF,"/",NameF," LCMap.png")
-LCmapimg <- external_img(src = LCmapfile, height = 3, width = 3)
-
 LCmapimg <- external_img(src = LCmapfile)
 
-
-  
 # Figure 3.1 caption 
 FIG_3.1 <- block_list(
   fpar(ftext(paste0("Figure 3. Bar graph showing amount and percent of each landcover type within ",SNameF,"."), fp_Fig)))
@@ -406,12 +405,12 @@ S7_TIT<- block_list(
   fpar(ftext("and Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
 CLIMA <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Annual Climate.csv"),sep=",")
-
-RFT <- round(CLIMA[1,2:13],0)
-MinT<- round(CLIMA[2,2:13],0)
-TAT <- round(CLIMA[3,2:13],0) # Mean Temperature 
-MaxT <- round(CLIMA[4,2:13],0)
-RH <- round(CLIMA[5,2:13],0)
+CLIMA
+RFT <- CLIMA[1,2:13]
+MinT<- CLIMA[2,2:13]
+TAT <- CLIMA[3,2:13] # Mean Temperature 
+MaxT <- CLIMA[4,2:13]
+RH <- CLIMA[5,2:13]
 
 MONLIST <- c("January","February","March","April","May","June","July","August","September","October","November","December")
 
@@ -419,12 +418,16 @@ RFx <- max(RFT)
 RFxm <- match(RFx,RFT)
 RFn <- min(RFT)
 RFnm <- match(RFn,RFT)
+RFx<-round(RFx, 0)
+RFn<-round(RFn, 0)
 
 TAx <- max(TAT)
 TAxm <- match(TAx,TAT)
 TAn <- min(TAT)
 TAnm <- match(TAn,TAT)
 Tdif <- abs(TAn-TAx)
+TAx<-round(TAx, 0)
+TAn<-round(TAn, 0)
 
 CLIMO <- paste0("Average monthly rainfall and temperature patterns vary over the course of the year at ", SNameF, ". The highest monthly rainfall is received in ", MONLIST[RFxm], 
                 " (",RFx, RFUnit,") and the lowest monthly rainfall is received in ", MONLIST[RFnm]," (",RFn, RFUnit,"). There is a ",Tdif,TUnit ," annual variation in temperature with the ",
@@ -538,12 +541,14 @@ TAB1 <- block_list(
   fpar(ftext("Part 2: Inter-Annual Rainfall", FTXTT),fp_p = fp_par(text.align = "center")),
   fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
 
+  fp_Txa <- fp_text(italic = TRUE, color = "black", font.size = 17)
+  
   InterAn <-  block_list(
     fpar(ftext(paste0("Rainfall in Hawaii can vary greatly from year-to-year due to natural climatic systems such as the El Niño-Southern Oscillation (ENSO). ",
                       "ENSO is a periodic fluctuation of ocean temperatures in the tropical Pacific, and this has a strong influence on rainfall variability. ",
                       "ENSO consists of five phases, as shown in the graph below."),fp_Txa)))
 
-# fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17) 
+fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17)
 # fp_InterAn <- fpar(ftext(InterAn, fp_Tx))
 
 MEIfile<-paste0(I_FOLDER,"ENSO_timeseries.png")
@@ -557,40 +562,32 @@ FIG_10.1 <- block_list(
 
 ################ Slide 13 Seasonal Rainfall and ENSO
 
-# MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
+MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
+MEIRF
 
 EN_TIT<- block_list(
   fpar(ftext("Seasonal Rainfall and ENSO", FTXTT),fp_p = fp_par(text.align = "center")))
 
-# SEL_RFW <- round(MEIRF[1,2],0)
-# #  WetM # Wet-Season Avg
+# SEL wet season avg monthly rainfall
+SEL_RFW <- round(MEIRF[1,2],1)
+# SLA dry season avg monthly rainfall
+SLA_RFD <- round(MEIRF[5,3],1)
+# SEL wet season avg monthly rainfall % difference from overall average 
+DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
+# SLA dry season avg monthly rainfall % difference from overall average
+DifDRF <- round(((DryM - SLA_RFD) / DryM) * 100,0)
 
-# DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
-# #DifWRF <- 100-DifWRF
+MEI2 <- paste0("In Hawaii, the Warm (El Niño) phase typically brings below average rainfall during the wet season, and above average rainfall in the dry season. This pattern is reversed for the Cool (La Niña) phase.
 
-# MEIW <- paste0("93-years of monthly wet season rainfall (1920-2012) are compared with the Multivariate ENSO Index (MEI) to determine how rainfall is influenced ",
-#                   "by five different ENSO phases. During the strong El Niño phase, average monthly wet season rainfall (",SEL_RFW, RFUnit,"/month) is ", DifWRF,"% drier than the long-term average (",WSeaMRF_M, RFUnit,"/month).")
+At Parker Ranch, the wet season during a Strong El Nino is ",DifWRF,"% dryer than the long-term average, and the dry season during a Strong La Nina is ",DifDRF,"% dryer than average. These patterns can influence drought conditions and wildfire susceptibility, and management activities can benefit from incorporating this ENSO-influenced seasonal rainfall variability.")
+MEI3 <-  block_list(
+  fpar(ftext(MEI2, fp_Tx)))
 
-MEI1 <- paste0("Overall, Parker Ranch is driest during La Nina phases (Fig. 11), however seasonal rainfall variability is not so “cut and dry”.")
-fp_TxW <- fp_text(italic = TRUE, color = "black", font.size = 18) 
-fp_MEI1  <- fpar(ftext(MEI1, fp_TxW))
-
-MEI2 <- paste0("In Hawaii, the Warm (El Niño) phase typically brings below average rainfall during the wet season, and above average rainfall in the dry season. This pattern is reversed for the Cool (La Niña) phase (Fig. 12).
-
-These patterns can influence drought conditions and wildfire susceptibility. Management activities may benefit from incorporating ENSO-influenced seasonal rainfall variability.")
-fp_MEI2  <- fpar(ftext(MEI2, fp_TxW))
-
-MEIMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"ENSO_rf_barplot.png")
-MEIMimg <- external_img(src = MEIMfile, height = 1,width = 2.5) 
-
-MEISfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"ENSO_season_barplot.png")
-MEISimg <- external_img(src = MEIMfile, height = 1,width = 2.5) 
-
-FIG_11.1 <- block_list(
-  fpar(ftext("Barplot of average monthly rainfall by ENSO phase.", fp_Fig)))
+MEISfile <- paste0(R_FOLDER,NameF,"/",NameF,"ENSO_season_barplot.png")
+MEISimg <- external_img(src = MEISfile, height = 1,width = 2.5) 
 
 FIG_12.1 <- block_list(
-  fpar(ftext(paste0("Figure 12. Barplot of average seasonal rainfall grouped by ENSO phase. Numbers above the bars are how many seasons from 1920 to 2012 fell within each ENSO phase."), fp_Fig)))
+  fpar(ftext(paste0("Figure 11. Barplot of average monthly rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1920 to 2012 fell within each ENSO phase."), fp_Fig)))
 
 #################### Slide 13 ###############################
 
@@ -692,11 +689,10 @@ S15_TIT<- block_list(
 
 SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most widely used drought indices. SPI compares rainfall with ",
               "its multi-year average, and because droughts are generally defined relative to the local normal, this standardized index allows wet and dry climates ",
-              "to be represented on a common scale. Here, Here, 100-years of monthly rainfall are used to used to calculate SPI-12, which compares how ",
+              "to be represented on a common scale. Here, 100-years of monthly rainfall are used to used to calculate SPI-12, which compares how ",
               "a 12-month period compares with all 12-month periods in the record. SPI-12 is a good measure of sustained droughts that affect hydrological processes ",
               "at ",SNameF, ".")
 
-  fp_Txa <- fp_text(italic = TRUE, color = "black", font.size = 17) 
   fp_SPI <- fpar(ftext(SPI, fp_Txa))
 
   SPIfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," SPI.png")
@@ -1292,18 +1288,18 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
      ph_with(value = PDKE_L, location = ph_location(label = "my_name",
                       left = 0, top = 0, width = 10, height = 2))%>%
     
-      
 #Slide 3 
     add_slide("Two Content","Office Theme") %>%
       ph_with(S3_TIT,         ph_location_type("title")) %>%
       ph_with(fp_CCVD,        ph_location_type("body",position_right = FALSE)) %>%
       ph_with(value = "3", location = ph_location_type(type = "sldNum")) %>%
-      ph_with(value = MAPimg, ph_location_type("body",position_right = TRUE)) %>%
+      # ph_with(value = MAPimg, ph_location_type("body",position_right = TRUE)) %>%
+    ph_with(value = MAPimg, location = ph_location(label = "my_name",
+                                                  left = 5, top = 1.7, height = 4.6, width = 4.6)) %>%
       ph_with(value = "Digital elevation model NAD84", location = ph_location_type(type = "dt"))%>%
       ph_with(value = FIG_1, location = ph_location(label = "my_name",
                       left = 5.6, top = 6.4, width = 3.81, height = 0.77))%>%
   
-    
 #Slide 4  PART 1  
   add_slide("Title and Content","Office Theme") %>%
   ph_with(P1_TIT,ph_location_type("title",position_left = TRUE)) %>%
@@ -1316,30 +1312,31 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   ph_with(value = RFimg, location = ph_location(label = "my_name",
                                                   left = 6.4, top = 5, width = 2.4, height = 2)) %>%
 
-
 #Slide 5 
     add_slide("Two Content","Office Theme") %>%
     ph_with(S5_TIT,       ph_location_type("title")) %>%
     ph_with(M_Elev,        ph_location_type("body",position_right = FALSE)) %>%
     ph_with(value = "5", location = ph_location_type(type = "sldNum")) %>%
-    ph_with(value = Elevimg, ph_location_type("body",position_right = TRUE)) %>%
+    ph_with(value = Elevimg, location = ph_location(label = "my_name",
+                                                   left = 5, top = 1.7, height = 4.4, width = 4.4)) %>%
     ph_with(value = FIG_2, location = ph_location(label = "my_name",
                                                   left = 5.1, top = 5.6, width = 4.2, height = 1.4))%>%
-
+  
 #Slide 6.1
   add_slide("Two Content","Office Theme") %>%
   ph_with(S6.1_TIT,       ph_location_type("title")) %>%
   # ph_with(M_LAND,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = M_LAND, location = ph_location(label = "my_name", left = 0.5, top = 1.1, width = 4.65, height = 3)) %>%
   ph_with(value = "6", location = ph_location_type(type = "sldNum")) %>%
-  ph_with(value = LClegimg, location = ph_location(label = "my_name", left = 7.8, top = 0.9, width = 1.5, height = 1.7)) %>%
-  ph_with(value = LCbarimg, location = ph_location(label = "my_name", left = 0.5, top = 4, width = 4, height = 3)) %>%
-  ph_with(value = LCmapimg, location = ph_location(label = "my_name", left = 5, top = 2.8, width = 4.9, height = 3.8)) %>%
+  ph_with(value = LClegimg, location = ph_location(label = "my_name", left = 7.5, top = 1.7, width = 1.5, height = 1.5)) %>%
+  ph_with(value = LCbarimg, location = ph_location(label = "my_name", left = 0.5, top = 4, width = 4.7, height = 2.8)) %>%
+  ph_with(value = LCmapimg, location = ph_location(label = "my_name",
+                                                    left = 5.5, top = 3.5)) %>%
   ph_with(value = FIG_3.1, location = ph_location(label = "my_name",
                                                 left = 0.5, top = 6.2, width = 4.2, height = 1.4))%>%
   ph_with(value = FIG_3.2, location = ph_location(label = "my_name",
-                                                  left = 5.1, top = 6.2, width = 4.2, height = 1.4))%>%
-    
+                                                  left = 5.5, top = 6.2, width = 3.5, height = 1.4))%>%
+
 #Slide 6 
   add_slide("Two Content","Office Theme") %>%
     ph_with(S6_TIT,           ph_location_type("title")) %>%
@@ -1359,6 +1356,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
     ph_with(value = FIG_4, location = ph_location(label = "my_name",
                                                   left = 5.2, top = 6.2, width = 4, height = 1.4))%>%
+
 
 #Slide 8 
 add_slide("Two Content","Office Theme") %>%
@@ -1396,7 +1394,6 @@ add_slide("Two Content","Office Theme") %>%
 #Slide 12.1
 add_slide("Two Content","Office Theme") %>%
   ph_with(P2_TIT,ph_location_type("title",position_left = TRUE)) %>%
-  # ph_with(fp_InterAn,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = InterAn, location = ph_location(label = "my_name",
                                                     left = 0.6, top = 1.5, width = 5, height = 3)) %>%
   ph_with(value = "12", location = ph_location_type(type = "sldNum"))%>%
@@ -1410,22 +1407,13 @@ add_slide("Two Content","Office Theme") %>%
   #Slide 12.2
 add_slide("Two Content","Office Theme") %>%
   ph_with(EN_TIT,ph_location_type("title")) %>%
-  ph_with(fp_MEIW,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(value = MEI3, location = ph_location(label = "my_name", left = 0.4, top = .25, width = 9, height = 5)) %>%
   ph_with(value = "13", location = ph_location_type(type = "sldNum")) %>%
-  ph_with(value = MEIWimg, ph_location_type("body",position_right = TRUE)) %>%
-  ph_with(value = FIG_8, location = ph_location(label = "my_name",
-                                                left = 5.2, top = 6.05, width = 4.1, height = 1))%>%
-  ph_with(my_pres, value = "Frazier et al. (2016); Wolter and Timlin (2011)", location = ph_location_type(type = "dt"))%>%
-  ph_with(value = ENSOKimg, location = ph_location(label = "my_name",
-                                                  left = 1.5, top = 5.5, width = 2.1, height = 1.1)) %>%
-  ph_with(value = TAB2, location = ph_location(label = "my_name",
-                                                  left = 0.8, top = 4.5, width = 4, height = 1.4))%>%
+  ph_with(value = MEISimg, location = ph_location(label = "my_name",
+                                                   left = 2, top = 4.15, width = 6, height = 2.5)) %>%
+  ph_with(value = FIG_12.1, location = ph_location(label = "my_name",
+                                                left = 2, top = 6.45, width = 5.5, height = 1))%>%
 
-  
-  
-  
-  
-  
   #Slide 13 
   add_slide("Two Content","Office Theme") %>%
   ph_with(S13_TIT,         ph_location_type("title")) %>%
@@ -1718,7 +1706,7 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 2, top = 1, width = 6, height = 6))%>%
 
   
-  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v2.pptx"))
+  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v3.pptx"))
   
 
     

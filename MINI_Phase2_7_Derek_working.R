@@ -4847,7 +4847,7 @@ rain6$x2<-factor(rain6$x2, levels=c("Strong El Nino","Weak El Nino","Neutral","W
 # set ylim
 ylim<-max(rain6$RF)*1.2
 
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"ENSO_season_barplot.png"),width=5*dpi,height=2.5*dpi,res=dpi)
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"ENSO_season_barplot.png"),width=6*dpi,height=2.5*dpi,res=dpi)
 
 ggplot(data=rain6, 
        aes(x=Season, y=RF, group=x2)) +
@@ -4858,14 +4858,13 @@ ggplot(data=rain6,
   scale_fill_manual(values=c("darkred","red","grey","lightskyblue1","darkblue"),
                     limits=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina")) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
-  # guides(fill=guide_legend(title="ENSO Phase")) +
+  guides(fill=guide_legend(title="ENSO Phase")) +
   geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
   theme_bw()+
   theme(axis.text.x=element_text(size=13),
         axis.text.y=element_text(size=13),
         axis.title.x=element_text(size=13),
-        axis.title.y=element_text(size=13),
-        legend.position="none")
+        axis.title.y=element_text(size=13))
 
 dev.off()
 

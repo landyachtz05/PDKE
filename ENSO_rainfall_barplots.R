@@ -79,7 +79,7 @@ for (i in 1:nrow(table)) {
   }
   
   # aggregate rainfall over consecutive seasons
-  t2<-aggregate(RF ~ sc, table2, sum)
+  t2<-aggregate(RF ~ sc, table2, mean)
   head(t2)
   
   ### merge other columns back in and reduce to one row per season count
@@ -221,6 +221,78 @@ ggplot(data=rain7,
   theme_bw() +
   theme(axis.text.x=element_blank())
 
+################################################################################
+### Test for normality and significance of average monthly rainfall by ENSO
+# R tutorial/stat crash course https://www.scribbr.com/statistics/anova-in-r/
+
+# use monthly rainfall with ENSO phase dataset
+head(table5)
+sigtest<-table5[which(!is.na(table5$x)),]
+summary(sigtest$RF)
+
+### Test for normality within each group
+library(dplyr)
+library(ggpubr)
+library(hrbrthemes)
+library(viridis)
+
+### density plots
+sigtest$x<-factor(sigtest$x, levels=c("SEL","WEL","NUT","WLA","SLA"))
+
+ggplot(data=sigtest, aes(x=RF, group=x, colour=x, fill=x)) +
+  geom_density(alpha=0.4) +
+  # scale_x_continuous(limits=c(0, 3000)) +
+  ggtitle("Hawaii average monthly rainfall by ENSO phase") +
+  xlab("Monthly Rainfall (in.)")
+
+### Shapiro-Wilk's method (http://www.sthda.com/english/wiki/normality-test-in-r)
+d.sel<-sigtest[which(sigtest$x == "SEL"),]
+d.wel<-sigtest[which(sigtest$x == "WEL"),]
+d.nut<-sigtest[which(sigtest$x == "NUT"),]
+d.wla<-sigtest[which(sigtest$x == "WLA"),]
+d.sla<-sigtest[which(sigtest$x == "SLA"),]
+
+shapiro.test(d.sel$RF)
+shapiro.test(d.wel$RF)
+shapiro.test(d.nut$RF)
+shapiro.test(d.wla$RF)
+shapiro.test(d.sla$RF)
+
+### Test for significance (non-parametric)
+# Wilcoxon test aka Mann-Whitney test http://www.sthda.com/english/wiki/unpaired-two-samples-wilcoxon-test-in-r
+library(tidyverse)
+
+### Select individual xs to compare
+d.sel<-sigtest[which(sigtest$x == "SEL"),]
+d.wel<-sigtest[which(sigtest$x == "WEL"),]
+d.nut<-sigtest[which(sigtest$x == "NUT"),]
+d.wla<-sigtest[which(sigtest$x == "WLA"),]
+d.sla<-sigtest[which(sigtest$x == "SLA"),]
+
+d.selwel<-round((wilcox.test(d.sel$RF,d.wel$RF, alternative="two.sided"))[[3]],3)
+d.selnut<-round((wilcox.test(d.sel$RF,d.nut$RF, alternative="two.sided"))[[3]],3)
+d.selwla<-round((wilcox.test(d.sel$RF,d.wla$RF, alternative="two.sided"))[[3]],3)
+d.selsla<-round((wilcox.test(d.sel$RF,d.sla$RF, alternative="two.sided"))[[3]],3)
+d.welnut<-round((wilcox.test(d.wel$RF,d.nut$RF, alternative="two.sided"))[[3]],3)
+d.welwla<-round((wilcox.test(d.wel$RF,d.wla$RF, alternative="two.sided"))[[3]],3)
+d.welsla<-round((wilcox.test(d.wel$RF,d.sla$RF, alternative="two.sided"))[[3]],3)
+d.nutwla<-round((wilcox.test(d.nut$RF,d.wla$RF, alternative="two.sided"))[[3]],3)
+d.nutsla<-round((wilcox.test(d.nut$RF,d.sla$RF, alternative="two.sided"))[[3]],3)
+d.wlasla<-round((wilcox.test(d.wla$RF,d.sla$RF, alternative="two.sided"))[[3]],3)
+
+d.dat<-data.frame()
+d.dat<-rbind(d.dat,d.selwel,d.selnut,d.selwla,d.selsla,d.welnut,d.welwla,d.welsla,d.nutwla,d.nutsla,d.wlasla)
+d.dat$pair<-c("SEL-WEL","SEL-NUT","SEL-WLA","SEL-SLA","WEL-NUT","WEL-WLA","WEL-SLA","NUT-WLA","NUT-SLA","WLA-SLA")
+colnames(d.dat)<-c("p.value","pair")
+d.dat<-d.dat[c(2,1)]
+d.dat
+
+### plot
+
+ggplot(data=d.dat, aes(x=p.value, y=pair)) +
+  geom_point() +
+  geom_vline(xintercept = 0.05, linetype="dashed", colour="red") +
+  ggtitle("Wilcoxon Test - Monthly Rainfall by ENSO Phase")
 
 ################################################################################
 ### Seasonal rainfall by ENSO phase barplot
@@ -308,24 +380,27 @@ for (i in 1:nrow(rain6)) {
   # set ylim
   ylim<-max(rain6$RF)*1.2
 
+  dpi=300
+  png(paste0("ENSO_season_barplot_test.png"),width=6*dpi,height=2.5*dpi,res=dpi)
+  
   ggplot(data=rain6, 
          aes(x=Season, y=RF, group=x2)) +
     geom_bar(aes(fill=x2), position = position_dodge(width=0.7), stat="identity", color="black", 
              alpha=.7, width=.55) +
-    labs(title="Average Seasonal Rainfall by ENSO Phase",
+    labs(title="Average Monthly Rainfall by ENSO Phase",
          y = "Rainfall (inches)", x= "Season") +
     scale_fill_manual(values=c("darkred","red","grey","lightskyblue1","darkblue"),
                       limits=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina")) +
     scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
-    # guides(fill=guide_legend(title="ENSO Phase")) +
+    guides(fill=guide_legend(title="ENSO Phase")) +
     geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
     theme_bw()+
     theme(axis.text.x=element_text(size=13),
           axis.text.y=element_text(size=13),
           axis.title.x=element_text(size=13),
-          axis.title.y=element_text(size=13),
-          legend.position="none")
+          axis.title.y=element_text(size=13))
+
+dev.off()
 
 
-  
 
