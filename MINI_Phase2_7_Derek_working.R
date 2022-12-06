@@ -1904,57 +1904,55 @@ colfuncCF <-colorRampPalette(brewer.pal(9,"PuRd"))(50)
 BI_brksET<-round(seq(ETLO, ETUP, length = 9),0)
 colfuncET <-colorRampPalette(brewer.pal(9,"PuBu"))(50)
 
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate.png"),width=5*dpi,height=5*dpi,res=dpi)    
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_RF.png"),width=5*dpi,height=5*dpi,res=dpi)    
+  spplot(ANN_CropRF, col.regions = colfuncRF, equal=FALSE,
+         axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRFA,
+         main=list(label=paste0("Rainfall (",ANNMRFM ,RFUnit,")"),cex=2),
+         colorkey = list(space = "right", height = 1, labels=list(cex=2)),
+         sp.layout = list(UNIT_X[u]))
+  dev.off()
 
-title1=textGrob(paste("Average Annual Climate:", UNIT_Ns[u]), gp=gpar(col="darkred",fontface="bold",fontsize=15))  
-grid.arrange(top = title1,
-             spplot(ANN_CropRF, col.regions = colfuncRF, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRFA,
-                    main=list(label=paste0("RF (",ANNMRFM ,RFUnit,")"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])),
-             spplot(Tair_P_Crop, col.regions = colfuncTA, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-                    main=list(label=paste0("Mean TA (",Tair_P_M ,TUnit2,")"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])), 
-             spplot(CF_P_Crop, col.regions = colfuncCF, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksCF,
-                    main=list(label=paste0("CF (",CF_P_M ,")"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])),
-             spplot(RH_P_Crop, col.regions = colfuncRH, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-                    main=list(label=paste0("RH (",RH_P_M ," %)"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])),
-             spplot(Tmin_P_Crop, col.regions = colfuncTA, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-                    main=list(label=paste0("Min TA (",Tmin_P_M ,TUnit2,")"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])),
-             spplot(KD_P_Crop, col.regions = colfuncKD, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksKD,
-                    main=list(label=paste0("S (",KD_P_M ," W/m2)"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])),
-             spplot(SM_P_Crop, col.regions = colfuncSM, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSM,
-                    main=list(label=paste0("SM (",SM_P_M ,")"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])),
-             spplot(Tmax_P_Crop, col.regions = colfuncTA, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-                    main=list(label=paste0("Max TA (",Tmax_P_M ,TUnit2,")"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])),
-             spplot(ET_P_Crop, col.regions = colfuncET, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksET,
-                    main=list(label=paste0("ET (",ET_P_M ,RFUnit,")"),cex=0.8),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])))
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_TA.png"),width=5*dpi,height=5*dpi,res=dpi)    
+  spplot(Tair_P_Crop, col.regions = colfuncTA, equal=FALSE,
+         axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
+         main=list(label=paste0("Air Temperature (",Tair_P_M ,TUnit2,")"),cex=2),
+         colorkey = list(space = "right", height = 1, labels=list(cex=2)),
+         sp.layout = list(UNIT_X[u]))
+  dev.off()
+  
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_RH.png"),width=5*dpi,height=5*dpi,res=dpi)    
+  spplot(RH_P_Crop, col.regions = colfuncRH, equal=FALSE,
+         axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
+         main=list(label=paste0("Relative Humidity (",RH_P_M ," %)"),cex=2),
+         colorkey = list(space = "right", height = 1, labels=list(cex=2)),
+         sp.layout = list(UNIT_X[u]))
+  dev.off()
+  
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_SR.png"),width=5*dpi,height=5*dpi,res=dpi)    
+  spplot(KD_P_Crop, col.regions = colfuncKD, equal=FALSE,
+         axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksKD,
+         main=list(label=paste0("Solar Radiation (",KD_P_M ," W/m2)"),cex=2),
+         colorkey = list(space = "right", height = 1, labels=list(cex=2)),
+         sp.layout = list(UNIT_X[u]))
+  dev.off()
+  
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_SM.png"),width=5*dpi,height=5*dpi,res=dpi)    
+  spplot(SM_P_Crop, col.regions = colfuncSM, equal=FALSE,
+       axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSM,
+       main=list(label=paste0("Soil Moisture (",SM_P_M ,")"),cex=2),
+       colorkey = list(space = "right", height = 1, labels=list(cex=2)),
+       sp.layout = list(UNIT_X[u]))
+  dev.off()
+  
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_ET.png"),width=5*dpi,height=5*dpi,res=dpi)    
+  spplot(ET_P_Crop, col.regions = colfuncET, equal=FALSE,
+       axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksET,
+       main=list(label=paste0("Evapotranspiration (",ET_P_M ,RFUnit,")"),cex=2),
+       colorkey = list(space = "right", height = 1, labels=list(cex=2)),
+       sp.layout = list(UNIT_X[u]))
+  dev.off()
+  
 
-dev.off()
 
 ##########  Temperature Maps Figure 
 
