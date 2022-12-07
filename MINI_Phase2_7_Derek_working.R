@@ -4539,7 +4539,7 @@ enso<-MEI
 enso
 
 # Add date column
-enso$date<-c(1920:2012)
+enso$date<-c(1920:2019)
 enso$date<-as.Date(paste0(enso$date,"-01-01"))
 
 # add seasonal ENSO phase columns based on MEI values

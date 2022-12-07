@@ -339,3 +339,28 @@ library(ggplot2)
 
 ggplot(data=table3, aes(x=month, y=rainfall, group=phase5, color=phase5)) +
   geom_line()
+
+
+
+################################################################################
+### FORMAT ONI (1950 - 2022) to be like MEI csv for CCVD input (two columns:
+### ONI_W (wet), ONI_D (dry))
+
+setwd("E:/PDKE/CCVD/CCVD INPUTS/")
+
+oni<-read.csv("enso_oni_1950_2021.csv")
+head(oni)
+nrow(oni)
+
+### Make date columns
+oni$month<-rep(c(1:12), times=72)
+head(oni,20)
+
+oni$date<-paste0(oni$YR,"-",oni$month,"-01")
+
+### Make season column
+oni$season<-NA
+
+for (i in 1:nrow(oni)) {
+  if(oni$month > 4 && oni$month < 11)
+}

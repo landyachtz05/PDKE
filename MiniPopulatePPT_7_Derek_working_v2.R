@@ -350,7 +350,11 @@ FIG_3.2 <- block_list(
 ###############   Slide 6 Mean Climate 
     S6_TIT<- block_list(
       fpar(ftext("Annual Climate Characteristics", FTXTT),fp_p = fp_par(text.align = "center")))
-  
+    
+    ANNCLIM_T<- paste0("Climatic conditions in Hawaii can vary greatly across the landscape. These maps show the variation in select climate variables across ",SNameF," and the table below has minimum and maximum values taken from the maps. A complete list of variables can be found in Annex I.")
+    M_ANNCLIM <-  block_list(
+      fpar(ftext(ANNCLIM_T, fp_Tx)))
+    
     # Make a table of min and maxes
     T<-data.frame(matrix(0, ncol=3, nrow=6))
     T$X1<-c("Rainfall (inches)","Air Temperature (°F)","Relative Humidity (%)",
@@ -372,53 +376,24 @@ FIG_3.2 <- block_list(
     # format table
     Tt<-flextable(T)
     Tt<-bold(Tt, bold = TRUE, part = "header")
+    Tt<-width(Tt, j=1, 2, unit="in")
 
     #Creates a table for the PPT
-    Tt <- autofit(Tt)
+    Tt <- autofit(Tt, add_h=-0.5, part=c("body","header"), unit = "in")
+    Tt
+ 
+    FIG_3.1 <- block_list(
+      fpar(ftext(paste0("Figure 5. Minimum and maximum average annual values for selected climate variables from within ",SNameF,"."), fp_Fig)))
 
-    # #GET RANGES
-    # RFR   <- paste("  Spatial Range: ", CLIM[3,3], " to ", CLIM[2,3], RFUnit) 
-    # TavgR <- paste("  Spatial Range: ", CLIM[3,4], " to ", CLIM[2,4], TUnit2) 
-    # TmaxR <- paste("  Spatial Range: ", CLIM[3,5], " to ", CLIM[2,5], TUnit2) 
-    # TminR <- paste("  Spatial Range: ", CLIM[3,6], " to ", CLIM[2,6], TUnit2) 
-    # RHR   <- paste("  Spatial Range: ", CLIM[3,7], " to ", CLIM[2,7], "%") 
-    # SMR   <- paste("  Spatial Range: ", CLIM[3,8], " to ", CLIM[2,8], " Ratio") 
-    # KDR   <- paste("  Spatial Range: ", CLIM[3,9], " to ", CLIM[2,9], "W/m2") 
-    # ETR   <- paste("  Spatial Range: ", CLIM[3,10], " to ", CLIM[2,10], RFUnit) 
-    # CFR   <- paste("  Spatial Range: ", CLIM[3,11], " to ", CLIM[2,11], " Ratio") 
-    # 
-    # fp_NM31 <- fp_text(font.size = 17, color = "darkgreen")
-    # fp_NM33 <- fp_text(font.size = 15, color = "black")
-#     
-# M_Climate <-  block_list(
-#   fpar(ftext("RF- Rainfall", fp_NM31)),
-#   fpar(ftext(RFR , fp_NM33)),
-#   fpar(ftext("RH- Relative humidity", fp_NM31)),
-#   fpar(ftext(RHR , fp_NM33)),
-#   fpar(ftext("SM- Soil moisture", fp_NM31)),
-#   fpar(ftext(SMR , fp_NM33)),
-#   fpar(ftext("Mean TA- Average temperature", fp_NM31)),
-#   fpar(ftext(TavgR , fp_NM33)),
-#   fpar(ftext("Min TA- Average minimum temperature", fp_NM31)),
-#   fpar(ftext(TminR  , fp_NM33)),
-#   fpar(ftext("Max TA- Average maximum temperature", fp_NM31)),
-#   fpar(ftext(TmaxR , fp_NM33)),
-#   fpar(ftext("CF- Cloud cover", fp_NM31)),
-#   fpar(ftext(CFR , fp_NM33)),
-#   fpar(ftext("S- Solar radiation", fp_NM31)),
-#   fpar(ftext(KDR , fp_NM33)),
-#   fpar(ftext("ET- Evapotranspiration", fp_NM31)),
-#   fpar(ftext(ETR , fp_NM33)))
-  
-FIG_3 <- block_list(
-  fpar(ftext(paste0("Figure 5. Mean annual climate of ",SNameF,
+    FIG_3 <- block_list(
+  fpar(ftext(paste0("Figure 6. Mean annual climate of ",SNameF,
                     " with area average shown in heading of each plot."), fp_Fig)))
 
 #Climate Variable figures 
 RFfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_RF.png")
 RFimg <- external_img(src = RFfile, height = 3,width = 3) 
-TAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_TA.png")
-TAimg <- external_img(src = TAfile, height = 3,width = 3) 
+TAAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_TA.png")
+TAAimg <- external_img(src = TAAfile, height = 3,width = 3) 
 RHfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_RH.png")
 RHimg <- external_img(src = RHfile, height = 3,width = 3) 
 SRfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_SR.png")
@@ -1374,27 +1349,32 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 #Slide 6 
   add_slide("Two Content","Office Theme") %>%
     ph_with(S6_TIT,           ph_location_type("title")) %>%
+    ph_with(value = M_ANNCLIM, location = ph_location(label = "my_name",
+                     left = 0.5, top = 0.1, width = 4.7, height = 5))%>%
     ph_with(value = Tt, location = ph_location(label = "my_name",
-                     left = 0.8, top = 3.8, width = 2, height = 2))%>%
+                     left = 0.8, top = 4.15, width = 1, height = 1))%>%
     ph_with(value = "7", location = ph_location_type(type = "sldNum")) %>%
     # ph_with(value = Climimg, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
   
     ph_with(value = RFimg, location = ph_location(label = "my_name",
-                     left = 5, top = 1.5, width=si, height= si))%>%
-    ph_with(value = TAimg, location = ph_location(label = "my_name",
-                     left = 7.1, top = 1.5, width=si, height=si))%>%
+                     left = 5.4, top = 1.5, width=si, height= si))%>%
+    ph_with(value = TAAimg, location = ph_location(label = "my_name",
+                     left = 7.5, top = 1.5, width=si, height=si))%>%
     ph_with(value = RHimg, location = ph_location(label = "my_name",
-                     left = 5, top = 3.2, width=si, height=si))%>%
+                     left = 5.4, top = 3.2, width=si, height=si))%>%
     ph_with(value = SRimg, location = ph_location(label = "my_name",
-                     left = 7.1, top = 3.2, width=si, height=si))%>%
+                     left = 7.5, top = 3.2, width=si, height=si))%>%
     ph_with(value = SMimg, location = ph_location(label = "my_name",
-                     left = 5, top = 4.9, width=si, height=si))%>%
+                     left = 5.4, top = 4.9, width=si, height=si))%>%
     ph_with(value = ETimg, location = ph_location(label = "my_name",
-                     left = 7.1, top = 4.9, width=si, height=si))%>%
+                     left = 7.5, top = 4.9, width=si, height=si))%>%
+    
+  ph_with(value = FIG_3.1, location = ph_location(label = "my_name",
+                                                left = 0.5, top = 6.1, width = 4.6, height = 1.4))%>%
   
   ph_with(value = FIG_3, location = ph_location(label = "my_name",
-                                                left = 5, top = 6.1, width = 4.4, height = 1.4))
+                                                left = 5.4, top = 6.1, width = 4.4, height = 1.4))
   
     print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v3_test7.pptx"))
   
