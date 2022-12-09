@@ -326,7 +326,7 @@ library(DescTools)
   if(sb<=3) {sb2<-1}
   if(sb>3 && sb<=5) {sb2<-5}
   if(sb>5 && sb<=10) {sb2<-10}
-  if(sb>10 && sb>=20) {sb2<-20}
+  if(sb>10 && sb<=20) {sb2<-20}
   
   sb2<-sb2*1.60934
 
@@ -2902,7 +2902,7 @@ RF_Tif_files = dir(RF_Map_Path, pattern="*.tif", recursive=T, full.names=T)  #Mo
 nfiles <- length(RF_Tif_files)
 
 #Create a matrix for each cell
-Cell.ML_Maps <-data.frame(matrix(nrow = 360,ncol = 4))
+Cell.ML_Maps <-data.frame(matrix(nrow = 395,ncol = 4))
 colnames(Cell.ML_Maps) <- c("Date","Year","Month","RF")
 
 for (i in 1:nfiles) {
@@ -2921,10 +2921,10 @@ for (i in 1:nfiles) {
   # Derek's version
   name <- basename(RF_Map)
   nameSplit <- unlist(strsplit(name,"_"))
-  nameSplit2 <- unlist(strsplit(nameSplit[6] ,".t"))
+  nameSplit2 <- unlist(strsplit(nameSplit[8] ,".t"))
   D1 <- nameSplit2[1]
-  Year <- nameSplit[1]
-  Month <- nameSplit[2]
+  Year <- nameSplit[7]
+  Month <- nameSplit2[1]
   MY <- paste0(Year,"/",Month)
   
   projection(RF_Map2) <- projection(EXAMP)
