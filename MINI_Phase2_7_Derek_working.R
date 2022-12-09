@@ -237,7 +237,7 @@ RF_Map_Path <- ("E:/PDKE/CCVD/NEW RF MAPS/statewide_rf_mm/rf_mm/")
 ##########  Multi-Variate ENSO Index
 
 #Replace this with the ONI Dataset at some point 
-MEI <- read.csv(paste0(IFOLDER,"MEI_Season.csv"),sep=",")
+MEI <- read.csv(paste0(IFOLDER,"ONI_Season.csv"),sep=",")
 
 ########## Month Year Air Temperature Maps
 AT_Map_Path_A <- ("E:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map/")
