@@ -358,9 +358,28 @@ head(oni,20)
 
 oni$date<-paste0(oni$YR,"-",oni$month,"-01")
 
-### Make season column
+### Make season column (rainy = 11 to 4, dry = 5 to 10)
 oni$season<-NA
 
 for (i in 1:nrow(oni)) {
-  if(oni$month > 4 && oni$month < 11)
+  x<-oni[i,]
+  if(x$month > 4 && oni$month < 11) {oni[i,]$season<-"dry"}
+  if(x$month < 5 || x$month > 10) {oni[i,]$season<-"wet"}
 }
+
+### aggregate anomaly value over year and season
+oni.s<-aggregate(ANOM ~ YR + season, oni, FUN=mean)
+oni.s<-oni.s[order(oni.s$YR),]
+head(oni.s)
+summary(oni.s$ANOM)
+
+### make two-column dataframe (MEI_W, MEI_D (just keep using the MEI label so I 
+### don't have to change the MINI_Phase2 script))
+oni2<-data.frame(matrix(nrow=72,ncol=2))
+colnames(oni2)<-c("MEI_W","MEI_D")
+oni2$MEI_W<-oni.s[which(oni.s$season == "wet"),]$ANOM
+oni2$MEI_D<-oni.s[which(oni.s$season == "dry"),]$ANOM
+head(oni2)
+
+### export table
+write.csv(oni2, "ONI_Season.csv")
