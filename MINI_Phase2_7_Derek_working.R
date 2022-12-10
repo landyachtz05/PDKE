@@ -1,3 +1,7 @@
+install.packages(c("ggplot2","grid","devtools","lubridate","rgeos","latticeExtra","rasterVis","plotrix","dplyr",
+                   "xts","timeSeries","ggfortify","changepoint","scales","reshape2","hydroTSM","tiff","lmomco",
+                   "parallel","plyr","SPEI","sf","ggpubr"))
+
 library(gstat)
 library(raster)
 library(sp) 
@@ -5,11 +9,10 @@ library(maptools)
 library(rgdal)
 library(RColorBrewer)
 library(gridExtra)
-library(stats.xbar)
 library(ggplot2)
 library(grid)
-library(gridExtra)
 library(devtools)
+library(DescTools)
 library(lubridate)
 library(rgeos)
 library(latticeExtra)
@@ -308,8 +311,6 @@ dpi=300
 width<-abs(extent(CoastM)[1])-abs(extent(CoastM)[2])
 
 # convert width units (DD to miles)
-library(DescTools)
-
 # set latitude in radians
   lat<-mean(c(extent(CoastM)[3], extent(CoastM)[4]))
   lat.r<-DegToRad(lat)
@@ -3034,13 +3035,14 @@ dev.off()
 
 ##########   Create a 100-Year timeseries and do analysis
 
-##########   Merge Datasets to create common 100-year period 
+##########   Merge Datasets to create full time period (1920 - 2021)
 
 MRF_AD3 =  Cell.AF_Maps[c(1:840),]
 head(MRF_AD3)
 tail(MRF_AD3)
-MRF_ND3 =  Cell.ML_Maps[c(1:360),]
+MRF_ND3 =  Cell.ML_Maps[c(1:384),]
 head(MRF_ND3)
+tail(MRF_ND3)
 
 colnames(MRF_AD3) <- c("Date","Year","Month","RF")
 colnames(MRF_ND3) <- c("Date","Year","Month","RF")
@@ -3054,7 +3056,7 @@ write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFU
       # setwd("E:/PDKE/CCVD/MINI_Phase2/Parker Ranch/")
       # MRF100<-read.csv("Parker Ranch Monthly Rainfall_in.csv")
       # # fix month values
-        # MRF100$Month<-sub(".*/","",MRF100$Date)      
+      # MRF100$Month<-sub(".*/","",MRF100$Date)
 
 head(MRF100)
 tail(MRF100)
@@ -3070,21 +3072,21 @@ MRF_Min <- round(min(RF_IN,na.rm=TRUE),1)
 MRF_MED <- round(median(RF_IN,na.rm=TRUE),1)
 MRF_MEAN <- round(mean(RF_IN,na.rm=TRUE),1)
 
-MoRF.ts <- ts(RF_IN, c(1920,1), end = c(2019,12), frequency = 12) 
+MoRF.ts <- ts(RF_IN, c(1920,1), end = c(2021,12), frequency = 12) 
 
-myts1 <- as.vector(window(MoRF.ts, start=c(1920, 1), end=c(2019, 12)))
-myts2 <- as.vector(window(MoRF.ts, start=c(1940, 1), end=c(2019, 12)))
-myts3 <- as.vector(window(MoRF.ts, start=c(1960, 1), end=c(2019, 12)))
-myts4 <- as.vector(window(MoRF.ts, start=c(1980, 1), end=c(2019, 12)))
-myts5 <- as.vector(window(MoRF.ts, start=c(2000, 1), end=c(2019, 12)))
-myts6 <- as.vector(window(MoRF.ts, start=c(2010, 1), end=c(2019, 12)))
+myts1 <- as.vector(window(MoRF.ts, start=c(1920, 1), end=c(2021, 12)))
+myts2 <- as.vector(window(MoRF.ts, start=c(1940, 1), end=c(2021, 12)))
+myts3 <- as.vector(window(MoRF.ts, start=c(1960, 1), end=c(2021, 12)))
+myts4 <- as.vector(window(MoRF.ts, start=c(1980, 1), end=c(2021, 12)))
+myts5 <- as.vector(window(MoRF.ts, start=c(2000, 1), end=c(2021, 12)))
+myts6 <- as.vector(window(MoRF.ts, start=c(2010, 1), end=c(2021, 12)))
 
-DateT1 <- seq(as.Date("1920-01-01"), as.Date("2019-12-31"), by="months")
-DateT2 <- seq(as.Date("1940-01-01"), as.Date("2019-12-31"), by="months")
-DateT3 <- seq(as.Date("1960-01-01"), as.Date("2019-12-31"), by="months")
-DateT4 <- seq(as.Date("1980-01-01"), as.Date("2019-12-31"), by="months")
-DateT5 <- seq(as.Date("2000-01-01"), as.Date("2019-12-31"), by="months")
-DateT6 <- seq(as.Date("2010-01-01"), as.Date("2019-12-31"), by="months")
+DateT1 <- seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="months")
+DateT2 <- seq(as.Date("1940-01-01"), as.Date("2021-12-31"), by="months")
+DateT3 <- seq(as.Date("1960-01-01"), as.Date("2021-12-31"), by="months")
+DateT4 <- seq(as.Date("1980-01-01"), as.Date("2021-12-31"), by="months")
+DateT5 <- seq(as.Date("2000-01-01"), as.Date("2021-12-31"), by="months")
+DateT6 <- seq(as.Date("2010-01-01"), as.Date("2021-12-31"), by="months")
 
 LM1 <- lm(myts1~DateT1)
 LM2 <- lm(myts2~DateT2)
@@ -3114,7 +3116,7 @@ LM4R <- summary(LM4)$r.squared
 LM5R <- summary(LM5)$r.squared
 LM6R <- summary(LM6)$r.squared
 
-########## 2003-2019   
+########## 2003-2021   
 
 MA02 <- round(mean(myts6),1)
 ME02 <- round(median(myts6),1)
@@ -3136,20 +3138,20 @@ colnames(Mean_Y_RF) <- c("Date","RF")
 
 ##########   Plot Annual RF  
 
-YrRF.ts <- ts(Mean_Y_RF$RF, c(1920), end = c(2019), frequency = 1) 
-myts1Y <- as.vector(window(YrRF.ts, start=c(1920), end=c(2019)))
-myts2Y <- as.vector(window(YrRF.ts, start=c(1940), end=c(2019)))
-myts3Y <- as.vector(window(YrRF.ts, start=c(1960), end=c(2019)))
-myts4Y <- as.vector(window(YrRF.ts, start=c(1980), end=c(2019)))
-myts5Y <- as.vector(window(YrRF.ts, start=c(2000), end=c(2019)))
-myts6Y <- as.vector(window(YrRF.ts, start=c(2010), end=c(2019)))
+YrRF.ts <- ts(Mean_Y_RF$RF, c(1920), end = c(2021), frequency = 1) 
+myts1Y <- as.vector(window(YrRF.ts, start=c(1920), end=c(2021)))
+myts2Y <- as.vector(window(YrRF.ts, start=c(1940), end=c(2021)))
+myts3Y <- as.vector(window(YrRF.ts, start=c(1960), end=c(2021)))
+myts4Y <- as.vector(window(YrRF.ts, start=c(1980), end=c(2021)))
+myts5Y <- as.vector(window(YrRF.ts, start=c(2000), end=c(2021)))
+myts6Y <- as.vector(window(YrRF.ts, start=c(2010), end=c(2021)))
 
-YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2019-12-31"), by="years")
-YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2019-12-31"), by="years")
-YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2019-12-31"), by="years")
-YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2019-12-31"), by="years")
-YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2019-12-31"), by="years")
-YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2019-12-31"), by="years")
+YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="years")
+YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2021-12-31"), by="years")
+YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2021-12-31"), by="years")
+YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2021-12-31"), by="years")
+YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2021-12-31"), by="years")
+YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2021-12-31"), by="years")
 
 LM1Y <- lm(myts1Y~YDateT1)
 LM2Y <- lm(myts2Y~YDateT2)
@@ -3225,30 +3227,30 @@ colnames(Dry_RF) <- c("Date","RF")
 ####### Seasonal Trends ########################
 
 #WET Season 
-YrRF.tsW <- ts(WET_RF5, c(1920), end = c(2019), frequency = 1) 
-myts1YW <- as.vector(window(YrRF.tsW, start=c(1920), end=c(2019)))
-myts2YW <- as.vector(window(YrRF.tsW, start=c(1940), end=c(2019)))
-myts3YW <- as.vector(window(YrRF.tsW, start=c(1960), end=c(2019)))
-myts4YW <- as.vector(window(YrRF.tsW, start=c(1980), end=c(2019)))
-myts5YW <- as.vector(window(YrRF.tsW, start=c(2000), end=c(2019)))
-myts6YW <- as.vector(window(YrRF.tsW, start=c(2010), end=c(2019)))
+YrRF.tsW <- ts(WET_RF5, c(1920), end = c(2021), frequency = 1) 
+myts1YW <- as.vector(window(YrRF.tsW, start=c(1920), end=c(2021)))
+myts2YW <- as.vector(window(YrRF.tsW, start=c(1940), end=c(2021)))
+myts3YW <- as.vector(window(YrRF.tsW, start=c(1960), end=c(2021)))
+myts4YW <- as.vector(window(YrRF.tsW, start=c(1980), end=c(2021)))
+myts5YW <- as.vector(window(YrRF.tsW, start=c(2000), end=c(2021)))
+myts6YW <- as.vector(window(YrRF.tsW, start=c(2010), end=c(2021)))
 
 #DRy Season 
-YrRF.tsD <- ts(DRY_RF2, c(1920), end = c(2019), frequency = 1) 
-myts1YD <- as.vector(window(YrRF.tsD, start=c(1920), end=c(2019)))
-myts2YD <- as.vector(window(YrRF.tsD, start=c(1940), end=c(2019)))
-myts3YD<- as.vector(window(YrRF.tsD, start=c(1960), end=c(2019)))
-myts4YD <- as.vector(window(YrRF.tsD, start=c(1980), end=c(2019)))
-myts5YD <- as.vector(window(YrRF.tsD, start=c(2000), end=c(2019)))
-myts6YD <- as.vector(window(YrRF.tsD, start=c(2010), end=c(2019)))
+YrRF.tsD <- ts(DRY_RF2, c(1920), end = c(2021), frequency = 1) 
+myts1YD <- as.vector(window(YrRF.tsD, start=c(1920), end=c(2021)))
+myts2YD <- as.vector(window(YrRF.tsD, start=c(1940), end=c(2021)))
+myts3YD<- as.vector(window(YrRF.tsD, start=c(1960), end=c(2021)))
+myts4YD <- as.vector(window(YrRF.tsD, start=c(1980), end=c(2021)))
+myts5YD <- as.vector(window(YrRF.tsD, start=c(2000), end=c(2021)))
+myts6YD <- as.vector(window(YrRF.tsD, start=c(2010), end=c(2021)))
 
 # WET and DRy # Annual 
-YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2019-12-31"), by="years")
-YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2019-12-31"), by="years")
-YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2019-12-31"), by="years")
-YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2019-12-31"), by="years")
-YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2019-12-31"), by="years")
-YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2019-12-31"), by="years")
+YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="years")
+YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2021-12-31"), by="years")
+YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2021-12-31"), by="years")
+YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2021-12-31"), by="years")
+YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2021-12-31"), by="years")
+YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2021-12-31"), by="years")
 
 #WET Regression
 LM1YW <- lm(myts1YW~YDateT1)
@@ -3329,48 +3331,48 @@ MLIM <-  (MLIM1 + (MLIM1 *0.45))
 
 par(mai=c(0.3,0.6,0.2,0.2))
 plot(myts1Y~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",xaxt="n",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
-title(paste("Rainfall Trend 1920-2019:",UNIT_Ns[u]), line = 0.5,cex.main = 1.5)
+title(paste("Rainfall Trend 1920-2021:",UNIT_Ns[u]), line = 0.5,cex.main = 1.5)
 
-legend("topright", c(paste0("1920-2019 R2 = ",LM1RY, " p = ",LM1PY),
-                     #paste0("1940-2019 Trend =", T2Y,", R2 =",LM2RY, " p = ",LM2PY),
-                     paste0("1960-2019 R2 = ",LM3RY, " p = ",LM3PY),
-                     #paste0("1980-2019 Trend =", T4Y,", R2 =",LM4RY, " p = ",LM4PY),
-                     paste0("2000-2019 R2 = ",LM5RY, " p = ",LM5PY)),
-                     #paste0("2010-2019 Trend =", T6Y,", R2 =",LM6RY, " p = ",LM6PY)),
+legend("topright", c(paste0("1920-2021 R2 = ",LM1RY, " p = ",LM1PY),
+                     #paste0("1940-2021 Trend =", T2Y,", R2 =",LM2RY, " p = ",LM2PY),
+                     paste0("1960-2021 R2 = ",LM3RY, " p = ",LM3PY),
+                     #paste0("1980-2021 Trend =", T4Y,", R2 =",LM4RY, " p = ",LM4PY),
+                     paste0("2000-2021 R2 = ",LM5RY, " p = ",LM5PY)),
+                     #paste0("2010-2021 Trend =", T6Y,", R2 =",LM6RY, " p = ",LM6PY)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
        
 legend("topleft",c("Annual"),cex=1.5,text.font=2, bty = "n")
 
-ablineclip(lm(myts1Y~YDateT1),x1=-19000,x2=18000,col=alpha("grey70",0.9),lwd=3)
-#ablineclip(lm(myts2Y~YDateT2),x1=-11000,x2=18000,col="darkorange",lwd=3)
-ablineclip(lm(myts3Y~YDateT3),x1=-4500,x2=18000,col=alpha("grey30",0.7),lwd=3)
-#ablineclip(lm(myts4Y~YDateT4),x1=3500,x2=18000,col="darkblue",lwd=3)
-ablineclip(lm(myts5Y~YDateT5),x1=11000,x2=18000,col=alpha("grey1",0.7),lwd=3)
-#ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=18000,col="darkcyan",lwd=3)
+ablineclip(lm(myts1Y~YDateT1),x1=-19000,x2=19000,col=alpha("grey70",0.9),lwd=3)
+#ablineclip(lm(myts2Y~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
+ablineclip(lm(myts3Y~YDateT3),x1=-4500,x2=19000,col=alpha("grey30",0.7),lwd=3)
+#ablineclip(lm(myts4Y~YDateT4),x1=3500,x2=19000,col="darkblue",lwd=3)
+ablineclip(lm(myts5Y~YDateT5),x1=11000,x2=19000,col=alpha("grey1",0.7),lwd=3)
+#ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=19000,col="darkcyan",lwd=3)
 
 ####### Wet Season ###########
 par(mai=c(0.3,0.6,0.2,0.2))
 YLIM <-  min(myts1YW) 
 plot(myts1YW~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",xaxt="n",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
 
-legend("topright", c(paste0("1920-2019 R2 = ",LM1RYW, " p = ",LM1PYW),
-                     #paste0("1940-2019 Trend =", T2YW,", R2 =",LM2RYW, " p = ",LM2PYW),
-                     paste0("1960-2019 R2 = ",LM3RYW, " p = ",LM3PYW),
-                     #paste0("1980-2019 Trend =", T4YW,", R2 =",LM4RYW, " p = ",LM4PYW),
-                     paste0("2000-2019 R2 = ",LM5RYW, " p = ",LM5PYW)),
-                     #paste0("2010-2019 Trend =", T6YW,", R2 =",LM6RYW, " p = ",LM6PYW)),
+legend("topright", c(paste0("1920-2021 R2 = ",LM1RYW, " p = ",LM1PYW),
+                     #paste0("1940-2021 Trend =", T2YW,", R2 =",LM2RYW, " p = ",LM2PYW),
+                     paste0("1960-2021 R2 = ",LM3RYW, " p = ",LM3PYW),
+                     #paste0("1980-2021 Trend =", T4YW,", R2 =",LM4RYW, " p = ",LM4PYW),
+                     paste0("2000-2021 R2 = ",LM5RYW, " p = ",LM5PYW)),
+                     #paste0("2010-2021 Trend =", T6YW,", R2 =",LM6RYW, " p = ",LM6PYW)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3,cex=1)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
 
 legend("topleft",c("Wet Season"),cex=1.5,text.font=2, bty = "n")
 
-ablineclip(lm(myts1YW~YDateT1),x1=-19000,x2=18000,col="grey70",lwd=3)
-#ablineclip(lm(myts2YW~YDateT2),x1=-11000,x2=18000,col="darkorange",lwd=3)
-ablineclip(lm(myts3YW~YDateT3),x1=-4500,x2=18000,col="grey30",lwd=3)
-#ablineclip(lm(myts4YW~YDateT4),x1=3500,x2=18000,col="darkblue",lwd=3)
-ablineclip(lm(myts5YW~YDateT5),x1=11000,x2=18000,col="grey1",lwd=3)
-#ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=18000,col="darkcyan",lwd=3)
+ablineclip(lm(myts1YW~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
+#ablineclip(lm(myts2YW~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
+ablineclip(lm(myts3YW~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
+#ablineclip(lm(myts4YW~YDateT4),x1=3500,x2=19000,col="darkblue",lwd=3)
+ablineclip(lm(myts5YW~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
+#ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=19000,col="darkcyan",lwd=3)
 
 ########## Dry Season 
 
@@ -3378,24 +3380,24 @@ par(mai=c(0.3,0.6,0.2,0.2))
 YLIM <-  min(myts1YD) 
 plot(myts1YD~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
 # axis(1, labels = T)
-# title(main = "Average Wet Season Rainfall Pu'u Wa'awa'a (1920-2019)", line = 1)
-legend("topright", c(paste0("1920-2019 R2 = ",LM1RYD, " p = ",LM1PYD),
-                     #paste0("1940-2019 Trend =", T2YD,", R2 =",LM2RYD, " p = ",LM2PYD),
-                     paste0("1960-2019 R2 = ",LM3RYD, " p = ",LM3PYD),
-                     #paste0("1980-2019 Trend =", T4YD,", R2 =",LM4RYD, " p = ",LM4PYD),
-                     paste0("2000-2019 R2 = ",LM5RYD, " p = ",LM5PYD)),
-                     #paste0("2010-2019 Trend =", T6YD,", R2 =",LM6RYD, " p = ",LM6PYD)),
+# title(main = "Average Wet Season Rainfall Pu'u Wa'awa'a (1920-2021)", line = 1)
+legend("topright", c(paste0("1920-2021 R2 = ",LM1RYD, " p = ",LM1PYD),
+                     #paste0("1940-2021 Trend =", T2YD,", R2 =",LM2RYD, " p = ",LM2PYD),
+                     paste0("1960-2021 R2 = ",LM3RYD, " p = ",LM3PYD),
+                     #paste0("1980-2021 Trend =", T4YD,", R2 =",LM4RYD, " p = ",LM4PYD),
+                     paste0("2000-2021 R2 = ",LM5RYD, " p = ",LM5PYD)),
+                     #paste0("2010-2021 Trend =", T6YD,", R2 =",LM6RYD, " p = ",LM6PYD)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
        
 legend("topleft",c("Dry Season"),cex=1.5,text.font=2, bty = "n")
 
-ablineclip(lm(myts1YD~YDateT1),x1=-19000,x2=18000,col="grey70",lwd=3)
-#ablineclip(lm(myts2YD~YDateT2),x1=-11000,x2=18000,col="darkorange",lwd=3)
-ablineclip(lm(myts3YD~YDateT3),x1=-4500,x2=18000,col="grey30",lwd=3)
-#ablineclip(lm(myts4YD~YDateT4),x1=3500,x2=18000,col="darkblue",lwd=3)
-ablineclip(lm(myts5YD~YDateT5),x1=11000,x2=18000,col="grey1",lwd=3)
-#ablineclip(lm(myts6YD~YDateT6),x1=14000,x2=18000,col="darkcyan",lwd=3)
+ablineclip(lm(myts1YD~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
+#ablineclip(lm(myts2YD~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
+ablineclip(lm(myts3YD~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
+#ablineclip(lm(myts4YD~YDateT4),x1=3500,x2=19000,col="darkblue",lwd=3)
+ablineclip(lm(myts5YD~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
+#ablineclip(lm(myts6YD~YDateT6),x1=14000,x2=19000,col="darkcyan",lwd=3)
 
 dev.off() 
 
@@ -3419,30 +3421,9 @@ SPI3 <- spi(RF, scale = 3, distribution = 'Gamma')
 #PlOT ALL SPI
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SPI.png"),width=6.5*dpi,height=4*dpi,res=dpi)
 
-plot(spi(ts(RF,freq=12,start=c(1920,1)),scale = 12,distribution = 'Gamma'),main = paste0("SPI-12 1920-2019: ",UNIT_Ns[u]))
+plot(spi(ts(RF,freq=12,start=c(1920,1)),scale = 12,distribution = 'Gamma'),main = paste0("SPI-12 1920-2021: ",UNIT_Ns[u]))
 
 dev.off()
-# 
-# print("SPI-12-TAB") 
-# SPI_12M <- SPI12
-# SPI_3M <- SPI3
-# 
-# SPIVEC <- as.vector(SPI_12M$fitted)
-# SPIVEC3 <- as.vector(SPI_3M$fitted)
-# 
-# SPIVEC[is.na(SPIVEC )] <- 0
-# SPIVEC3[is.na(SPIVEC3 )] <- 0
-# 
-# DATE5 <-   MRF100$Ndate
-# SPI_Data <- SPIVEC
-# SPI_Data3 <- SPIVEC3 
-# SPID <- cbind(DATE5,SPI_Data,SPI_Data3)
-# SPID[1:20]
-# 
-# Nrow_SPI <- sum(!is.na(SPI_Data))
-# SM<-0  
-# PH2<-0 
-# SMVec<-vector()
 
 ##########   Table Metrics SPI 12
 
@@ -3705,30 +3686,15 @@ Cell.SPICNT[1:4,1] <- c("Drought Events", "Moderate","Severe", "Extreme")
 Cell.SPICNT[1:4,2] <- c(D_Cnt,MO_Cnt2,SV_Cnt2,EX_Cnt)
 Cell.SPICNT
 
-    # ##########   Count Droughts For Figure - Ryan's version
-    # 
-    # EX_Cnt <- sum(Cell.DataSPI[5] > -1.99)
-    # SV_Cnt <- sum(Cell.DataSPI[5] > -1.49)
-    # MO_Cnt <- sum(Cell.DataSPI[5] > -0.99)
-    # D_Cnt <- MO_Cnt
-    # SV_Cnt2 <- SV_Cnt - EX_Cnt
-    # MO_Cnt2 <- D_Cnt -  SV_Cnt2 - EX_Cnt
-    # 
-    # Cell.SPICNT[1:4,2] <- c(D_Cnt,MO_Cnt2,SV_Cnt2,EX_Cnt)
-
 ##########   Remove Postive SPI and make absloute values 
-
-SPIVEC[SPIVEC  > 0 ] <- 0
-head(SPI_ALL)
-
 ### Derek's code
 SPIVEC<-SPI_ALL[which(SPI_ALL$m.scale == 12),]$SPI
 SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
-M_SPI.ts <- ts(SPIVEC_Abs, c(1920,1), end = c(2019,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(2019, 12)))
-DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2019-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1920,1), end = c(2021,12), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(2021, 12)))
+DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="months"))
 #short.date_M = strftime(MonthlyRF$Ndate, "%Y-%m")
 
 xx <- data.frame(DateT1,myts66)
@@ -3744,7 +3710,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-12 Drought Events 1920 -2019: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-12 Drought Events 1920 -2021: ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -3978,9 +3944,9 @@ SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
 # make dataframe of date and drought (absolute SPI) value
-M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2019,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2019, 12)))
-DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2019-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2021,12), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2021, 12)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2021-12-31"), by="months"))
 xx <- data.frame(DateT1,myts66)
 colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
@@ -3994,7 +3960,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-3 Drought Events 1990-2019: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-3 Drought Events 1990-2021: ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4227,9 +4193,9 @@ SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
 # make dataframe of date and drought (absolute SPI) value
-M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2019,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2019, 12)))
-DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2019-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2021,12), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2021, 12)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2021-12-31"), by="months"))
 xx <- data.frame(DateT1,myts66)
 colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
@@ -4243,7 +4209,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-12 Drought Events 1990-2019: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-12 Drought Events 1990-2021: ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4279,23 +4245,31 @@ MEI_W <- MEI$MEI_W
 MEI_D <- MEI$MEI_D
 
 head(MRF100)
+tail(MRF100)
 
 # # If starting this section from monthly rainfall csv
 # Cell.AF_Maps<-MRF100[which(MRF100$Year<2013),]
 
-MRF  =  Cell.AF_Maps[c(1:1116),]
+# # Using MEI and Abby's rainfall dataset
+# MRF  =  Cell.AF_Maps[c(1:1116),]
+
+# Using ONI and the combo dataset 1950 - 2021
+MRF = MRF100[c(361:nrow(MRF100)),]
 head(MRF)
+tail(MRF)
 
 ##########  Need to remove Rows to get seasons correct
 
-MRF2 =  MRF[-c(1115:1116),]
+MRF2 =  MRF[-c((nrow(MRF)-1):nrow(MRF)),]
+tail(MRF2)
 MRF3 =  MRF2[-c(1:4),]
 head(MRF3)
-tail(MRF3)
+
 #Aggregate every 6 months
 colnames(MRF3)[4] <- "RANCH_RF"
 RF6 <- as.numeric(MRF3$RANCH_RF)
 SixMo <-colMeans(matrix(RF6, nrow=6))  #Will Need to change This 
+SixMo
 
 # Don't do this if starting from monthly rainfall (inches) csv
 if(RFUnit == " in") {SixMo <-  SixMo * 0.0393701} 
@@ -4319,10 +4293,8 @@ MEI_W2 <- NUT_Wx[,2]
 NUT_W  <- subset(NUT_Wx,MEI_W2 < 0.5)
 
 ##########   Strong and Weak EL Wet Season 
-W0_X_EL <- ELN_W[,2]
-# ELN_W_Weak <- subset(ELN_W , W0_X_EL  < 1)
-# ELN_W_Strong <- subset(ELN_W , W0_X_EL  > 1)
 
+W0_X_EL <- ELN_W[,2]
 ELN_W_Weak <- subset(ELN_W , W0_X_EL  <= 1.5)
 ELN_W_Strong <- subset(ELN_W , W0_X_EL  > 1.5)
 
@@ -4356,7 +4328,7 @@ D0_X_LA <- LAN_D[,2]
 
 LAN_D_Weak <- subset(LAN_D , D0_X_LA  >= -1.5)
 LAN_D_Strong <- subset(LAN_D , D0_X_LA  < -1.5)
-
+D0_X_LA
 ##########   SUBSET 
 EL_W_S <- ELN_W_Strong[,1]
 EL_W_W <- ELN_W_Weak[,1]
@@ -4415,7 +4387,7 @@ Cell.MEI[1:5,4] <- c( Mx_EL_W_S, Mx_EL_W_W, Mx_NU_W,Me_LA_W_W, Mx_LA_W_S)
 Cell.MEI[1:5,5] <- c( Mx_EL_D_S, Mx_EL_D_S, Mx_NU_D,Me_LA_D_W, Mx_LA_D_S)
 
 ##########   MIN
-
+Cell.MEI
 Mn_EL_W_S <- round(min(EL_W_S,na.rm=T),1) 
 Mn_EL_W_W <- round(min(EL_W_W,na.rm=T),1) 
 Mn_LA_W_S <- round(min(LA_W_S,na.rm=T),1)
@@ -4429,7 +4401,7 @@ Mn_NU_D <-   round(min(NU_D,na.rm=T),1)
 
 Cell.MEI[1:5,6] <- c( Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
 Cell.MEI[1:5,7] <- c( Mn_EL_D_S, Mn_EL_D_S, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
-
+Cell.MEI
 ##########   DRY SEASON   
 
 ##########   Scaler
@@ -4539,7 +4511,7 @@ enso<-MEI
 enso
 
 # Add date column
-enso$date<-c(1920:2019)
+enso$date<-c(1950:2021)
 enso$date<-as.Date(paste0(enso$date,"-01-01"))
 
 # add seasonal ENSO phase columns based on MEI values
@@ -4617,7 +4589,8 @@ t2<-aggregate(RF ~ sc, table2, sum)
 head(t2)
 
 ### merge other columns back in and reduce to one row per season count
-t1<-table2[c(2,3,5,6)]
+head(table2)
+t1<-table2[c(1,2,4,5)]
 head(t1, 20)
 
 # make empty dataframe
@@ -4669,7 +4642,7 @@ table3<-join_all(dfs, match="all")
 head(table3, 20)
 tail(table3,20)
 
-# remove rows with no data (past 2012)
+# remove rows with no data (pre-1950)
 table3<-table3[which(!is.na(table3$MEI_D)),]
 
 # make single MEI and s.phase columns with value based on season
@@ -4828,11 +4801,11 @@ rain6$x2<-NA
 
 for (i in 1:nrow(rain6)) {
   y<-rain6[i,]
-  if(y$x == "SEL") {rain6[i,]$x2 <- "Strong El Nino"}
-  if(y$x == "WEL") {rain6[i,]$x2 <- "Weak El Nino"}
-  if(y$x == "NUT") {rain6[i,]$x2 <- "Neutral"}
-  if(y$x == "WLA") {rain6[i,]$x2 <- "Weak La Nina"}
-  if(y$x == "SLA") {rain6[i,]$x2 <- "Strong La Nina"}
+  if((!is.na(y$x)) && y$x == "SEL") {rain6[i,]$x2 <- "Strong El Nino"}
+  if((!is.na(y$x)) && y$x == "WEL") {rain6[i,]$x2 <- "Weak El Nino"}
+  if((!is.na(y$x)) && y$x == "NUT") {rain6[i,]$x2 <- "Neutral"}
+  if((!is.na(y$x)) && y$x == "WLA") {rain6[i,]$x2 <- "Weak La Nina"}
+  if((!is.na(y$x)) && y$x == "SLA") {rain6[i,]$x2 <- "Strong La Nina"}
 }
 
 ### Plot

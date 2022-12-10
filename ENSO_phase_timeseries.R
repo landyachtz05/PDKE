@@ -358,6 +358,16 @@ head(oni,20)
 
 oni$date<-paste0(oni$YR,"-",oni$month,"-01")
 
+### Remove first and last season-year so that the season-year averages don't have gaps
+### EXAMPLE: Wet season 1990 actually starts 11/1989, and shouldn't include 11-12/1990
+
+oni<-oni[-c((nrow(oni)-1):nrow(oni)),]
+tail(oni)
+oni<-oni[-c(1:4),]
+head(oni)
+
+oni[which(oni$YR == 2005),]
+
 ### Make season column (rainy = 11 to 4, dry = 5 to 10)
 oni$season<-NA
 
@@ -367,19 +377,50 @@ for (i in 1:nrow(oni)) {
   if(x$month < 5 || x$month > 10) {oni[i,]$season<-"wet"}
 }
 
-### aggregate anomaly value over year and season
-oni.s<-aggregate(ANOM ~ YR + season, oni, FUN=mean)
-oni.s<-oni.s[order(oni.s$YR),]
-head(oni.s)
-summary(oni.s$ANOM)
+### for each consecutive 6 months, aggregate ANOM by season and keep maximum
+# make list of values 6 values apart
+rows<-seq(from = 1, to = 857, by = 6)
+
+# create empty dataframe
+seasons<-setNames(data.frame(matrix(ncol = 3, nrow = 0)), 
+                  c("year", "season", "ANOM"))
+head(seasons)
+
+# loop through consecutive months and aggregate season ONI values
+
+n<-1
+
+for (y in rows) {
+  
+  b<-oni[c(y:(y+5)),]
+  b
+  
+  # find min and max ONI values for each season-year
+  # if absolute value of max and min are equal, use mean value for season-year
+  h<-aggregate(ANOM ~ season, b, max)
+  l<-aggregate(ANOM ~ season, b, min)
+  m<-aggregate(ANOM ~ season, b, mean)
+
+    if(abs(h$ANOM) > abs(l$ANOM)) {seasons[n,]$ANOM <- h$ANOM}
+    if(abs(h$ANOM) < abs(l$ANOM)) {seasons[n,]$ANOM <- l$ANOM}
+    if(abs(h$ANOM) == abs(l$ANOM)) {seasons[n,]$ANOM <- m$ANOM}
+
+    seasons[n,]$year<-max(b$YR)
+    seasons[n,]$season<-unique(b$season)
+    
+    n<-n+1
+  }
+head(seasons, 10)
+tail(seasons)
 
 ### make two-column dataframe (MEI_W, MEI_D (just keep using the MEI label so I 
 ### don't have to change the MINI_Phase2 script))
-oni2<-data.frame(matrix(nrow=72,ncol=2))
+oni2<-data.frame(matrix(nrow=71,ncol=2))
 colnames(oni2)<-c("MEI_W","MEI_D")
-oni2$MEI_W<-oni.s[which(oni.s$season == "wet"),]$ANOM
-oni2$MEI_D<-oni.s[which(oni.s$season == "dry"),]$ANOM
-head(oni2)
+oni2$MEI_W<-seasons[which(seasons$season == "wet"),]$ANOM
+oni2$MEI_D<-seasons[which(seasons$season == "dry"),]$ANOM
+oni2
+
 
 ### export table
 write.csv(oni2, "ONI_Season.csv")
