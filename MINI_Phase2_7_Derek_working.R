@@ -1,6 +1,6 @@
-install.packages(c("ggplot2","grid","devtools","lubridate","rgeos","latticeExtra","rasterVis","plotrix","dplyr",
-                   "xts","timeSeries","ggfortify","changepoint","scales","reshape2","hydroTSM","tiff","lmomco",
-                   "parallel","plyr","SPEI","sf","ggpubr"))
+# install.packages(c("ggplot2","grid","devtools","lubridate","rgeos","latticeExtra","rasterVis","plotrix","dplyr",
+#                    "xts","timeSeries","ggfortify","changepoint","scales","reshape2","hydroTSM","tiff","lmomco",
+#                    "parallel","plyr","SPEI","sf","ggpubr"))
 
 library(gstat)
 library(raster)
@@ -189,8 +189,8 @@ u<-1
 FIRE_Shape <- readOGR(paste0(IFOLDER,"StateFire_1999/2020_1999_Hawaii_Fire_Perimeters.shp"))
 FIRE_Shape_T <- spTransform(FIRE_Shape, crs(EXAMP))  
 crs(FIRE_Shape_T) <- CRS(proj4string(EXAMP))
-Fire_Mask <- mask(x = FIRE_Shape_T, mask = UNIT_X[[u]])
-Fire_Crop <- crop(x = FIRE_Shape_T, y = extent(UNIT_X[[u]]))
+# Fire_Mask <- mask(x = FIRE_Shape_T, mask = UNIT_X[[u]])
+# Fire_Crop <- crop(x = FIRE_Shape_T, y = extent(UNIT_X[[u]]))
 
 ##########   Forest Roads
 
@@ -434,7 +434,7 @@ ELEV_Max <- round(cellStats(ELEV_Crop, 'max'),1)
 ELEV_Min <- round(cellStats(ELEV_Crop, 'min'),1)
 
 Cell.DataCL[u,2:4] <- c(ELEV_Min,ELEV_Mean,ELEV_Max)
-Cell.DataCL[u,17] <- Iname
+Cell.DataCL[u,14] <- Iname
 Cell.DataCLR[1:3,1] <- c("Mean","Max","Min")
 Cell.DataCLR[1:3,2] <- c(ELEV_Mean,ELEV_Max,ELEV_Min)
 Cell.DataCLR[1,14] <- Iname
@@ -1728,7 +1728,7 @@ RFLO <- min(JanMRFn,FebMRFn,MarMRFn,AprMRFn,MayMRFn,JunMRFn,JulMRFn,AugMRFn,SepM
 ########## Write to Output Folder 
 
 write.csv(Cell.CL_Year,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Annual Climate.csv"),row.names = F)
-
+Cell.CL_Year
 ##########   CLIMO GRAPHS
 
 #build data frame with temperature and precipitation data
@@ -1749,7 +1749,7 @@ NTA <- min(TA) - min(TA)*0.2
 
 #Make Cliamo Graph and Save to ouptput folder
 
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climograph.png"),width=5*dpi,height=5*dpi,res=dpi) 
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climograph.png"),width=5*dpi,height=3*dpi,res=dpi) 
 
 par(mar=c(4,4,4,4))
 my_bar <- barplot(df$PREC, border=F , names.arg=df$month , 
@@ -1771,9 +1771,44 @@ legend("topleft", legend = c("Rainfall", "Temperature"),
        col = c("darkblue" , "red") , 
        bty = "n", pch=c(15,20) , pt.cex = 2, cex = 0.8, horiz = FALSE, inset = c(0.05, 0.05))
 
+dev.off()
+
+### Monthly Rainfall
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climograph_RF.png"),width=5*dpi,height=3*dpi,res=dpi) 
+
+barplot(df$PREC, border=F , names.arg=df$month , 
+        las=2 , 
+        col="darkblue" , 
+        ylim=c(0,XPR) ,
+        ylab = paste0("Rainfall (",RFUnit2,".)"))#,
+title(paste0("Monthly Rainfall: ",UNIT_Ns[u]), line = 0.8,cex.main = 1.5)
+par(new = TRUE)
+plot(df$month,df$TA ,pch=15 , lty = 0, axes = FALSE, xlab = "", ylab = "",col="red",ylim=c(NTA,XTA ))
 
 dev.off()
 
+### Monthly Air Temp
+col<-rgb(0.2,0.2,1,alpha=0.15)
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climograph_AT.png"),width=5.2*dpi,height=3*dpi,res=dpi) 
+
+par(mar=c(4,4,4,4))
+barplot(df$PREC, border=F , names.arg=df$month , 
+                  las=2 , 
+                  col=col , 
+                  alpha = 0.5 ,
+                  ylim=c(0,XPR) ,
+                  ylab = paste0("Rainfall (",RFUnit2,".)"),
+                  col.lab = "grey50")#,
+title(paste0("Monthly Air Temperature"), line = 0,cex.main = 1.3)
+par(new = TRUE)
+plot(df$month,df$TA ,pch=15 , lty = 0, axes = FALSE, xlab = "", ylab = "",col="red",ylim=c(NTA,XTA ))
+lines(x = df$month, y = df$TA,lwd=2,col="red")
+points(x = df$month, y = df$TA,col="red",pch=16,cex=2)
+mtext(paste0("Temperature (",TUnit,")"), side=4, line=2.5,col="red")
+axis(4, ylim=c(NTA,XTA), col="red",col.axis="red",las=1)
+
+dev.off()
 
 ########## Figure for Other Cliamte Variables 
 # Decide on a Break for Rainfall 
@@ -2024,6 +2059,66 @@ grid.arrange(top = title1,
 
 dev.off()
 
+##### Hottest and Coldest month maps
+
+# find hottest and coldest months
+Cell.CL_Year
+t<-Cell.CL_Year[3,2:13]
+min.col <- function(m, ...) max.col(-m, ...)
+hm<-colnames(t)[min.col(t, ties.method="first")]
+cm<-colnames(t)[max.col(t, ties.method="first")]
+
+# Select correct month map based on dry and wet months
+if(hm == "JAN") {hmap<-Jan_CropTA ; mnh<-"January"}
+if(hm == "FEB") {hmap<-Feb_CropTA ; mnh<-"February"}
+if(hm == "MAR") {hmap<-Mar_CropTA ; mnh<-"March"}
+if(hm == "APR") {hmap<-Apr_CropTA ; mnh<-"April"}
+if(hm == "MAY") {hmap<-May_CropTA ; mnh<-"May"}
+if(hm == "JUN") {hmap<-Jun_CropTA ; mnh<-"June"}
+if(hm == "JUL") {hmap<-Jul_CropTA ; mnh<-"July"}
+if(hm == "AUG") {hmap<-Aug_CropTA ; mnh<-"August"}
+if(hm == "SEP") {hmap<-Sep_CropTA ; mnh<-"September"}
+if(hm == "OCT") {hmap<-Oct_CropTA ; mnh<-"October"}
+if(hm == "NOV") {hmap<-Nov_CropTA ; mnh<-"November"}
+if(hm == "DEC") {hmap<-Dec_CropTA ; mnh<-"December"}
+
+if(cm == "JAN") {cmap<-Jan_CropTA ; mnc<-"January"}
+if(cm == "FEB") {cmap<-Feb_CropTA ; mnc<-"February"}
+if(cm == "MAR") {cmap<-Mar_CropTA ; mnc<-"March"}
+if(cm == "APR") {cmap<-Apr_CropTA ; mnc<-"April"}
+if(cm == "MAY") {cmap<-May_CropTA ; mnc<-"May"}
+if(cm == "JUN") {cmap<-Jun_CropTA ; mnc<-"June"}
+if(cm == "JUL") {cmap<-Jul_CropTA ; mnc<-"July"}
+if(cm == "AUG") {cmap<-Aug_CropTA ; mnc<-"August"}
+if(cm == "SEP") {cmap<-Sep_CropTA ; mnc<-"September"}
+if(cm == "OCT") {cmap<-Oct_CropTA ; mnc<-"October"}
+if(cm == "NOV") {cmap<-Nov_CropTA ; mnc<-"November"}
+if(cm == "DEC") {cmap<-Dec_CropTA ; mnc<-"December"}
+
+### make plots
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," TA_hm.png"),width=5*dpi,height=5*dpi,res=dpi)  
+
+spplot(hmap, col.regions = colfuncTA, equal=FALSE,
+       axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
+       main=list(label=paste0(mnh," Temp. ",UNIT_Ns[u]),cex=1.8),
+       colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
+       sp.layout = list(UNIT_X[u])) +
+  layer(sp.polygons(SHAPE,lwd=1))
+
+dev.off()
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," TA_cm.png"),width=5*dpi,height=5*dpi,res=dpi)  
+
+spplot(cmap, col.regions = colfuncTA, equal=FALSE,
+       axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
+       main=list(label=paste0(mnc," Temp. ",UNIT_Ns[u]),cex=1.8),
+       colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
+       sp.layout = list(UNIT_X[u])) +
+  layer(sp.polygons(SHAPE,lwd=1))
+
+dev.off()
+
 ##########   MEAN ANNUAL Relative Humidity 12-maps
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RH12.png"),width=5*dpi,height=5*dpi,res=dpi)  
@@ -2116,7 +2211,7 @@ grid.arrange(top = title1,
                     main=list(label=paste0("JAN (",JanMRF ,RFUnit,")"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])) , 
-             
+
              spplot(Feb_CropRF, col.regions = colfuncRF, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
                     main=list(label=paste0("FEB (",FebMRF ,RFUnit,")"),cex=0.9),
@@ -2185,7 +2280,65 @@ grid.arrange(top = title1,
 
 dev.off()
 
+##### Driest and Wettest month maps
 
+# find driest and wettest months
+Cell.CL_Year
+d<-Cell.CL_Year[1,2:13]
+min.col <- function(m, ...) max.col(-m, ...)
+dm<-colnames(d)[min.col(d, ties.method="first")]
+wm<-colnames(d)[max.col(d, ties.method="first")]
+
+# Select correct month map based on dry and wet months
+if(dm == "JAN") {dmap<-Jan_CropRF ; mn<-"January"}
+if(dm == "FEB") {dmap<-Feb_CropRF ; mn<-"February"}
+if(dm == "MAR") {dmap<-Mar_CropRF ; mn<-"March"}
+if(dm == "APR") {dmap<-Apr_CropRF ; mn<-"April"}
+if(dm == "MAY") {dmap<-May_CropRF ; mn<-"May"}
+if(dm == "JUN") {dmap<-Jun_CropRF ; mn<-"June"}
+if(dm == "JUL") {dmap<-Jul_CropRF ; mn<-"July"}
+if(dm == "AUG") {dmap<-Aug_CropRF ; mn<-"August"}
+if(dm == "SEP") {dmap<-Sep_CropRF ; mn<-"September"}
+if(dm == "OCT") {dmap<-Oct_CropRF ; mn<-"October"}
+if(dm == "NOV") {dmap<-Nov_CropRF ; mn<-"November"}
+if(dm == "DEC") {dmap<-Dec_CropRF ; mn<-"December"}
+
+if(wm == "JAN") {wmap<-Jan_CropRF ; mnw<-"January"}
+if(wm == "FEB") {wmap<-Feb_CropRF ; mnw<-"February"}
+if(wm == "MAR") {wmap<-Mar_CropRF ; mnw<-"March"}
+if(wm == "APR") {wmap<-Apr_CropRF ; mnw<-"April"}
+if(wm == "MAY") {wmap<-May_CropRF ; mnw<-"May"}
+if(wm == "JUN") {wmap<-Jun_CropRF ; mnw<-"June"}
+if(wm == "JUL") {wmap<-Jul_CropRF ; mnw<-"July"}
+if(wm == "AUG") {wmap<-Aug_CropRF ; mnw<-"August"}
+if(wm == "SEP") {wmap<-Sep_CropRF ; mnw<-"September"}
+if(wm == "OCT") {wmap<-Oct_CropRF ; mnw<-"October"}
+if(wm == "NOV") {wmap<-Nov_CropRF ; mnw<-"November"}
+if(wm == "DEC") {wmap<-Dec_CropRF ; mnw<-"December"}
+
+### make plots
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RF_dm.png"),width=5*dpi,height=5*dpi,res=dpi)  
+
+spplot(dmap, col.regions = colfuncRF, equal=FALSE,
+       axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
+       main=list(label=paste0(mn," Rainfall ",UNIT_Ns[u]),cex=2),
+       colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
+       sp.layout = list(UNIT_X[u])) +
+  layer(sp.polygons(SHAPE,lwd=1))
+  
+dev.off()
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RF_wm.png"),width=5*dpi,height=5*dpi,res=dpi)  
+
+spplot(wmap, col.regions = colfuncRF, equal=FALSE,
+       axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
+       main=list(label=paste0(mnw," Rainfall ",UNIT_Ns[u]),cex=2),
+       colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
+       sp.layout = list(UNIT_X[u])) +
+  layer(sp.polygons(SHAPE,lwd=1))
+
+dev.off()
 
 #########   Seasonal Rainfall Maps 
 
@@ -3052,11 +3205,11 @@ if(RFUnit == " in") {MRF100$RF <-  as.numeric(MRF100$RF) * 0.0393701}
 
 write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv"),row.names = F)
 
-### Can read in the csv from above to start script here
-      # setwd("E:/PDKE/CCVD/MINI_Phase2/Parker Ranch/")
-      # MRF100<-read.csv("Parker Ranch Monthly Rainfall_in.csv")
-      # # fix month values
-      # MRF100$Month<-sub(".*/","",MRF100$Date)
+# ## Can read in the csv from above to start script here
+# setwd("E:/PDKE/CCVD/MINI_Phase2/Parker Ranch/")
+# MRF100<-read.csv("Parker Ranch Monthly Rainfall_in.csv")
+# # fix month values
+# MRF100$Month<-sub(".*/","",MRF100$Date)
 
 head(MRF100)
 tail(MRF100)

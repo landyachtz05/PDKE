@@ -1,4 +1,3 @@
-
 library(magrittr)
 library(tidyverse)
 library(rvg)
@@ -376,7 +375,7 @@ FIG_3.2 <- block_list(
     # format table
     Tt<-flextable(T)
     Tt<-bold(Tt, bold = TRUE, part = "header")
-    Tt<-width(Tt, j=1, 2, unit="in")
+    # Tt<-width(Tt, j=1, 2, unit="in")
 
     #Creates a table for the PPT
     Tt <- autofit(Tt, add_h=-0.5, part=c("body","header"), unit = "in")
@@ -390,8 +389,8 @@ FIG_3.2 <- block_list(
                     " with area average shown in heading of each plot."), fp_Fig)))
 
 #Climate Variable figures 
-RFfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_RF.png")
-RFimg <- external_img(src = RFfile, height = 3,width = 3) 
+RF2file <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_RF.png")
+RF2img <- external_img(src = RF2file, height = 3,width = 3) 
 TAAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_TA.png")
 TAAimg <- external_img(src = TAAfile, height = 3,width = 3) 
 RHfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_RH.png")
@@ -404,11 +403,11 @@ ETfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_ET.png")
 ETimg <- external_img(src = ETfile, height = 3,width = 3) 
 
 si<-1.8
-###############   Slide 7 Climograph 
+###############   Slide 8 Average monthly rainfall 
 
 S7_TIT<- block_list(
-  fpar(ftext("Average Monthly Rainfall", FTXTT),fp_p = fp_par(text.align = "center")),
-  fpar(ftext("and Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
+  fpar(ftext("Average Monthly Rainfall", FTXTT),fp_p = fp_par(text.align = "center")))
+  # fpar(ftext("and Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
 CLIMA <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Annual Climate.csv"),sep=",")
 
@@ -427,6 +426,41 @@ RFnm <- match(RFn,RFT)
 RFx<-round(RFx, 0)
 RFn<-round(RFn, 0)
 
+CLIMO_RF <- paste0("Average monthly rainfall patterns vary over the course of the year. At ", SNameF, ", the highest monthly rainfall is received in ", MONLIST[RFxm], 
+                " (",RFx, RFUnit,".) and the lowest monthly rainfall is received in ", MONLIST[RFnm]," (",RFn, RFUnit,".). Average monthly rainfall maps for ",SNameF,
+                " are in Annex II.")
+
+fp_CLIMO_RF <- fpar(ftext(CLIMO_RF, fp_Tx))
+
+FIG_6a <- block_list(
+  fpar(ftext(paste0("Figure 6. Mean monthly rainfall at ",SNameF,"."), fp_Fig)))
+  
+FIG_7a <- block_list(
+  fpar(ftext(paste0("Figure 7. Monthly rainfall maps for the wettest (top) and driest (bottom) months."), fp_Fig)))
+
+#Monthly rainfall barchart
+RFBfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climograph_RF.png")
+RFBimg <- external_img(src = RFBfile, height = 2,width = 1) 
+
+#Month rainfall maps
+RFWfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF_wm.png")
+RFWimg <- external_img(src = RFWfile, height = 3,width = 3) 
+
+RFDfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF_dm.png")
+RFDimg <- external_img(src = RFDfile, height = 3,width = 3) 
+
+###############   Slide 9 Average monthly air temperature 
+
+S8a_TIT<- block_list(
+  fpar(ftext("Average Monthly Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
+
+RFT <- CLIMA[1,2:13]
+MinT<- CLIMA[2,2:13]
+TAT <- CLIMA[3,2:13] # Mean Temperature 
+MaxT <- CLIMA[4,2:13]
+RH <- CLIMA[5,2:13]
+
+MONLIST <- c("January","February","March","April","May","June","July","August","September","October","November","December")
 TAx <- max(TAT)
 TAxm <- match(TAx,TAT)
 TAn <- min(TAT)
@@ -435,19 +469,35 @@ Tdif <- abs(TAn-TAx)
 TAx<-round(TAx, 0)
 TAn<-round(TAn, 0)
 
-CLIMO <- paste0("Average monthly rainfall and temperature patterns vary over the course of the year at ", SNameF, ". The highest monthly rainfall is received in ", MONLIST[RFxm], 
-                " (",RFx, RFUnit,") and the lowest monthly rainfall is received in ", MONLIST[RFnm]," (",RFn, RFUnit,"). There is a ",Tdif,TUnit ," annual variation in temperature with the ",
-                "warmest month occurring in ", MONLIST[TAxm]," (",TAx, TUnit2,") and the coolest month occurring in ", MONLIST[TAnm]," (",TAn, TUnit2,").")
+# Get annual average variation in air temp
+min.col <- function(m, ...) max.col(-m, ...)
 
-fp_CLIMO <- fpar(ftext(CLIMO, fp_Tx))
+TAh<-TAT[max.col(TAT)]
+TAl<-TAT[min.col(TAT)]
+TAv<-TAh-TAl
 
-FIG_4 <- block_list(
-  fpar(ftext(paste0("Figure 6. Mean monthly rainfall and temperature at ",SNameF,"."), fp_Fig)))
-  
-#Mean CLIM Figure 
-Climofile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climograph.png")
-Climoimg <- external_img(src = Climofile, height = 3,width = 3) 
+CLIMO_TA <- paste0("Average monthly air temperature patterns vary over the course of the year. At ", SNameF, " there is a ",TAv, TUnit2," annual variation in temperature,",
+                " with the warmest month of ",MONLIST[TAxm]," (", TAx, TUnit2,") and the coolest month in ",MONLIST[TAnm],
+                " (", TAn, TUnit2,"). Average monthly air temperature maps for ", SNameF," are in Annex III.")
 
+fp_CLIMO_TA <- fpar(ftext(CLIMO_TA, fp_Tx))
+
+FIG_8a <- block_list(
+  fpar(ftext(paste0("Figure 8. Mean monthly air temperature at ",SNameF," with monthly rainfall in the background."), fp_Fig)))
+
+FIG_9a <- block_list(
+  fpar(ftext(paste0("Figure 9. Monthly air temperature maps for the coldest (top) and hottest (bottom) months."), fp_Fig)))
+
+#Monthly temp line chart
+TALfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climograph_AT.png")
+TALimg <- external_img(src = TALfile, height = 2,width = 1) 
+
+#Month rainfall maps
+TACfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," TA_cm.png")
+TACimg <- external_img(src = TACfile, height = 3,width = 3) 
+
+TAHfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," TA_hm.png")
+TAHimg <- external_img(src = TAHfile, height = 3,width = 3) 
 ###############   Slide 8 TA And RF
 
 S8_TIT<- block_list(
@@ -745,26 +795,20 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   if(Drot_ct > 12) {DROT2<-DROT[13:nrow(DROT),]}
   if(Drot_ct > 24) {DROT2<-DROT2[1:12,]}
   if(Drot_ct > 24) {DROT3<-DROT[25:nrow(DROT),]}
-  
-  DROT1
-  DROT2
-  DROT3
-  
+
   DrotT_T1 <- flextable(DROT1)
   DrotT_T1 <- bg(DrotT_T1, bg = "orange", part = "header")
   DrotT_T1 <- autofit(DrotT_T1)
   DrotT_T1
+
+  if(exists("DROT2")) {DrotT_T2 <- flextable(DROT2);
+                       DrotT_T2 <- bg(DrotT_T2, bg = "orange", part = "header");
+                       DrotT_T2 <- autofit(DrotT_T2)}
   
-  DrotT_T2 <- flextable(DROT2)
-  DrotT_T2 <- bg(DrotT_T2, bg = "orange", part = "header")
-  DrotT_T2 <- autofit(DrotT_T2)
-  DrotT_T2
-  
-  DrotT_T3 <- flextable(DROT3)
-  DrotT_T3 <- bg(DrotT_T3, bg = "orange", part = "header")
-  DrotT_T3 <- autofit(DrotT_T3)
-  DrotT_T3
-  
+  if(exists("DROT3")) {DrotT_T3 <- flextable(DROT3);
+                       DrotT_T3 <- bg(DrotT_T3, bg = "orange", part = "header");
+                       DrotT_T3 <- autofit(DrotT_T3)}
+
   # # make conditional statement to get last slide number (will be used on last slide)
   # if(Drot_ct>12) {ls <- 33}
   # if(Drot_ct>24) {ls <- 34}
@@ -1343,9 +1387,6 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   ph_with(value = FIG_3.2, location = ph_location(label = "my_name",
                                                   left = 5.5, top = 6, width = 3.5, height = 1.4))%>%
 
-    
-    
-    mypowerpoint <- read_pptx() %>%
 #Slide 6 
   add_slide("Two Content","Office Theme") %>%
     ph_with(S6_TIT,           ph_location_type("title")) %>%
@@ -1357,7 +1398,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     # ph_with(value = Climimg, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
   
-    ph_with(value = RFimg, location = ph_location(label = "my_name",
+    ph_with(value = RF2img, location = ph_location(label = "my_name",
                      left = 5.4, top = 1.5, width=si, height= si))%>%
     ph_with(value = TAAimg, location = ph_location(label = "my_name",
                      left = 7.5, top = 1.5, width=si, height=si))%>%
@@ -1374,21 +1415,44 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                                                 left = 0.5, top = 6.1, width = 4.6, height = 1.4))%>%
   
   ph_with(value = FIG_3, location = ph_location(label = "my_name",
-                                                left = 5.4, top = 6.1, width = 4.4, height = 1.4))
+                                                left = 5.4, top = 6.1, width = 4.4, height = 1.4))%>%
   
-    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v3_test7.pptx"))
-  
-    
-#Slide 7 
+#Slide 8
   add_slide("Two Content","Office Theme") %>%
     ph_with(S7_TIT,          ph_location_type("title")) %>%
-    ph_with(fp_CLIMO,        ph_location_type("body",position_right = FALSE)) %>%
+    ph_with(value = RFBimg, location = ph_location(label = "my_name",
+                                                   left = 0.3, top = 3.2, width = 6.3, height = 3.7)) %>%
+    ph_with(fp_CLIMO_RF, location = ph_location(label = "my_name",
+                                             left = 0.4, top = 1.1, width = 6.1, height = 3)) %>%
     ph_with(value = "8", location = ph_location_type(type = "sldNum")) %>%
-    ph_with(value = Climoimg, ph_location_type("body",position_right = TRUE)) %>%
+    ph_with(value = RFWimg, location = ph_location(label = "my_name",
+                                                   left = 6.9, top = 1.35, width = 2.55, height = 2.55)) %>%
+    ph_with(value = RFDimg, location = ph_location(label = "my_name",
+                                                   left = 6.9, top = 3.9, width = 2.55, height = 2.55)) %>%
     ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
-    ph_with(value = FIG_4, location = ph_location(label = "my_name",
-                                                  left = 5.2, top = 6.2, width = 4, height = 1.4))%>%
-
+    ph_with(value = FIG_6a, location = ph_location(label = "my_name",
+                                                  left = 0.7, top = 5.9, width = 4, height = 1.4))%>%
+    ph_with(value = FIG_7a, location = ph_location(label = "my_name",
+                                                   left = 6.9, top = 6, width = 2.4, height = 1.4))%>%
+   
+#Slide 9
+  add_slide("Two Content","Office Theme") %>%
+    ph_with(S8a_TIT,          ph_location_type("title")) %>%
+    ph_with(value = TALimg, location = ph_location(label = "my_name",
+                                                   left = 0.3, top = 3.1, width = 6.3, height = 3.7)) %>%
+    ph_with(fp_CLIMO_TA, location = ph_location(label = "my_name",
+                                             left = 0.4, top = 1.1, width = 6.1, height = 3)) %>%
+    ph_with(value = "9", location = ph_location_type(type = "sldNum")) %>%
+    ph_with(value = TACimg, location = ph_location(label = "my_name",
+                                                   left = 6.9, top = 1.35, width = 2.55, height = 2.55)) %>%
+    ph_with(value = TAHimg, location = ph_location(label = "my_name",
+                                                   left = 6.9, top = 3.9, width = 2.55, height = 2.55)) %>%
+    ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
+    ph_with(value = FIG_8a, location = ph_location(label = "my_name",
+                                                   left = 0.7, top = 6.05, width = 4, height = 1.4))%>%
+    ph_with(value = FIG_9a, location = ph_location(label = "my_name",
+                                                   left = 6.9, top = 6, width = 2.4, height = 1.4))%>%
+    
 #Slide 8 
 add_slide("Two Content","Office Theme") %>%
   ph_with(S8_TIT, ph_location_type("title")) %>%
@@ -1422,8 +1486,6 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(value =   ACLIM_T, location = ph_location(label = "my_name",
                                                       left = 0.3, top = 1.8, width = 7, height = 3.5))%>%
 
-      mypowerpoint <- read_pptx() %>%
-      
 #Slide 12.1
 add_slide("Two Content","Office Theme") %>%
   ph_with(P2_TIT,ph_location_type("title",position_left = TRUE)) %>%
@@ -1436,9 +1498,6 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = .3, top = 4.3, width = 5.3, height = 2.7)) %>%
   ph_with(value = FIG_10.1, location = ph_location(label = "my_name",
                                                   left = 6, top = 5.9, width = 3.4, height = 1))%>%
-  
-    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v3_test.pptx"))
-  
   
   #Slide 12.2
 add_slide("Two Content","Office Theme") %>%
@@ -1733,7 +1792,6 @@ add_slide("Two Content","Office Theme") %>%
                 location = ph_location(label = "my_name",
                                        left = 7.85, top = 2.5, width = 2, height = 4)) else .} %>%
 
-  
   #Slide 33 (or whatever the last slide is)  ############## PDKE 
   
   add_slide("Title and Content","Office Theme") %>%
@@ -1741,8 +1799,7 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 2, top = 1, width = 6, height = 6))%>%
 
   
-  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v3.pptx"))
-  
+  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4.pptx"))
 
     
 
