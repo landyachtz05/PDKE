@@ -181,7 +181,17 @@ UNIT_Island
 
 MeanRF_ALL = dir(paste0(IFOLDER,"Mean_RF_Data/StateMaps/"), pattern="*x.adf", recursive=T, full.names=T)
 
-
+### Find state-wide mean monthly rainfall stats (min, mean, max, percentiles)
+# loop through month maps and calculate stats
+for (i in MeanRF_ALL) {
+  i<-MeanRF_ALL[1]
+  
+  m<-raster(i)
+  mmean<-round(cellStats(m, 'mean'),1)
+  mq1<-quantile(r, probs = c(0.25, 0.75), )
+  
+  JanMKD   <- round(cellStats(Jan_CropKD, 'mean'),0)
+  
 ##########   FIRE OCCURRENCE
 #Fire Occurrence Shape 2019 (From Clay)
 u<-1
@@ -2394,6 +2404,7 @@ if (RNGESEA < 4){
 
 DSeaMRF   <- round(cellStats(DrySeasonRF, 'mean'),1)
 WSeaMRF   <- round(cellStats(WetSeasonRF, 'mean'),1)
+DSeaTRF   <- round(cellStats(DrySeasonRF, 'sum'),1)
 
 DryMEMO   <- as.character(round(DSeaMRF/6,1))
 DryUPMO   <- as.character(round(DryUP/6,1))
@@ -2410,22 +2421,23 @@ Cell.DataCLR[2,13] <- WetUP
 Cell.DataCLR[3,13] <- WetLO
 
 
+plot(WetSeasonRF)
+
+
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SeaRF.png"),width=5*dpi,height=5*dpi,res=dpi)  
 
 title1=textGrob(paste("Seasonal Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
 grid.arrange(top = title1,
-             spplot(DrySeasonRF, col.regions = colfuncRF, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEA,
-                    main=list(label=paste0("Dry Season (MAY-OCT) ", DSeaMRF  ,RFUnit),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) , 
-             
              spplot(WetSeasonRF, col.regions = colfuncRF, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEA,
                     main=list(label=paste0("Wet Season (NOV-APR) ", WSeaMRF  ,RFUnit),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+                    sp.layout = list(UNIT_X[u])),
+             spplot(DrySeasonRF, col.regions = colfuncRF, equal=FALSE,
+                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEA,
+                    main=list(label=paste0("Dry Season (MAY-OCT) ", DSeaMRF  ,RFUnit),cex=0.9),
+                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])))
-
 dev.off()
 
 ########## Add Data To tABLE 
