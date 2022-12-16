@@ -182,16 +182,36 @@ UNIT_Island
 MeanRF_ALL = dir(paste0(IFOLDER,"Mean_RF_Data/StateMaps/"), pattern="*x.adf", recursive=T, full.names=T)
 
 ### Find state-wide mean monthly rainfall stats (min, mean, max, percentiles)
-# loop through month maps and calculate stats
-for (i in MeanRF_ALL) {
-  i<-MeanRF_ALL[1]
-  
+# loop through month maps and calculate stats, also make average monthly rainfall map
+n<-1
+fq<-data.frame(quantile(c(0:0)))
+
+sm<-stack()
+
+for (i in MeanRF_ALL[1:12]) {
   m<-raster(i)
-  mmean<-round(cellStats(m, 'mean'),1)
-  mq1<-quantile(r, probs = c(0.25, 0.75), )
   
-  JanMKD   <- round(cellStats(Jan_CropKD, 'mean'),0)
+  # convert mm to inches
+  if(RFUnit == " in") {m  <- m  * 0.0393701}
   
+  # calculate quantiles and put in dataframe
+  mq<-data.frame(quantile(m))
+  colnames(mq)<-n
+  fq<-cbind(fq,mq)
+  n<-n+1
+  
+  # add raster to stack
+  sm<-stack(sm, m)
+}
+
+fq<-round(fq[2:ncol(fq)], 2)
+stateRF<-rowMeans(fq)
+stateRFM<-calc(sm, mean, na.rm=T)
+
+# make dataframe from average monthly rainfall map
+stateRFMd<-as.data.frame(stateRFM, na.rm=T)
+stateRFMd<-data.frame(stateRFMd[1])
+
 ##########   FIRE OCCURRENCE
 #Fire Occurrence Shape 2019 (From Clay)
 u<-1
@@ -2350,11 +2370,38 @@ spplot(wmap, col.regions = colfuncRF, equal=FALSE,
 
 dev.off()
 
+
 #########   Seasonal Rainfall Maps 
 
 DrySeasonRF <- (May_CropRF+Jun_CropRF+Jul_CropRF+Aug_CropRF+Sep_CropRF+Oct_CropRF)
 WetSeasonRF <- (Nov_CropRF+Dec_CropRF+Jan_CropRF+Feb_CropRF+Mar_CropRF+Apr_CropRF)
 
+### Make wet and dry season average monthly rainfall maps and values
+WetSM<-(WetSeasonRF/6)
+WetSMV<-round(cellStats(WetSM, 'mean'), 1)
+
+DrySM<-(DrySeasonRF/6)
+DrySMV<-round(cellStats(DrySM, 'mean'), 1)
+
+# get min and max values for figure scale
+DryUPm   <- round(cellStats(DrySM, 'max'),1)
+DryLOm   <- round(cellStats(DrySM, 'min'),1)
+WetUPm   <- round(cellStats(WetSM, 'max'),1)
+WetLOm  <- round(cellStats(WetSM, 'min'),1)
+
+DryUPMOm   <- round(DryUPm/6,1)
+DryLOMOm   <- round(DryLOm/6,1)
+WetUPMOm   <- round(WetUPm/6,1)
+WetLOMOm   <- round(WetLOm/6,1)
+
+SEAUPm <- max(DryUPm,WetUPm)
+SEALOm <-min(DryLOm,WetLOm)
+
+BI_brksSEAm <- round(seq(SEALOm, SEAUPm, length = 10),0)
+
+# export plot below this next section
+
+#####
 DryUP   <- round(cellStats(DrySeasonRF, 'max'),1)
 DryLO   <- round(cellStats(DrySeasonRF, 'min'),1)
 WetUP   <- round(cellStats(WetSeasonRF, 'max'),1)
@@ -2400,8 +2447,6 @@ if (RNGESEA < 4){
   colfuncRF<-colorRampPalette(brewer.pal(4,"YlGnBu"))(50)
 }
 
-
-
 DSeaMRF   <- round(cellStats(DrySeasonRF, 'mean'),1)
 WSeaMRF   <- round(cellStats(WetSeasonRF, 'mean'),1)
 DSeaTRF   <- round(cellStats(DrySeasonRF, 'sum'),1)
@@ -2420,10 +2465,6 @@ Cell.DataCLR[1,13] <- WSeaMRF
 Cell.DataCLR[2,13] <- WetUP
 Cell.DataCLR[3,13] <- WetLO
 
-
-plot(WetSeasonRF)
-
-
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SeaRF.png"),width=5*dpi,height=5*dpi,res=dpi)  
 
 title1=textGrob(paste("Seasonal Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
@@ -2439,6 +2480,33 @@ grid.arrange(top = title1,
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])))
 dev.off()
+
+# export seasonal monthly rainfall figure from above
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SeaMRF.png"),width=5*dpi,height=5*dpi,res=dpi)  
+
+title1=textGrob(paste("Monthly Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
+grid.arrange(top = title1,
+             spplot(WetSM, col.regions = colfuncRF, equal=FALSE,
+                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEAm,
+                    main=list(label=paste0("Wet Season (NOV-APR) ", WetSMV  ,RFUnit),cex=0.9),
+                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+                    sp.layout = list(UNIT_X[u])),
+             spplot(DrySM, col.regions = colfuncRF, equal=FALSE,
+                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEAm,
+                    main=list(label=paste0("Dry Season (MAY-OCT) ", DrySMV  ,RFUnit),cex=0.9),
+                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+                    sp.layout = list(UNIT_X[u])))
+dev.off()
+
+### calculate the seasonal avg. monthly rainfall percentile vs. whole state
+stateRF
+plot(stateRFM)
+summary(stateRFMd)
+
+per<-ecdf(stateRFMd$layer)
+WetSMP<-paste0(round(per(WetSMV)*100),"%")
+DrySMP<-paste0(round(per(DrySMV)*100),"%")
+
 
 ########## Add Data To tABLE 
 
