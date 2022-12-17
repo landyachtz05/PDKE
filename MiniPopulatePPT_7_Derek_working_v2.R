@@ -521,7 +521,6 @@ FIG_6 <- block_list(
 
 S9_TIT<- block_list(
   fpar(ftext("Average Seasonal Rainfall", FTXTT),fp_p = fp_par(text.align = "center")))
- 
 
 #Season 
 DSeaMRF  <- round(CLIM[1,12],0)
@@ -531,7 +530,7 @@ WSeaMRF  <- round(CLIM[1,13],0)
 WSeaMRFx <- round(CLIM[2,13],0)
 WSeaMRFn <- round(CLIM[3,13],0)
 
-#permonth 
+#per month 
 DSeaMRF_M<- round((CLIM[1,12]/6),1)
 DSeaMRF_Mx<- round((CLIM[2,12]/6),1)
 DSeaMRF_Mn<- round((CLIM[3,12]/6),1)
@@ -552,19 +551,26 @@ DryM <- DSeaMRF_M
   
 SeaD <- round((WetM - DryM),1)
 
-SEA <- paste0("Hawaii has two distinct 6-month seasons of rainfall. The Dry season runs from October to May and the Wet season runs from November to April. ",
-                "At ",SNameF,", dry season rainfall averages ",DSeaMRF_M, RFUnit3," per month (", DSeaMRF, RFUnit3," total) and wet season rainfall averages ",
-                 WSeaMRF_M, RFUnit3," per month (", WSeaMRF, RFUnit3," total). ",
-                "Across the entire unit, rainfall ranges from ", D_RF_R_M, RFUnit3, " per month (",D_RF_R," total) during the dry season and ",W_RF_R_M, " during the wet season (",W_RF_R," total).")
+#Season monthly rainfall percentiles
+P<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"RF percentiles.csv"),sep=",")
+D_RF_P<-P[1,2]
+W_RF_P<-P[1,1]
+
+SEA <- paste0("Hawaii has two distinct 6-month seasons of rainfall: the Wet season (November to April) and the Dry season (May to October).",
+              " Average Wet season monthly rainfall across Parker Ranch is ",WetM, RFUnit3," and Dry season is ",DryM, RFUnit3,
+              ". These monthly values are in the ",W_RF_P," and ",D_RF_P," percentiles for rainfall across the whole state, respectively.
+              
+Management plans should anticipate and minimize negative impacts of these seasonal rainfall variations.")
 
 fp_Tx19 <- fp_text(italic = TRUE, color = "black", font.size = 19) 
 fp_SEA <- fpar(ftext(SEA, fp_Tx19))
 
-FIG_7 <- block_list(
-  fpar(ftext(paste0("Figure 9. Dry and Wet season total rainfall at ",SNameF,"."), fp_Fig)))
+FIG_9a <- block_list(
+  fpar(ftext(paste0("Figure 9. Average monthly rainfall maps for the wet (top) and dry (bottom) seasons. ",
+  SNameF,"."), fp_Fig)))
 
 #Mean CLIM Figure 
-SEAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," SeaRF.png")
+SEAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," SeaMRF.png")
 SEAimg <- external_img(src = SEAfile, height = 3,width = 3) 
 
 
@@ -1453,7 +1459,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     ph_with(value = FIG_9a, location = ph_location(label = "my_name",
                                                    left = 6.9, top = 6, width = 2.4, height = 1.4))%>%
     
-#Slide 8 
+#Slide 9
 add_slide("Two Content","Office Theme") %>%
   ph_with(S8_TIT, ph_location_type("title")) %>%
   ph_with(value = RFFimg, ph_location_type("body",position_right = FALSE)) %>%
@@ -1465,15 +1471,23 @@ add_slide("Two Content","Office Theme") %>%
                                                 left = 5.1, top = 6.08, width = 4.5, height = 1.4))%>%
   ph_with(my_pres, value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
 
-#Slide 9 
+#Slide 10 
+    mypowerpoint <- read_pptx() %>%
+    
+    
 add_slide("Two Content","Office Theme") %>%
   ph_with(S9_TIT,      ph_location_type("title")) %>%
   ph_with(fp_SEA,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = "10", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = SEAimg, ph_location_type("body",position_right = TRUE)) %>%
-  ph_with(value = FIG_7, location = ph_location(label = "my_name",
+  ph_with(value = FIG_9a, location = ph_location(label = "my_name",
                                                 left = 6, top = 6.2, width = 3, height = 1.4))%>%
   ph_with(value = "Giambelluca et al. (2013)", location = ph_location_type(type = "dt"))%>%
+  
+    
+    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4test10.pptx"))
+  
+  
   
   #Slide 10
   add_slide("Title and Content","Office Theme") %>%

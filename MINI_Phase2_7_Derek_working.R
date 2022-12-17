@@ -211,7 +211,7 @@ stateRFM<-calc(sm, mean, na.rm=T)
 # make dataframe from average monthly rainfall map
 stateRFMd<-as.data.frame(stateRFM, na.rm=T)
 stateRFMd<-data.frame(stateRFMd[1])
-
+stateRFMd
 ##########   FIRE OCCURRENCE
 #Fire Occurrence Shape 2019 (From Clay)
 u<-1
@@ -2504,9 +2504,13 @@ plot(stateRFM)
 summary(stateRFMd)
 
 per<-ecdf(stateRFMd$layer)
-WetSMP<-paste0(round(per(WetSMV)*100),"%")
-DrySMP<-paste0(round(per(DrySMV)*100),"%")
+WetSMP<-round(per(WetSMV)*100)
+DrySMP<-round(per(DrySMV)*100)
 
+P<-data.frame(WetSMP, DrySMP)
+
+# write seasonal monthly rainfall percentiles to csv
+write.csv(P, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"RF percentiles.csv"),row.names = F)
 
 ########## Add Data To tABLE 
 
