@@ -162,7 +162,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-4
+f<-1
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
@@ -624,18 +624,20 @@ FIG_10.1 <- block_list(
 
 ################ Slide 13 Seasonal Rainfall and ENSO
 
-MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
-MEIRF
+# MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
+# MEIRF
 
 EN_TIT<- block_list(
   fpar(ftext("Seasonal Rainfall and ENSO", FTXTT),fp_p = fp_par(text.align = "center")))
 
 # SEL wet season avg monthly rainfall
 SEL_RFW <- round(MEIRF[1,2],1)
+SEL_RFW
 # SLA dry season avg monthly rainfall
 SLA_RFD <- round(MEIRF[5,3],1)
 # SEL wet season avg monthly rainfall % difference from overall average 
 DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
+DifWRF
 # SLA dry season avg monthly rainfall % difference from overall average
 DifDRF <- round(((DryM - SLA_RFD) / DryM) * 100,0)
 
@@ -1472,8 +1474,6 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(my_pres, value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
 
 #Slide 10 
-    mypowerpoint <- read_pptx() %>%
-    
     
 add_slide("Two Content","Office Theme") %>%
   ph_with(S9_TIT,      ph_location_type("title")) %>%
@@ -1483,10 +1483,6 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = FIG_9a, location = ph_location(label = "my_name",
                                                 left = 6, top = 6.2, width = 3, height = 1.4))%>%
   ph_with(value = "Giambelluca et al. (2013)", location = ph_location_type(type = "dt"))%>%
-  
-    
-    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4test10.pptx"))
-  
   
   
   #Slide 10
