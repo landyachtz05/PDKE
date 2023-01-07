@@ -264,8 +264,8 @@ FIG_1 <- block_list(fpar(ftext(paste0("Figure 1. Map of ",ISL," with ",SNameF," 
 ################ Slide 4 PART 1
 
 P1_TIT<- block_list(
-       fpar(ftext("Part 1: Climate Characteristics", FTXTT)),
-       fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
+  fpar(ftext("Part 1: Climate Characteristics", FTXTT)),
+  fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
 
 PART1<- paste0("In developing this Portfolio, we relied on several gridded climate products available for the State of Hawaii. Annual and monthly estimates of rainfall were ",
               "obtained from the Hawaii Climate Data Portal (HCDP). Gridded estimates of other climate variables were ",
