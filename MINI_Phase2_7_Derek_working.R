@@ -128,12 +128,19 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Hawaiian Homelands - Kahikinui"
 # NM_s <- "Kahikinui"
 
-#Parker Ranch, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/parker_ranch_polygon.shp")
+# #Parker Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/parker_ranch_polygon.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Parker Ranch"
+# NM_s <- "Parker Ranch"
+
+#Hakalau Koolau Site, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_koolau.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Parker Ranch"
-NM_s <- "Parker Ranch"
+NM <- "Hakalau Forest National Wildlife Refuge - Koolau Unit"
+NM_s <- "Hakalau Koolau Unit"
 
 # Set island
 ILE<-"Big Island"

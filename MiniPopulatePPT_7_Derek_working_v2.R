@@ -522,6 +522,8 @@ FIG_6 <- block_list(
 S9_TIT<- block_list(
   fpar(ftext("Average Seasonal Rainfall", FTXTT),fp_p = fp_par(text.align = "center")))
 
+CLIM
+
 #Season 
 DSeaMRF  <- round(CLIM[1,12],0)
 DSeaMRFx <- round(CLIM[2,12],0)
@@ -624,8 +626,8 @@ FIG_10.1 <- block_list(
 
 ################ Slide 13 Seasonal Rainfall and ENSO
 
-# MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
-# MEIRF
+MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
+MEIRF
 
 EN_TIT<- block_list(
   fpar(ftext("Seasonal Rainfall and ENSO", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -633,11 +635,16 @@ EN_TIT<- block_list(
 # SEL wet season avg monthly rainfall
 SEL_RFW <- round(MEIRF[1,2],1)
 SEL_RFW
+
 # SLA dry season avg monthly rainfall
 SLA_RFD <- round(MEIRF[5,3],1)
+SLA_RFD
+
 # SEL wet season avg monthly rainfall % difference from overall average 
+WetM
 DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
 DifWRF
+
 # SLA dry season avg monthly rainfall % difference from overall average
 DifDRF <- round(((DryM - SLA_RFD) / DryM) * 100,0)
 
@@ -1811,9 +1818,6 @@ add_slide("Two Content","Office Theme") %>%
   
   print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4.pptx"))
 
-    
-
-  
   
   
   
