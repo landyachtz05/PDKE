@@ -3297,8 +3297,8 @@ if(RFUnit == " in") {MRF100$RF <-  as.numeric(MRF100$RF) * 0.0393701}
 write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv"),row.names = F)
 
 # ## Can read in the csv from above to start script here
-# setwd("E:/PDKE/CCVD/MINI_Phase2/Parker Ranch/")
-# MRF100<-read.csv("Parker Ranch Monthly Rainfall_in.csv")
+# setwd("E:/PDKE/CCVD/MINI_Phase2/Hakalau Forest National Wildlife Refuge - Koolau Unit/")
+# MRF100<-read.csv("Hakalau Forest National Wildlife Refuge - Koolau Unit Monthly Rainfall_in.csv")
 # # fix month values
 # MRF100$Month<-sub(".*/","",MRF100$Date)
 
@@ -3339,6 +3339,20 @@ LM4 <- lm(myts4~DateT4)
 LM5 <- lm(myts5~DateT5)
 LM6 <- lm(myts6~DateT6)
 
+### Get direction of trendlines for PPT
+if(coef(LM1)[[2]] > 0) {LM1s <- c("Increase")}
+if(coef(LM4)[[2]] > 0) {LM4s <- c("Increase")}
+if(coef(LM6)[[2]] > 0) {LM6s <- c("Increase")}
+if(coef(LM1)[[2]] < 0) {LM1s <- c("Decrease")}
+if(coef(LM4)[[2]] < 0) {LM4s <- c("Decrease")}
+if(coef(LM6)[[2]] < 0) {LM6s <- c("Decrease")}
+
+RFT<-data.frame(Period = c("1920 - 2022", "1980 - 2022", "2010 - 2022"))
+RFT$Trend <- c(LM1s, LM4s, LM6s)
+
+write.csv(RFT,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RF_trend_dirctions.csv"),row.names = F)
+###
+
 T1 <- round(coefficients(summary(LM1))[2,1],2)
 T2 <- round(coefficients(summary(LM2))[2,1],2)
 T3 <- round(coefficients(summary(LM3))[2,1],2)
@@ -3360,12 +3374,12 @@ LM4R <- summary(LM4)$r.squared
 LM5R <- summary(LM5)$r.squared
 LM6R <- summary(LM6)$r.squared
 
-########## 2003-2021   
-
-MA02 <- round(mean(myts6),1)
-ME02 <- round(median(myts6),1)
-MX02 <- round(max(myts6),1)
-MI02 <- round(min(myts6),1)
+# ########## 2003-2021   
+# 
+# MA02 <- round(mean(myts6),1)
+# ME02 <- round(median(myts6),1)
+# MX02 <- round(max(myts6),1)
+# MI02 <- round(min(myts6),1)
 
 ##########   Aggregate Month to Year 
 
@@ -3569,43 +3583,43 @@ png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RF_Trend.png"),width=6.3*dpi,height
 par(mfrow=c(3,1))
 par(mar=c(4,4,4,2))
 
-MLIM1 <- max(c(myts1Y,myts1YW,myts1YD)) 
+MLIM1 <- max(c(myts1Y,myts1YW,myts1YD), na.rm=T) 
 YLIM <-  min(myts1Y) 
 MLIM <-  (MLIM1 + (MLIM1 *0.45))
 
 par(mai=c(0.3,0.6,0.2,0.2))
 plot(myts1Y~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",xaxt="n",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
-title(paste("Rainfall Trend 1920-2021:",UNIT_Ns[u]), line = 0.5,cex.main = 1.5)
+title(paste("Rainfall Trend 1920-2022:",UNIT_Ns[u]), line = 0.5,cex.main = 1.5)
 
-legend("topright", c(paste0("1920-2021 R2 = ",LM1RY, " p = ",LM1PY),
-                     #paste0("1940-2021 Trend =", T2Y,", R2 =",LM2RY, " p = ",LM2PY),
-                     paste0("1960-2021 R2 = ",LM3RY, " p = ",LM3PY),
-                     #paste0("1980-2021 Trend =", T4Y,", R2 =",LM4RY, " p = ",LM4PY),
-                     paste0("2000-2021 R2 = ",LM5RY, " p = ",LM5PY)),
-                     #paste0("2010-2021 Trend =", T6Y,", R2 =",LM6RY, " p = ",LM6PY)),
+legend("topright", c(paste0("1920-2022 R2 = ",LM1RY, " p = ",LM1PY),
+                     #paste0("1940-2022 Trend =", T2Y,", R2 =",LM2RY, " p = ",LM2PY),
+                     #paste0("1960-2022 R2 = ",LM3RY, " p = ",LM3PY),
+                     paste0("1980-2022 R2 = ",LM4RY, " p = ",LM4PY),
+                     #paste0("2000-2022 R2 = ",LM5RY, " p = ",LM5PY)),
+                     paste0("2010-2022 R2 = ",LM6RY, " p = ",LM6PY)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
        
 legend("topleft",c("Annual"),cex=1.5,text.font=2, bty = "n")
 
-ablineclip(lm(myts1Y~YDateT1),x1=-19000,x2=19000,col=alpha("grey70",0.9),lwd=3)
+ablineclip(lm(myts1Y~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
 #ablineclip(lm(myts2Y~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
-ablineclip(lm(myts3Y~YDateT3),x1=-4500,x2=19000,col=alpha("grey30",0.7),lwd=3)
-#ablineclip(lm(myts4Y~YDateT4),x1=3500,x2=19000,col="darkblue",lwd=3)
-ablineclip(lm(myts5Y~YDateT5),x1=11000,x2=19000,col=alpha("grey1",0.7),lwd=3)
-#ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=19000,col="darkcyan",lwd=3)
+#ablineclip(lm(myts3Y~YDateT3),x1=-4500,x2=19000,col=alpha("grey30",0.7),lwd=3)
+ablineclip(lm(myts4Y~YDateT4),x1=3500,x2=19000,col="grey30",lwd=3)
+#ablineclip(lm(myts5Y~YDateT5),x1=11000,x2=19000,col=alpha("grey1",0.7),lwd=3)
+ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=19000,col="grey1",lwd=3)
 
 ####### Wet Season ###########
 par(mai=c(0.3,0.6,0.2,0.2))
-YLIM <-  min(myts1YW) 
+YLIM <-  min(myts1YW, na.rm=T) 
 plot(myts1YW~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",xaxt="n",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
 
-legend("topright", c(paste0("1920-2021 R2 = ",LM1RYW, " p = ",LM1PYW),
-                     #paste0("1940-2021 Trend =", T2YW,", R2 =",LM2RYW, " p = ",LM2PYW),
-                     paste0("1960-2021 R2 = ",LM3RYW, " p = ",LM3PYW),
-                     #paste0("1980-2021 Trend =", T4YW,", R2 =",LM4RYW, " p = ",LM4PYW),
-                     paste0("2000-2021 R2 = ",LM5RYW, " p = ",LM5PYW)),
-                     #paste0("2010-2021 Trend =", T6YW,", R2 =",LM6RYW, " p = ",LM6PYW)),
+legend("topright", c(paste0("1920-2022 R2 = ",LM1RYW, " p = ",LM1PYW),
+                     #paste0("1940-2022 Trend =", T2YW,", R2 =",LM2RYW, " p = ",LM2PYW),
+                     #paste0("1960-2022 R2 = ",LM3RYW, " p = ",LM3PYW),
+                     paste0("1980-2022 R2 = ",LM4RYW, " p = ",LM4PYW),
+                     #paste0("2000-2022 R2 = ",LM5RYW, " p = ",LM5PYW)),
+                     paste0("2010-2022 R2 = ",LM6RYW, " p = ",LM6PYW)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3,cex=1)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
 
@@ -3613,24 +3627,24 @@ legend("topleft",c("Wet Season"),cex=1.5,text.font=2, bty = "n")
 
 ablineclip(lm(myts1YW~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
 #ablineclip(lm(myts2YW~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
-ablineclip(lm(myts3YW~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
-#ablineclip(lm(myts4YW~YDateT4),x1=3500,x2=19000,col="darkblue",lwd=3)
-ablineclip(lm(myts5YW~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
-#ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=19000,col="darkcyan",lwd=3)
+#ablineclip(lm(myts3YW~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
+ablineclip(lm(myts4YW~YDateT4),x1=3500,x2=19000,col="grey30",lwd=3)
+#ablineclip(lm(myts5YW~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
+ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=19000,col="grey1",lwd=3)
 
 ########## Dry Season 
 
 par(mai=c(0.3,0.6,0.2,0.2))
-YLIM <-  min(myts1YD) 
+YLIM <-  min(myts1YD, na.rm=T) 
 plot(myts1YD~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
 # axis(1, labels = T)
 # title(main = "Average Wet Season Rainfall Pu'u Wa'awa'a (1920-2021)", line = 1)
-legend("topright", c(paste0("1920-2021 R2 = ",LM1RYD, " p = ",LM1PYD),
-                     #paste0("1940-2021 Trend =", T2YD,", R2 =",LM2RYD, " p = ",LM2PYD),
-                     paste0("1960-2021 R2 = ",LM3RYD, " p = ",LM3PYD),
-                     #paste0("1980-2021 Trend =", T4YD,", R2 =",LM4RYD, " p = ",LM4PYD),
-                     paste0("2000-2021 R2 = ",LM5RYD, " p = ",LM5PYD)),
-                     #paste0("2010-2021 Trend =", T6YD,", R2 =",LM6RYD, " p = ",LM6PYD)),
+legend("topright", c(paste0("1920-2022 R2 = ",LM1RYD, " p = ",LM1PYD),
+                     #paste0("1940-2022 Trend =", T2YD,", R2 =",LM2RYD, " p = ",LM2PYD),
+                     #paste0("1960-2022 R2 = ",LM3RYD, " p = ",LM3PYD),
+                     paste0("1980-2022 R2 = ",LM4RYD, " p = ",LM4PYD),
+                     #paste0("2000-2022 R2 = ",LM5RYD, " p = ",LM5PYD)),
+                     paste0("2010-2022 R2 = ",LM6RYD, " p = ",LM6PYD)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
        
@@ -3638,10 +3652,10 @@ legend("topleft",c("Dry Season"),cex=1.5,text.font=2, bty = "n")
 
 ablineclip(lm(myts1YD~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
 #ablineclip(lm(myts2YD~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
-ablineclip(lm(myts3YD~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
-#ablineclip(lm(myts4YD~YDateT4),x1=3500,x2=19000,col="darkblue",lwd=3)
-ablineclip(lm(myts5YD~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
-#ablineclip(lm(myts6YD~YDateT6),x1=14000,x2=19000,col="darkcyan",lwd=3)
+#ablineclip(lm(myts3YD~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
+ablineclip(lm(myts4YD~YDateT4),x1=3500,x2=19000,col="grey30",lwd=3)
+#ablineclip(lm(myts5YD~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
+ablineclip(lm(myts6YD~YDateT6),x1=14000,x2=19000,col="grey1",lwd=3)
 
 dev.off() 
 
@@ -4491,7 +4505,7 @@ MEI_D <- MEI$MEI_D
 head(MRF100)
 tail(MRF100)
 
-# # If starting this section from monthly rainfall csv
+# # If starting this section from monthly rainfall csv and only want up to 2012
 # Cell.AF_Maps<-MRF100[which(MRF100$Year<2013),]
 
 # # Using MEI and Abby's rainfall dataset
@@ -4515,8 +4529,19 @@ RF6 <- as.numeric(MRF3$RANCH_RF)
 SixMo <-colMeans(matrix(RF6, nrow=6))  #Will Need to change This 
 SixMo
 
+#
+#
+#
+#
+
 # Don't do this if starting from monthly rainfall (inches) csv
 if(RFUnit == " in") {SixMo <-  SixMo * 0.0393701} 
+
+#
+#
+#
+#
+#
 
 SixMo[seq(1,length(SixMo),2)]
 
@@ -4645,6 +4670,23 @@ Mn_NU_D <-   round(min(NU_D,na.rm=T),1)
 
 Cell.MEI[1:5,6] <- c( Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
 Cell.MEI[1:5,7] <- c( Mn_EL_D_S, Mn_EL_D_S, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
+
+##########   SUM
+EL_W_S
+Su_EL_W_S <- round(sum(EL_W_S,na.rm=T),1) 
+Su_EL_W_W <- round(sum(EL_W_W,na.rm=T),1) 
+Su_LA_W_S <- round(sum(LA_W_S,na.rm=T),1)
+Su_LA_W_W <- round(sum(LA_W_W,na.rm=T),1)
+Su_NU_W <-   round(sum(NU_W,na.rm=T),1)
+Su_EL_D_S <- round(sum(EL_D_S,na.rm=T),1)
+Su_EL_D_W <- round(sum(EL_D_W,na.rm=T),1)
+Su_LA_D_S <- round(sum(LA_D_S,na.rm=T),1)
+Su_LA_D_W <- round(sum(LA_D_W,na.rm=T),1)
+Su_NU_D <-   round(sum(NU_D,na.rm=T),1)
+
+Cell.MEI[1:5,6] <- c( Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
+Cell.MEI[1:5,7] <- c( Mn_EL_D_S, Mn_EL_D_S, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
+
 Cell.MEI
 ##########   DRY SEASON   
 
@@ -4743,7 +4785,9 @@ text(5,MAXD22, paste0("Min = ",Mn_LA_W_S),cex=0.7)
 dev.off()
 
 write.csv(Cell.MEI,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_A.csv"),row.names = F)
-#}
+
+### Export seasonal sum rainfall instead of seasaonal average rainfall
+Cell.MEI
 
 
 
@@ -4798,13 +4842,15 @@ for (i in 1:nrow(table)) {
   if(s$Month<5 || s$Month>10) {table[i,]$season<-"wet"}
 }
 
-### calculate season-year rainfall means
-# subset for correct time period (1920 - 2012)
-table2<-table[which(table$Year<2013),]
+head(table)
+tail(table)
+# ### calculate season-year rainfall means
+# # subset for correct time period (1920 - 2012)
+# table2<-table[which(table$Year<2013),]
 
 # remove first and last months to start dataset at beginning of 1920 dry season
-table2 =  table2[-c(1115:1116),]
-table2 =  table2[-c(1:4),]
+table2 =  table[-c((nrow(table)-1):nrow(table)),]
+table2 =  table[-c(1:4),]
 head(table2)
 tail(table2)
 
@@ -4828,7 +4874,7 @@ for (i in r) {
   n<-n+1
 }
 
-# aggregate rainfall over consecutive seasons
+# aggregate rainfall over consecutive seasons = SEASONAL RAINFALL VALUES (SUM)
 t2<-aggregate(RF ~ sc, table2, sum)
 head(t2)
 
@@ -4880,7 +4926,6 @@ head(enso)
 # add year column to enso for join
 enso$Year<-substr(enso$date, 1, 4)
 
-library(plyr)
 dfs<-list(t3, enso)
 table3<-join_all(dfs, match="all")
 head(table3, 20)
@@ -4923,9 +4968,11 @@ head(table3)
 # fix year values and remove RF column
 table3$Year<-as.numeric(table3$Year)
 table4<-table3[c(1,2,3,5,6,7)]
+head(table4)
 
 # bring in monthly rainfall values
 head(table2)
+
 # fix column name and remove sc column
 colnames(table2)[which(names(table2) == "season")]<-"Season"
 table2<-table2[c(1:5)]
@@ -5083,6 +5130,8 @@ ggplot(data=rain6,
 
 dev.off()
 
+### Export table of seasonal rainfall (sum of months) by ENSO phase
+write.csv(rain6, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_S.csv"))
 
 #####################################################
 ##### Air temperature graph

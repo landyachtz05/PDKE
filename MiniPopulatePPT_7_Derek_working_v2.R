@@ -350,7 +350,7 @@ FIG_3.2 <- block_list(
     S6_TIT<- block_list(
       fpar(ftext("Annual Climate Characteristics", FTXTT),fp_p = fp_par(text.align = "center")))
     
-    ANNCLIM_T<- paste0("Climatic conditions in Hawaii can vary greatly across the landscape. These maps show the variation in select climate variables across ",SNameF," and the table below has minimum and maximum values taken from the maps. A complete list of variables can be found in Annex I.")
+    ANNCLIM_T<- paste0("Climatic conditions in Hawaii can vary greatly across the landscape. These maps show the variation in select climate variables across ",SNameF," and the table below has min. and max. values taken from the maps. A complete list of variables can be found in Annex I.")
     M_ANNCLIM <-  block_list(
       fpar(ftext(ANNCLIM_T, fp_Tx)))
     
@@ -427,8 +427,7 @@ RFx<-round(RFx, 0)
 RFn<-round(RFn, 0)
 
 CLIMO_RF <- paste0("Average monthly rainfall patterns vary over the course of the year. At ", SNameF, ", the highest monthly rainfall is received in ", MONLIST[RFxm], 
-                " (",RFx, RFUnit,".) and the lowest monthly rainfall is received in ", MONLIST[RFnm]," (",RFn, RFUnit,".). Average monthly rainfall maps for ",SNameF,
-                " are in Annex II.")
+                " (",RFx, RFUnit,".) and the lowest monthly rainfall is received in ", MONLIST[RFnm]," (",RFn, RFUnit,".).")
 
 fp_CLIMO_RF <- fpar(ftext(CLIMO_RF, fp_Tx))
 
@@ -478,7 +477,7 @@ TAv<-TAh-TAl
 
 CLIMO_TA <- paste0("Average monthly air temperature patterns vary over the course of the year. At ", SNameF, " there is a ",TAv, TUnit2," annual variation in temperature,",
                 " with the warmest month of ",MONLIST[TAxm]," (", TAx, TUnit2,") and the coolest month in ",MONLIST[TAnm],
-                " (", TAn, TUnit2,"). Average monthly air temperature maps for ", SNameF," are in Annex III.")
+                " (", TAn, TUnit2,").")
 
 fp_CLIMO_TA <- fpar(ftext(CLIMO_TA, fp_Tx))
 
@@ -626,31 +625,42 @@ FIG_10.1 <- block_list(
 
 ################ Slide 13 Seasonal Rainfall and ENSO
 
-MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_A.csv"),sep=",")
+MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_S.csv"),sep=",")
 MEIRF
 
 EN_TIT<- block_list(
   fpar(ftext("Seasonal Rainfall and ENSO", FTXTT),fp_p = fp_par(text.align = "center")))
 
-# SEL wet season avg monthly rainfall
-SEL_RFW <- round(MEIRF[1,2],1)
+# SEL wet season rainfall
+SEL_RFW <- MEIRF[which(MEIRF$Season == "wet"),]
+SEL_RFW <- SEL_RFW[which(SEL_RFW$x == "SEL"),]$RF
 SEL_RFW
 
-# SLA dry season avg monthly rainfall
-SLA_RFD <- round(MEIRF[5,3],1)
+# SLA dry season rainfall
+SLA_RFD <- MEIRF[which(MEIRF$Season == "dry"),]
+SLA_RFD <- SLA_RFD[which(SLA_RFD$x == "SLA"),]$RF
 SLA_RFD
 
-# SEL wet season avg monthly rainfall % difference from overall average 
-WetM
-DifWRF <- round(((WetM - SEL_RFW) / WetM) * 100,0)
+# Longterm average seasonal rainfalls (across all ENSO phases)
+WetSA <- MEIRF[which(MEIRF$Season == "wet"),]
+WetSA <- mean(WetSA$RF)
+WetSA
+
+DrySA <- MEIRF[which(MEIRF$Season == "dry"),]
+DrySA <- mean(DrySA$RF)
+DrySA
+
+# SEL wet season rainfall % difference from overall average 
+DifWRF <- round(((WetSA - SEL_RFW) / WetSA) * 100,0)
 DifWRF
 
-# SLA dry season avg monthly rainfall % difference from overall average
-DifDRF <- round(((DryM - SLA_RFD) / DryM) * 100,0)
+# SLA dry season rainfall % difference from overall average
+DifDRF <- round(((DrySA - SLA_RFD) / DrySA) * 100,0)
+DifDRF
 
 MEI2 <- paste0("In Hawaii, the Warm (El Niño) phase typically brings below average rainfall during the wet season, and above average rainfall in the dry season. This pattern is reversed for the Cool (La Niña) phase.
 
-At Parker Ranch, the wet season during a Strong El Nino is ",DifWRF,"% dryer than the long-term average, and the dry season during a Strong La Nina is ",DifDRF,"% dryer than average. These patterns influence drought conditions and wildfire susceptibility, and management activities can benefit from incorporating this ENSO-influenced seasonal rainfall variability.")
+At Parker Ranch, the wet season during a Strong El Nino is ",DifWRF,"% dryer than the long-term wet season average, and the dry season during a Strong La Nina is ",DifDRF,"% dryer than average. These patterns influence drought conditions and wildfire susceptibility, and management activities can benefit from incorporating this ENSO-influenced seasonal rainfall variability.")
 MEI3 <-  block_list(
   fpar(ftext(MEI2, fp_Txa)))
 
@@ -658,29 +668,36 @@ MEISfile <- paste0(R_FOLDER,NameF,"/",NameF,"ENSO_season_barplot.png")
 MEISimg <- external_img(src = MEISfile, height = 1,width = 2.5) 
 
 FIG_12.1 <- block_list(
-  fpar(ftext(paste0("Figure 11. Barplot of average monthly rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1920 to 2012 fell within each ENSO phase."), fp_Fig)))
+  fpar(ftext(paste0("Figure 11. Barplot of average seasonal rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1950 to 2022 fell within each ENSO phase."), fp_Fig)))
 
-#################### Slide 13 ###############################
+#################### Slide 14 ###############################
 
 S13_TIT<- block_list(
   fpar(ftext("Long-Term Trends in Rainfall", FTXTT),fp_p = fp_par(text.align = "center")))
 
-
-
-Trend <- paste0("Linear trends in annual, wet season, and dry season rainfall are calculated over a 100-year record at ",SNameF," for six different periods in the record. ",
-                "Each trend period has a unique start year, but they all end in 2019. 
+Trend <- paste0("Linear trends in annual and seasonal rainfall at ",SNameF," have been calculated over three different periods since 1920 ",
+                "to show long, mid, and short-term trends. The directions of change for the annual plot are shown below.")
                 
-When the p-value is less than 0.05, the trend is determined to be statistically significant.")
-
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
 fp_Trend <- fpar(ftext(Trend, fp_Tx))
 
 Trendfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF_Trend.png")
 Trendimg <- external_img(src = Trendfile, height = 2,width = 2) 
 
+### Bring in table of periods and trend directions
+  RFT<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," RF_trend_dirctions.csv"),sep=",")
+  RFT_T <- flextable(RFT)
+  # RFT_T <- bold(RFT_T, bold = T, part = "header")
+  RFT_T <- fontsize(RFT_T, size = 14)
+  #Creates a table for the PPT
+  RFT_T <- autofit(RFT_T)
+
+ TAB2.1 <- block_list(
+    fpar(ftext(paste0("Table 2. Direction of trendline for annual average monthly rainfall over three periods within the record."), fp_Fig2)))
+  
 FIG_9 <- block_list(
-  fpar(ftext(paste0("Figure 11. 100-year (1920-2019) rainfall time series at " ,SNameF," with ",
-                    "linear trends calculated over six unique periods in the record."), fp_Fig2)))
+  fpar(ftext(paste0("Figure 12. 100-year (1920-2022) rainfall time series at " ,SNameF," with ",
+                    "linear trends. Trendlines with p-value < 0.05 are statistically significant."), fp_Fig2)))
 
 
 #################### Slide 14 (NEW) Air Temperature Monthly and Annual #########################
@@ -1526,18 +1543,23 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = FIG_12.1, location = ph_location(label = "my_name",
                                                 left = 2, top = 6.45, width = 5.5, height = 1))%>%
 
-  #Slide 13 
+  #Slide 14 
   add_slide("Two Content","Office Theme") %>%
   ph_with(S13_TIT,         ph_location_type("title")) %>%
-  ph_with(fp_Trend,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(value = fp_Trend, location = ph_location(label = "my_name",
+                                                   left = 0.5, top = 0.3, width = 4.5, height = 5.1)) %>%
   #ph_with(value = "14", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = Trendimg, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 1.4, width = 4.5, height = 5.1))%>%
+  ph_with(value = RFT_T, location = ph_location(label = "my_name",
+                                                   left = 1, top = 4.5, width = 4.5, height = 5.1))%>%
   ph_with(value = FIG_9, location = ph_location(label = "my_name",
                                                 left = 5.3, top = 6.1, width = 4.3, height = 1.4))%>%
-  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (In Prep); See Annex I", location = ph_location_type(type = "dt"))%>%
+ ph_with(value = TAB2.1, location = ph_location(label = "my_name",
+                                                  left = 0.6, top = 5.9, width = 4, height = 1.4))%>%
+  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022); See Annex I", location = ph_location_type(type = "dt"))%>%
   ph_with(value = "14", location = ph_location_type(type = "sldNum"))%>%
-    
+
   #Slide 14 (NEW - Air Temp)  
   add_slide("Two Content","Office Theme") %>%
   ph_with(S14_TIT,         ph_location_type("title")) %>%
