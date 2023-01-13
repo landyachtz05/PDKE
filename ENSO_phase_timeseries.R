@@ -5,7 +5,10 @@ setwd("E:/PDKE/CCVD/CCVD INPUTS/")
 # load ENSO phase dataset (using same ONI dataset from Guam analysis)
 enso<-read.csv("enso_oni_1950_2022.csv")
 head(enso)
-enso$date<-as.Date(enso$date)
+
+# make date column if needed
+enso$month<-rep(c(1:12))
+enso$date<-as.Date(paste0(enso$YR,"-",enso$month,"-01"))
 
 ### plot ENSO phases over time
 library(ggplot2)
@@ -22,7 +25,7 @@ library(scales)
                                     xmin=as.Date("1950-01-01"), 
                                     xmax=as.Date("2022-01-01")),
               fill=data_breaks$colors, alpha=0.5) +
-    geom_line(data=enso, aes(x=date, y=delta_t, group=1),size=1) +
+    geom_line(data=enso, aes(x=date, y=ANOM, group=1),size=1) +
     scale_x_date(date_breaks = "5 years", labels = date_format(format="%Y"),
                  expand=c(0,0)) +
     scale_y_continuous(expand=c(0,0)) +

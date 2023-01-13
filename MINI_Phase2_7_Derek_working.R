@@ -135,12 +135,19 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Parker Ranch"
 # NM_s <- "Parker Ranch"
 
-#Hakalau Koolau Site, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_koolau.shp")
+# #Hakalau Koolau Site, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_koolau.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Hakalau Forest National Wildlife Refuge - Koolau Unit"
+# NM_s <- "Hakalau Koolau Unit"
+
+#Hakalau Kona Site, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_kona.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Hakalau Forest National Wildlife Refuge - Koolau Unit"
-NM_s <- "Hakalau Koolau Unit"
+NM <- "Hakalau Forest National Wildlife Refuge - Kona Unit"
+NM_s <- "Hakalau Kona Unit"
 
 # Set island
 ILE<-"Big Island"
@@ -2138,7 +2145,7 @@ png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," TA_hm.png"),width=5*dpi,height=5*dp
 
 spplot(hmap, col.regions = colfuncTA, equal=FALSE,
        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-       main=list(label=paste0(mnh," Temp. ",UNIT_Ns[u]),cex=1.8),
+       main=list(label=paste0(mnh," Temp (°F)"),cex=1.8),
        colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
        sp.layout = list(UNIT_X[u])) +
   layer(sp.polygons(SHAPE,lwd=1))
@@ -2149,7 +2156,7 @@ png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," TA_cm.png"),width=5*dpi,height=5*dp
 
 spplot(cmap, col.regions = colfuncTA, equal=FALSE,
        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-       main=list(label=paste0(mnc," Temp. ",UNIT_Ns[u]),cex=1.8),
+       main=list(label=paste0(mnc," Temp (°F)"),cex=1.8),
        colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
        sp.layout = list(UNIT_X[u])) +
   layer(sp.polygons(SHAPE,lwd=1))
@@ -2359,7 +2366,7 @@ png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RF_dm.png"),width=5*dpi,height=5*dp
 
 spplot(dmap, col.regions = colfuncRF, equal=FALSE,
        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-       main=list(label=paste0(mn," Rainfall ",UNIT_Ns[u]),cex=2),
+       main=list(label=paste0(mn," Rainfall (in.)"),cex=2),
        colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
        sp.layout = list(UNIT_X[u])) +
   layer(sp.polygons(SHAPE,lwd=1))
@@ -2370,7 +2377,7 @@ png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RF_wm.png"),width=5*dpi,height=5*dp
 
 spplot(wmap, col.regions = colfuncRF, equal=FALSE,
        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-       main=list(label=paste0(mnw," Rainfall ",UNIT_Ns[u]),cex=2),
+       main=list(label=paste0(mnw," Rainfall (in.)"),cex=2),
        colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
        sp.layout = list(UNIT_X[u])) +
   layer(sp.polygons(SHAPE,lwd=1))
@@ -2405,6 +2412,7 @@ SEAUPm <- max(DryUPm,WetUPm)
 SEALOm <-min(DryLOm,WetLOm)
 
 BI_brksSEAm <- round(seq(SEALOm, SEAUPm, length = 10),0)
+if((max(BI_brksSEAm) - min(BI_brksSEAm)) < 10) {BI_brksSEAm <- round(seq(SEALOm, SEAUPm, length = 10),1)}
 
 # export plot below this next section
 

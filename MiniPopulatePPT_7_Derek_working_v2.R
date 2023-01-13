@@ -350,7 +350,8 @@ FIG_3.2 <- block_list(
     S6_TIT<- block_list(
       fpar(ftext("Annual Climate Characteristics", FTXTT),fp_p = fp_par(text.align = "center")))
     
-    ANNCLIM_T<- paste0("Climatic conditions in Hawaii can vary greatly across the landscape. These maps show the variation in select climate variables across ",SNameF," and the table below has min. and max. values taken from the maps. A complete list of variables can be found in Annex I.")
+    ANNCLIM_T<- paste0("Climatic conditions in Hawaii can vary greatly across the landscape. ",
+    "These maps show the variation in select climate variables across ",SNameF," and the table below has min. and max. values taken from the maps.")
     M_ANNCLIM <-  block_list(
       fpar(ftext(ANNCLIM_T, fp_Tx)))
     
@@ -381,11 +382,11 @@ FIG_3.2 <- block_list(
     Tt <- autofit(Tt, add_h=-0.5, part=c("body","header"), unit = "in")
     Tt
  
-    FIG_3.1 <- block_list(
-      fpar(ftext(paste0("Figure 5. Minimum and maximum average annual values for selected climate variables from within ",SNameF,"."), fp_Fig)))
+    FIG_5.1 <- block_list(
+      fpar(ftext(paste0("Table 1. Minimum and maximum average annual values for selected climate variables from within ",SNameF,"."), fp_Fig)))
 
-    FIG_3 <- block_list(
-  fpar(ftext(paste0("Figure 6. Mean annual climate of ",SNameF,
+    FIG_6.1 <- block_list(
+  fpar(ftext(paste0("Figure 5. Mean annual climate of ",SNameF,
                     " with area average shown in heading of each plot."), fp_Fig)))
 
 #Climate Variable figures 
@@ -509,11 +510,11 @@ RFFfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF12.png")
 RFFimg <- external_img(src = RFFfile , height = 3,width = 3) 
 
 FIG_5 <- block_list(
-  fpar(ftext(paste0("Figure 7. Mean monthly rainfall  ",SNameF,
+  fpar(ftext(paste0("Figure 10. Mean monthly rainfall  ",SNameF,
                     " with area average shown in heading of each plot."), fp_Fig)))
 
 FIG_6 <- block_list(
-  fpar(ftext(paste0("Figure 8. Mean monthly temperature at ",SNameF,
+  fpar(ftext(paste0("Figure 11. Mean monthly temperature at ",SNameF,
                     " with area average shown in heading of each plot."), fp_Fig)))
 
 ###############   Slide 9 Seasonal Rainfall 
@@ -566,8 +567,8 @@ Management plans should anticipate and minimize negative impacts of these season
 fp_Tx19 <- fp_text(italic = TRUE, color = "black", font.size = 19) 
 fp_SEA <- fpar(ftext(SEA, fp_Tx19))
 
-FIG_9a <- block_list(
-  fpar(ftext(paste0("Figure 9. Average monthly rainfall maps for the wet (top) and dry (bottom) seasons. ",
+FIG_12.1 <- block_list(
+  fpar(ftext(paste0("Figure 12. Average monthly rainfall maps for the wet (top) and dry (bottom) seasons. ",
   SNameF,"."), fp_Fig)))
 
 #Mean CLIM Figure 
@@ -593,7 +594,7 @@ S10_TIT<- block_list(
 
  
 TAB1 <- block_list(
-  fpar(ftext(paste0("Table 1. Average monthly climate variables characteristics at ",NameF, ". Where, RF is rainfall; Min TA is average minimum air temperature",
+  fpar(ftext(paste0("Table 2. Average monthly climate variables characteristics at ",NameF, ". Where, RF is rainfall; Min TA is average minimum air temperature",
                     " Mean TA is average air temperature; Max TA is average maximum air temperature; RH is relative humidity; CF is cloud frequency; ET is ",
                     "evapotranspiration; SM is soil moisture; S is shortwave downward radiation: ANN, is annual total for rainfall and annual average for all other variables."), fp_Fig)))
 
@@ -621,7 +622,7 @@ ENSOfile <- paste0(I_FOLDER,"ENSO_New.png")
 ENSO2img <- external_img(src = ENSOfile, height = 1.2,width = 1.2) 
 
 FIG_10.1 <- block_list(
-  fpar(ftext(paste0("Figure 10. Timeseries of changes in sea surface temperature (SST) and associated ENSO phase from 1950 - 2022. ",SNameF,"."), fp_Fig)))
+  fpar(ftext(paste0("Figure 13. Timeseries of changes in sea surface temperature (SST) and associated ENSO phase from 1950 - 2022. ",SNameF,"."), fp_Fig)))
 
 ################ Slide 13 Seasonal Rainfall and ENSO
 
@@ -667,8 +668,8 @@ MEI3 <-  block_list(
 MEISfile <- paste0(R_FOLDER,NameF,"/",NameF,"ENSO_season_barplot.png")
 MEISimg <- external_img(src = MEISfile, height = 1,width = 2.5) 
 
-FIG_12.1 <- block_list(
-  fpar(ftext(paste0("Figure 11. Barplot of average seasonal rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1950 to 2022 fell within each ENSO phase."), fp_Fig)))
+FIG_14.1 <- block_list(
+  fpar(ftext(paste0("Figure 14. Barplot of average seasonal rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1950 to 2022 fell within each ENSO phase."), fp_Fig)))
 
 #################### Slide 14 ###############################
 
@@ -693,10 +694,10 @@ Trendimg <- external_img(src = Trendfile, height = 2,width = 2)
   RFT_T <- autofit(RFT_T)
 
  TAB2.1 <- block_list(
-    fpar(ftext(paste0("Table 2. Direction of trendline for annual average monthly rainfall over three periods within the record."), fp_Fig2)))
+    fpar(ftext(paste0("Table 3. Direction of trendline for annual average monthly rainfall over three periods within the record."), fp_Fig2)))
   
 FIG_9 <- block_list(
-  fpar(ftext(paste0("Figure 12. 100-year (1920-2022) rainfall time series at " ,SNameF," with ",
+  fpar(ftext(paste0("Figure 15. 102-year (1920-2022) rainfall time series at " ,SNameF," with ",
                     "linear trends. Trendlines with p-value < 0.05 are statistically significant."), fp_Fig2)))
 
 
@@ -718,7 +719,7 @@ Trendfile2 <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_annual_airtemp.png")
 Trendimg2 <- external_img(src = Trendfile2, height = 1,width = 2)
 
 FIG_10_11 <- block_list(
-  fpar(ftext(paste0("Figures 12 & 13. 28-year (1990 – 2018) air temperature time series at ",SNameF," with linear trend. R2 is the strength of the relationship. When the p-value is less than 0.05, the trend is determined to be statistically significant."), fp_Fig2)))
+  fpar(ftext(paste0("Figures 16 & 17. 28-year (1990 – 2018) air temperature time series at ",SNameF," with linear trend. R2 is the strength of the relationship. When the p-value is less than 0.05, the trend is determined to be statistically significant."), fp_Fig2)))
 
 
 
@@ -777,7 +778,7 @@ S15_TIT<- block_list(
 
 SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most widely used drought indices. SPI compares rainfall with ",
               "its multi-year average, and because droughts are generally defined relative to the local normal, this standardized index allows wet and dry climates ",
-              "to be represented on a common scale. Here, 100-years of monthly rainfall are used to used to calculate SPI-12, which compares how ",
+              "to be represented on a common scale. Here, 100+ years of monthly rainfall are used to used to calculate SPI-12, which compares how ",
               "a 12-month period compares with all 12-month periods in the record. SPI-12 is a good measure of sustained droughts that affect hydrological processes ",
               "at ",SNameF, ".")
 
@@ -787,7 +788,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   SPIimg <- external_img(src = SPIfile, height = 2,width = 2) 
 
   FIG_12 <- block_list(
-   fpar(ftext(paste0("Figure 14. 100-year (1920-2019) SPI-12 time series at ", 
+   fpar(ftext(paste0("Figure 18. 102-year (1920-2022) SPI-12 time series at ", 
                       SNameF ," positive SPI (blue) indicate wet periods, negative ", 
                      "SPI (red) indicate dry periods."), fp_Fig)))
 
@@ -848,7 +849,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   DHist1 <- paste0("Negative SPI values (dry periods) are inverted to show a complete drought timeseries at ", SNameF, ". Dashed lines and corresponding color coding indicates instances ",
                  "of Moderate (SPI > 1), Severe (SPI > 1.5), and Extreme (SPI > 2) drought.") 
                  
-  DHist2 <- paste0("A total of ",CNTDRT," Droughts were observed over the 100-year record ",
+  DHist2 <- paste0("A total of ",CNTDRT," droughts were observed over the entire record ",
                    "with total of ", SoG, " drought events of severe strength or greater. The longest drought lasted for a total of ",LongD," months (see Annex III).")
  
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18)
@@ -862,7 +863,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   DHistimg <- external_img(src = DHistfile, height = 2,width = 4) 
 
   FIG_13 <- block_list(
-    fpar(ftext(paste0("Figure 15. 100-year (1920-2019) SPI time series (reversed axis) at ", SNameF ,
+    fpar(ftext(paste0("Figure 19. 102-year (1920-2022) SPI time series (reversed axis) at ", SNameF ,
                        ". Dashed lines show, moderate (yellow), severe (red), and extreme (dark red), drought thresholds."), fp_Fig)))
   
   
@@ -897,12 +898,12 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   SPI12_SMimg <- external_img(src = SPI_12_SMfile, height = 2,width = 4)
   
   FIG_14 <- block_list(
-    fpar(ftext(paste0("Figure 16. 30-year (1990-2019) SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+    fpar(ftext(paste0("Figure 20. 32-year (1990-2022) SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
   FIG_15 <- block_list(
-    fpar(ftext(paste0("Figure 17. 30-year (1990-2019) SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+    fpar(ftext(paste0("Figure 21. 32-year (1990-2022) SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
   SPI3v12<- block_list(
     fpar(ftext(paste0("The SPI-3 provides a comparison of the precipitation over a specific 3-month period and reflects short- and medium-term moisture ", 
-                       "conditions over the 30-year period (1990-2019). A total of ", SPICNT[1,3], " droughts were observed at ",
+                       "conditions over the 32-year period (1990-2022). A total of ", SPICNT[1,3], " droughts were observed at ",
                         SNameF , ". Over this same time period, only ", SPICNT[1,4] ," droughts were identified when looking at the SPI-12 timeseries. It is important to compare the 3-month SPI with longer time scales. ",
                        "A relatively normal 3-month period could occur in the middle of a longer-term drought that would only be visible at longer time scales. Looking at longer time scales ",
                        "would prevent a misinterpretation that a drought might be over."), fp_Txa)))
@@ -927,7 +928,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
   
   FIG_16 <- block_list(
-    fpar(ftext(paste0 ("Figure 18. The map shows wildfires that have occurred on the island of ", ISL, " between 1999 and 2019.") , fp_Fig)))
+    fpar(ftext(paste0 ("Figure 22. The map shows wildfires that have occurred on the island of ", ISL, " between 1999 and 2020.") , fp_Fig)))
   
   
   ################ Slide 22 PART 4 Downscaling ###############
@@ -1013,7 +1014,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   RF10085img <- external_img(src = RF10085file, height = 4,width = 4) 
   
   FIG_17<- block_list(
-    fpar(ftext(paste0("Figure 19. Downscaled future rainfall projections (% Change; ", 
+    fpar(ftext(paste0("Figure 23. Downscaled future rainfall projections (% Change; ", 
                       "(2100) at ",SNameF,", Dynamical Downscaling (DyDS), ",
                       "Statistical Downscaling (StDs), for annual (ANN), dry season (DRY) ", 
                       "and wet season (WET)."), fp_Fig)))
@@ -1069,7 +1070,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   RF40img <- external_img(src = RF40file) 
   
   FIG_18<- block_list(
-           fpar(ftext(paste0("Figure 20. Downscaled future rainfall projections (% Change; ",
+           fpar(ftext(paste0("Figure 24. Downscaled future rainfall projections (% Change; ",
                              "2040-2070) at ",SNameF,", for the Statistical Downscaling (StDs) ",
                              "approach, for annual (ANN), dry season (DRY), and wet season ",
                              "(WET) for RCP 4.5 (left) and RCP 8.5 (right)."), fp_Fig)))
@@ -1114,7 +1115,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   TA100img <- external_img(src = TA100file) 
   
   FIG_19 <- block_list(
-    fpar(ftext(paste0("Figure 21. Downscaled projected change in mean temperature ",  
+    fpar(ftext(paste0("Figure 25. Downscaled projected change in mean temperature ",  
                       "(Year 2100) at ",SNameF,", Dynamical Downscaling (DyDs), ",  
                       "Statistical Downscaling (StDs)."), fp_Fig)))
   
@@ -1153,7 +1154,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   TA40img <- external_img(src = TA40file) 
   
   FIG_20 <- block_list(
-    fpar(ftext(paste0("Figure 22. Downscaled Future temperature projections ",
+    fpar(ftext(paste0("Figure 26. Downscaled Future temperature projections ",
                       "(2040-2070) at ",SNameF," for the Statistical ", 
                       "Downscaling (StDs) approach."), fp_Fig)))
   
@@ -1169,8 +1170,8 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   DecD <- (CNTDRT/10)
   
   Summary<- paste0(NameF," (",SNameF,") is located on the island of ", ISL, " at mean elevation of ", El_Mean, ELUnit," (range: ",El_Min, " to ", El_Max,ELUnit,"). ",  
-                 "Rainfall varies over the course of the year with a maximum of ",RFx, RFUnit3,", occurring in ", MONLIST[RFxm], " and a minimum of ",RFn, RFUnit3,
-                 " occurring in ", MONLIST[RFnm],". On average, wet season months (Nov-Apr) receive ",SeaD,RFUnit," of more rainfall than dry season months (May-Oct). ",
+                 "Rainfall varies over the course of the year with a maximum of ",RFx, RFUnit3," occurring in ", MONLIST[RFxm], " and a minimum of ",RFn, RFUnit3,
+                 " occurring in ", MONLIST[RFnm],". On average, wet season months (Nov-Apr) receive ",SeaD,RFUnit," more rainfall than dry season months (May-Oct). ",
                  "Seasonal rainfall can vary within the unit as well, with dry season rainfall ranging from ",D_RF_R, RFUnit3," and wet season rainfall ",
                  "ranging from ",W_RF_R, RFUnit3," across the ",EL_Dif,ELUnit, " elevation gradient. ",
                  "Rainfall can also vary considerably from year-to-year with the driest years occurring during a Strong El Niño event, when on ",
@@ -1205,15 +1206,21 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                    fpar(ftext("State of Hawaii Drought Plan"      , fp_NM6)),
                    fpar(ftext(" https://files.hawaii.gov/dlnr/cwrm/planning/HDP2017.pdf", fp_NM3)),
                    fpar(ftext( "                    ", fp_Fig2)),
-                   fpar(ftext("Rainfall Atlas of Hawaii" , fp_NM6)),
-                   fpar(ftext("http://rainfall.geography.hawaii.edu/", fp_NM3)),
-                   fpar(ftext( "                    ", fp_Fig2)),
-                   fpar(ftext( "Climate Of Hawaii", fp_NM6)),
-                   fpar(ftext("http://climate.geography.hawaii.edu/", fp_NM3)),
+                   # fpar(ftext("Rainfall Atlas of Hawaii" , fp_NM6)),
+                   # fpar(ftext("http://rainfall.geography.hawaii.edu/", fp_NM3)),
+                   # fpar(ftext( "                    ", fp_Fig2)),
+                   # fpar(ftext( "Climate Of Hawaii", fp_NM6)),
+                   # fpar(ftext("http://climate.geography.hawaii.edu/", fp_NM3)),
+                   # fpar(ftext( "                    ",   fp_Fig2)),
+                   fpar(ftext( "Hawaii Climate Data Portal", fp_NM6)),
+                   fpar(ftext("https://www.hawaii.edu/climate-data-portal/", fp_NM3)),
                    fpar(ftext( "                    ",   fp_Fig2)),
                    fpar(ftext("ENSO Current Phase and Discussion" , fp_NM6)),
                    fpar(ftext("https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml", fp_NM3)),
                    fpar(ftext( "     "   , fp_Fig2)),
+                   fpar(ftext( "Pacific Drought Knowledge Exchange", fp_NM6)),
+                   fpar(ftext("http://www.soest.hawaii.edu/pdke/", fp_NM3)),
+                   fpar(ftext( "                    ", fp_Fig2)),
                    fpar(ftext( "Pacific Fire Exchange", fp_NM6)),
                    fpar(ftext("https://www.pacificfireexchange.org/", fp_NM3)),
                    fpar(ftext( "                    ", fp_Fig2)))
@@ -1249,14 +1256,14 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 
 
   Draft <- block_list(
-    fpar(ftext       ("For the most up-to-date version of this portfolio contact Ryan Longman: rlongman@Hawai'i.edu for more information.", fp_CITA3)))
+    fpar(ftext       ("For the most up-to-date version of this portfolio contact Derek Ford: fordd@eastwestcenter.org for more information.", fp_CITA3)))
 
    ############## Slide 30 Works Cited ###########
   
   S27_TIT<- block_list(
     fpar(ftext("Works Cited", FTXTT),fp_p = fp_par(text.align = "center")))
   
-  Worksfile <- paste0(I_FOLDER,"Works.png")
+  Worksfile <- paste0(I_FOLDER,"Works2.jpg")
   Worksimg <- external_img(src =Worksfile , height = 1, width = 1) 
   
   
@@ -1378,7 +1385,6 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
       # ph_with(value = MAPimg, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = MAPimg, location = ph_location(label = "my_name",
                                                   left = 5, top = 1.7, height = 4.6, width = 4.6)) %>%
-      ph_with(value = "Digital elevation model NAD84", location = ph_location_type(type = "dt"))%>%
       ph_with(value = FIG_1, location = ph_location(label = "my_name",
                       left = 5.6, top = 6.4, width = 3.81, height = 0.77))%>%
     
@@ -1403,6 +1409,8 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                                                    left = 5, top = 1.7, height = 4.4, width = 4.4)) %>%
     ph_with(value = FIG_2, location = ph_location(label = "my_name",
                                                   left = 5.1, top = 5.6, width = 4.2, height = 1.4))%>%
+    ph_with(value = "Digital elevation model NAD84", location = ph_location_type(type = "dt"))%>%
+    
   
 #Slide 6.1
   add_slide("Two Content","Office Theme") %>%
@@ -1431,22 +1439,22 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
   
     ph_with(value = RF2img, location = ph_location(label = "my_name",
-                     left = 5.4, top = 1.5, width=si, height= si))%>%
+                     left = 5.4, top = 1.4, width=si, height= si))%>%
     ph_with(value = TAAimg, location = ph_location(label = "my_name",
-                     left = 7.5, top = 1.5, width=si, height=si))%>%
+                     left = 7.5, top = 1.4, width=si, height=si))%>%
     ph_with(value = RHimg, location = ph_location(label = "my_name",
-                     left = 5.4, top = 3.2, width=si, height=si))%>%
+                     left = 5.4, top = 3.1, width=si, height=si))%>%
     ph_with(value = SRimg, location = ph_location(label = "my_name",
-                     left = 7.5, top = 3.2, width=si, height=si))%>%
+                     left = 7.5, top = 3.1, width=si, height=si))%>%
     ph_with(value = SMimg, location = ph_location(label = "my_name",
-                     left = 5.4, top = 4.9, width=si, height=si))%>%
+                     left = 5.4, top = 4.8, width=si, height=si))%>%
     ph_with(value = ETimg, location = ph_location(label = "my_name",
-                     left = 7.5, top = 4.9, width=si, height=si))%>%
+                     left = 7.5, top = 4.8, width=si, height=si))%>%
     
-  ph_with(value = FIG_3.1, location = ph_location(label = "my_name",
+  ph_with(value = FIG_5.1, location = ph_location(label = "my_name",
                                                 left = 0.5, top = 6.1, width = 4.6, height = 1.4))%>%
   
-  ph_with(value = FIG_3, location = ph_location(label = "my_name",
+  ph_with(value = FIG_6.1, location = ph_location(label = "my_name",
                                                 left = 5.4, top = 6.1, width = 4.4, height = 1.4))%>%
   
 #Slide 8
@@ -1483,7 +1491,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     ph_with(value = FIG_8a, location = ph_location(label = "my_name",
                                                    left = 0.7, top = 6.05, width = 4, height = 1.4))%>%
     ph_with(value = FIG_9a, location = ph_location(label = "my_name",
-                                                   left = 6.9, top = 6, width = 2.4, height = 1.4))%>%
+                                                   left = 6.9, top = 6, width = 2.6, height = 1.4))%>%
     
 #Slide 9
 add_slide("Two Content","Office Theme") %>%
@@ -1504,7 +1512,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(fp_SEA,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = "10", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = SEAimg, ph_location_type("body",position_right = TRUE)) %>%
-  ph_with(value = FIG_9a, location = ph_location(label = "my_name",
+  ph_with(value = FIG_12.1, location = ph_location(label = "my_name",
                                                 left = 6, top = 6.2, width = 3, height = 1.4))%>%
   ph_with(value = "Giambelluca et al. (2013)", location = ph_location_type(type = "dt"))%>%
   
@@ -1540,7 +1548,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = "13", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = MEISimg, location = ph_location(label = "my_name",
                                                    left = 2, top = 4.15, width = 6, height = 2.5)) %>%
-  ph_with(value = FIG_12.1, location = ph_location(label = "my_name",
+  ph_with(value = FIG_14.1, location = ph_location(label = "my_name",
                                                 left = 2, top = 6.45, width = 5.5, height = 1))%>%
 
   #Slide 14 
@@ -1572,7 +1580,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = FIG_10_11, location = ph_location(label = "my_name", 
                                                 left = 5.2, top = 6, width = 4.3, height = 1.4))%>%
   ph_with(value = "15", location = ph_location_type(type = "sldNum"))%>%
-    
+  
     
 #Slide 15 #Part 3
   add_slide("Title and Content","Office Theme") %>%
@@ -1780,7 +1788,7 @@ add_slide("Two Content","Office Theme") %>%
     add_slide("Title Only","Office Theme") %>%
     ph_with(S27_TIT,  ph_location_type("title",position_left = TRUE)) %>%
     ph_with(value = Worksimg, location = ph_location(label = "my_name",
-                                                  left = 1.5, top = 1.5, width = 7, height = 6)) %>%
+                                                  left = 1.5, top = 1.2, width = 7, height = 6)) %>%
     ph_with(value = "30", location = ph_location_type(type = "sldNum"))%>%
     
     
