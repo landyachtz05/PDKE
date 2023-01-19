@@ -3287,7 +3287,7 @@ dev.off()
 
 ##########   Create a 100-Year timeseries and do analysis
 
-##########   Merge Datasets to create full time period (1920 - 2021)
+##########   Merge Datasets to create full time period (1920 - 2022)
 
 MRF_AD3 =  Cell.AF_Maps[c(1:840),]
 head(MRF_AD3)
@@ -4980,12 +4980,15 @@ head(table4)
 
 # bring in monthly rainfall values
 head(table2)
+table2$Year<-as.numeric(table2$Year)
 
 # fix column name and remove sc column
 colnames(table2)[which(names(table2) == "season")]<-"Season"
 table2<-table2[c(1:5)]
 
 # join by year and season
+head(table2)
+head(table4)
 table5<-left_join(table2, table4)
 head(table5)
 

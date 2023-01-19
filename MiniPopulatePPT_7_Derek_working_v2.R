@@ -1235,24 +1235,24 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                    fpar(ftext("Acknowledgements", FTXTT),fp_p = fp_par(text.align = "center")))
        
   
-  Ack <- paste0( "Mari-Vaughn Johnson, Heather Kerkering, Darcy Yogi (PI-CASC), Victoria Keener,",
-                 " Laura Brewington (East-West Center Pacific-RISA), ",
-                    "Melissa Kunz, Clay Trauernicht (NREM, UH Manoa), Katie Kamelamela (USDA, Forest Service), ",
-                    "Thomas Giambelluca (WRRC, UH Manoa), and John Marra (NOAA).")
+  Ack <- paste0( "Ryan Longman, Abby Frazier, Christian Giardina, Derek Ford, Keri Kodama, Alyssa Anderson (PDKE), Mari-Vaughn Johnson, Heather Kerkering, Patrick Grady, Elliott Parsons (PI-CASC), ",
+                    "Clay Trauernicht, Melissa Kunz, Cherryle Heu (NREM, UH Manoa), Amanda Sheffield, Britt Parker, John Marra (NOAA), ",
+                    "Sean Cleveland, Jared McLean (ITS, UH Manoa), Katie Kamelamela (USDA, Forest Service), Thomas Giambelluca (WRRC, UH Manoa), ",
+                    "Jim Poterma (SOEST, UH Manoa), Carolyn Auweloa (NRCS), Nicole Galase (Hawaii Cattlemen's Council), Mark Thorne (CTAHR, UH Manoa)")
   
-  fp_Ack2 <- fp_text(color = "black", font.size = 18) 
+  fp_Ack2 <- fp_text(color = "black", font.size = 15) 
   fp_Ack <- fpar(ftext(Ack, fp_Ack2 ))
   
   
-  fp_CITA1 <- fp_text(bold= TRUE, color = "darkred", font.size = 18,underlined = TRUE) 
-  fp_CITA2 <- fp_text(color = "black", font.size = 18) 
-  fp_CITA3 <- fp_text(color = "red", font.size = 16) 
+  fp_CITA1 <- fp_text(bold= TRUE, color = "darkred", font.size = 16,underlined = TRUE) 
+  fp_CITA2 <- fp_text(color = "black", font.size = 16) 
+  fp_CITA3 <- fp_text(color = "red", font.size = 14) 
   
   CITA <- block_list(
     fpar(ftext       ("Suggested Citation", fp_CITA1)),
-    fpar(ftext(paste0("Longman, R.J., Ford, D.J., Frazier, A.G, Giardina, C.P (2021). ",
+    fpar(ftext(paste0("Longman, R.J., Ford, D.J., Frazier, A.G, Giardina, C.P (2023). ",
                       "Climate Change, Climate Variability and Drought Portfolio ", NameF,
-                      " Pacific Drought knowledge Exchange CCVD Series Version 3.0, XXpp."), fp_CITA2)))
+                      " Pacific Drought knowledge Exchange CCVD Series Version 4.0."), fp_CITA2)))
 
 
   Draft <- block_list(
@@ -1757,7 +1757,8 @@ add_slide("Two Content","Office Theme") %>%
     #Slide 28 #Acknowledgements
     add_slide("Title and Content","Office Theme") %>%
     ph_with(S26_TIT, ph_location_type("title",position_left = TRUE)) %>%
-    ph_with(fp_Ack, ph_location_type("body"))%>%
+    ph_with(fp_Ack, location = ph_location(label = "myname",
+                                                 left = 0.5, top = 0.08, width = 9, height = 5))%>%
     ph_with(value = "29", location = ph_location_type(type = "sldNum"))%>%
     ph_with(value = EWCimg, location = ph_location(label = "my_name",
                                                    left = 0.05, top = 3.5, width = 1.4, height = 1.4)) %>%
@@ -1846,7 +1847,7 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 2, top = 1, width = 6, height = 6))%>%
 
   
-  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4.pptx"))
+  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4_test.pptx"))
 
   
   
