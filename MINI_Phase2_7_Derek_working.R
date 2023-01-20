@@ -5205,6 +5205,8 @@ dat<-table
 head(dat)
 tail(dat)
 
+dat[which(dat$max == max(dat$max)),]
+
 # convert all celcius to farenheit
 dat$min<-(dat$min*(9/5)) + 32
 dat$max<-(dat$max*(9/5)) + 32
@@ -5253,7 +5255,7 @@ dev.off()
 
 ##### add annual mean values
 dat2<-merge(dat,dat.y[,c("year","mean")], by="year", all.x=T)
-head(dat2, 20)
+head(dat2)
 
 # set y-axis limits
 ylow<-min(dat2$mean.x)*.95
@@ -5279,6 +5281,8 @@ ggplot(dat2, aes(x=date,y=mean.x)) +
   geom_hline(yintercept=0) +
   annotate("text", x=as.Date("2015-07-01"), y=56.8, 
            label=paste0("Slope = ",slope)) +
+  geom_line(dat.y, aes(x=date,y=min), size=1.2, color="blue") +
+  geom_line(dat.y, aes(x=date,y=max), size=1.2, color="red") +
   theme(panel.background=element_rect(fill=NA, color="black"),
         panel.grid.major=element_line(color="grey90"),
         panel.grid.minor=element_blank())
