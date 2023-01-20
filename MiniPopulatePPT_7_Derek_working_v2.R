@@ -705,22 +705,71 @@ FIG_9 <- block_list(
 S14_TIT<- block_list(
   fpar(ftext("Trends in Air Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
-AirTrend <- paste0("Linear trends (black line) in average monthly (gray) and annual (orange) air temperature are calculated over a 28-year record at ",SNameF,". A positive slope value indicates an increase in temperature over time.
+# use monthly air temperature data to figure out values for text
+AT<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"_monthly_airtemp.csv"),sep=",")
 
-The red line represents the maximum monthly temperature reached within each year, and the blue line represents the minimum.")
+# get average annual air temperature values
+AT2<-aggregate(mean ~ year, AT, mean)
+
+# find start and end values from linear trend
+mod<-lm(mean ~ year, data=AT2)
+
+d<-data.frame(year=c(1990,2018))
+pred<-predict(mod,d)
+
+# determine direction of change
+if(pred[[1]] > pred[[2]]) {airchange <- c("decreased")}
+if(pred[[1]] < pred[[2]]) {airchange <- c("increased")}
+
+# calculate % change
+airchange2<-paste0(abs(round((((pred[[2]] - pred[[1]])/pred[[1]])*100), 1)),"%.")
+
+# calculate average annual range (hottest - coldest day)
+AT$range<-AT$max - AT$min
+ra<-round(mean(AT$range), 1)
+
+# find month-year with hottest daily temp
+ATd<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"_daily_airtemp.csv"),sep=",")
+
+mt<-max(ATd$max)
+mt2<-round(mt, 1)
+
+hot<-ATd[which(ATd$max == mt),]
+hot.y<-hot$year
+
+if(hot$month == 1) {hot.m<-c("January")}
+if(hot$month == 2) {hot.m<-c("February")}
+if(hot$month == 3) {hot.m<-c("March")}
+if(hot$month == 4) {hot.m<-c("April")}
+if(hot$month == 5) {hot.m<-c("May")}
+if(hot$month == 6) {hot.m<-c("June")}
+if(hot$month == 7) {hot.m<-c("July")}
+if(hot$month == 8) {hot.m<-c("August")}
+if(hot$month == 9) {hot.m<-c("September")}
+if(hot$month == 10) {hot.m<-c("October")}
+if(hot$month == 11) {hot.m<-c("November")}
+if(hot$month == 12) {hot.m<-c("December")}
+
+AirTrend <- paste0("Trends in air temperature have been calculated over a 28-year record at ",SNameF,
+". From 1990 to 2018, average annual air temperature has ",airchange, " by ", airchange2)
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
 fp_AirTrend <- fpar(ftext(AirTrend, fp_Tx))
 
+AirTrend2 <- paste0("At this site there is an average range of ",ra,"°F between the hottest and coldest days ",
+                    "within a single year. The highest daily temperature of ",mt2,"°F was recorded in ",hot.m," ",hot.y,".") 
+fp_AirTrend2 <- fpar(ftext(AirTrend2, fp_Tx))
+
 Trendfile1 <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_monthly_airtemp.png")
 Trendimg1 <- external_img(src = Trendfile1, height = 1,width = 2)
 
-Trendfile2 <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_annual_airtemp.png")
-Trendimg2 <- external_img(src = Trendfile2, height = 1,width = 2)
+Trendfile2 <- paste0(I_FOLDER,"airtemp_legend.jpg")
+Trendimg2 <- external_img(src = Trendfile2, height = 1,width = 1)
 
 FIG_10_11 <- block_list(
-  fpar(ftext(paste0("Figures 16 & 17. 28-year (1990 – 2018) air temperature time series at ",SNameF," with linear trend. R2 is the strength of the relationship. When the p-value is less than 0.05, the trend is determined to be statistically significant."), fp_Fig2)))
-
+  fpar(ftext(paste0("Figure 16. 28-year (1990 – 2018) air temperature time series at ",SNameF,
+                    ". The linear trend is determined to be statistically significant when the ",
+                    "p-value is less than 0.05."), fp_Fig2)))
 
 
 ################ Slide 15 PART 3 Drought and Fire Occurrence ###############
@@ -797,7 +846,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   #################### Slide 18 ###############################
   
   S16_TIT<- block_list(
-    fpar(ftext("A 100-Year History of Drought", FTXTT),fp_p = fp_par(text.align = "center")))
+    fpar(ftext("A 100+ Year History of Drought", FTXTT),fp_p = fp_par(text.align = "center")))
    
 
     #INFO for Slides 16 & 17
@@ -871,7 +920,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
   
   DT_TIT<- block_list(
-    fpar(ftext("Drought Events (1920-2019)", FTXTT),fp_p = fp_par(text.align = "center")),
+    fpar(ftext("Drought Events (1920-2022)", FTXTT),fp_p = fp_par(text.align = "center")),
     fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center")))
 
 
@@ -1271,8 +1320,8 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   ############### Slide 31 ANNEX I ###############
   
   
-  RF100<- paste0("The 100-year monthly rainfall dataset was drawn from two unique gridded products. We used data from Frazier et al. (2016) ",
-                 "for the period 1920-1989 and Lucas et al. (In Review) for the period 1990-2019. Given that two unique data sets and methods ",
+  RF100<- paste0("The 100+ year monthly rainfall dataset was drawn from two unique gridded products. We used data from Frazier et al. (2016) ",
+                 "for the period 1920-1989 and Lucas et al. (In Review) for the period 1990-2022. Given that two unique data sets and methods ",
                  "were used to make these two products we show the 1:1 Statistical relationship between the two products for a 23-year overlap ",
                  "(1990-2012) with the datasets and associated error metrics.")
   
@@ -1572,16 +1621,15 @@ add_slide("Two Content","Office Theme") %>%
   add_slide("Two Content","Office Theme") %>%
   ph_with(S14_TIT,         ph_location_type("title")) %>%
 
-  ph_with(value = fp_AirTrend, location = ph_location(label = "my_name", left = 0.5, top = 1.5, width = 4.3, height = 5)) %>%
-    
-  ph_with(value = Trendimg1, location = ph_location(label = "my_name", left = 4.8, top = 1.5, width = 4.8, height = 2.4)) %>%
-  ph_with(value = Trendimg2, location = ph_location(label = "my_name", left = 4.8, top = 3.9, width = 4.8, height = 2.4)) %>%
+  ph_with(value = fp_AirTrend, location = ph_location(label = "my_name", left = 0.5, top = 0.05, width = 6, height = 5)) %>%
+  ph_with(value = fp_AirTrend2, location = ph_location(label = "my_name", left = 0.5, top = 2.5, width = 3, height = 5)) %>%  
+  ph_with(value = Trendimg2, location = ph_location(label = "my_name", left = 7.1, top = 1.7, width = 2.5, height = 1.7)) %>%
+  ph_with(value = Trendimg1, location = ph_location(label = "my_name", left = 4, top = 3.5, width = 5.5, height = 3)) %>%
     
   ph_with(value = FIG_10_11, location = ph_location(label = "my_name", 
-                                                left = 5.2, top = 6, width = 4.3, height = 1.4))%>%
+                                                left = 4.3, top = 6, width = 5, height = 1.4))%>%
   ph_with(value = "15", location = ph_location_type(type = "sldNum"))%>%
   
-    
 #Slide 15 #Part 3
   add_slide("Title and Content","Office Theme") %>%
   ph_with(P3_TIT,ph_location_type("title",position_left = TRUE)) %>%
@@ -1797,7 +1845,7 @@ add_slide("Two Content","Office Theme") %>%
     #Slide 30  ############## Annex I
     
     add_slide("Two Content","Office Theme") %>%
-    ph_with("Annex I: 100-Year Rainfall ",ph_location_type("title")) %>%
+    ph_with("Annex I: 100+ Year Rainfall ",ph_location_type("title")) %>%
     ph_with(fp_RF100,        ph_location_type("body",position_right = FALSE)) %>%
     #ph_with(value = "31", location = ph_location_type(type = "sldNum")) %>%
     ph_with(value = SCAimg, ph_location_type("body",position_right = TRUE)) %>%
@@ -1818,7 +1866,7 @@ add_slide("Two Content","Office Theme") %>%
     #Slide 32 ############### Annex III
 
     add_slide("Title and Content","Office Theme") %>%
-    ph_with("Annex III: Drought Events (1920 - 2019)",ph_location_type("title")) %>%
+    ph_with("Annex III: Drought Events (1920 - 2022)",ph_location_type("title")) %>%
     ph_with(value = "33", location = ph_location_type(type = "sldNum"))%>% 
     ph_with(value = DrotT_T1, ph_location_type("body")) %>%
     ph_with(value = TAB3, location = ph_location(label = "my_name",

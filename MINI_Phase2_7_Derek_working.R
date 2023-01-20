@@ -5196,9 +5196,6 @@ for (i in years) {
 
 table
 
-# write to csv
-write.csv(table, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp.csv"))
-
 ###### Monthly air temperature time series
 dat<-table
 
@@ -5231,6 +5228,9 @@ head(dat.y)
 # make date column
 dat.y$date<-as.Date(paste0(dat.y$year,"-01-01"))
 
+# write to csv
+write.csv(dat.y, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp.csv"))
+
 slope<-formatC((coef(lm(dat.y$mean~dat.y$date))[2]), format="e", digits=2)
 slope
 
@@ -5254,16 +5254,22 @@ ggplot(dat.y, aes(x=date, y=mean)) +
 dev.off()
 
 ##### add annual mean values
-dat2<-merge(dat,dat.y[,c("year","mean")], by="year", all.x=T)
+dat2<-merge(dat,dat.y[,c("year","mean","min","max")], by="year", all.x=T)
 head(dat2)
 
+# write to csv
+write.csv(dat2, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_daily_airtemp.csv"))
+
 # set y-axis limits
-ylow<-min(dat2$mean.x)*.95
-yhi<-max(dat2$mean.x)*1.0005
+ylow<-min(dat.y$min)*.95
+yhi<-max(dat.y$max)*1.0005
 
 # set slope
 slope<-formatC((coef(lm(dat2$mean.x~dat2$date))[2]), format="e", digits=2)
 slope
+
+# set location for linear trend values
+yl<-(((min(dat.y$max)-max(dat2$mean.x))/2) + max(dat2$mean.x))
 
 dpi=300
 
@@ -5273,16 +5279,16 @@ ggplot(dat2, aes(x=date,y=mean.x)) +
   geom_line(color="grey60") +
   geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
   geom_smooth(method=lm, se=F, color="black") +
-  stat_cor(method="pearson", label.x=as.Date("2012-01-01"), label.y=58) +
+  stat_cor(method="pearson", label.x=as.Date("1993-01-01"), label.y=yl-3) +
   scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
   ylim(ylow,yhi) +
-  labs(title="Monthly Air Temperature",
+  labs(title="Air Temperature Trends",
        y="Temperature (F)", x="") +
   geom_hline(yintercept=0) +
-  annotate("text", x=as.Date("2015-07-01"), y=56.8, 
+  annotate("text", x=as.Date("1996-07-01"), y=yl, 
            label=paste0("Slope = ",slope)) +
-  geom_line(dat.y, aes(x=date,y=min), size=1.2, color="blue") +
-  geom_line(dat.y, aes(x=date,y=max), size=1.2, color="red") +
+  geom_line(data = dat.y, aes(x=date, y=min), size=1.2, color="blue") +
+  geom_line(data = dat.y, aes(x=date,y=max), size=1.2, color="red") +
   theme(panel.background=element_rect(fill=NA, color="black"),
         panel.grid.major=element_line(color="grey90"),
         panel.grid.minor=element_blank())
