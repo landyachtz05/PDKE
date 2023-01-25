@@ -152,6 +152,8 @@ D_SOCimg <- external_img(src = D_SOCfile , height = 1, width = 1)
 D_ECOfile <- paste0(I_FOLDER,"ECO_D.png")
 D_ECOimg <- external_img(src = D_ECOfile , height = 1, width = 1)
 
+D_fivefile <- paste0(I_FOLDER,"types_of_drought.png")
+D_fiveimg <- external_img(src = D_fivefile , height = 1, width = 1)
 
 #media
 D_AGfileM <- paste0(I_FOLDER,"Media1_SPI.MP4")
@@ -791,32 +793,36 @@ fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 
 
 
-####################  SLID 16 FIVE TYPES OF DROUght######################################
+####################  SLIDE 16 FIVE TYPES OF DROUght######################################
 
 
 TIT_D <- fpar(ftext("Five Types of Drought", FTXTT),fp_p = fp_par(text.align = "center") )
-fp_D_M <-  block_list(
-  fpar(ftext( "Meteorological Drought.", fp_Fig4)),
-  fpar(ftext( "Defined as a lack of rainfall" , fp_Fig3)))
+# fp_D_M <-  block_list(
+#   fpar(ftext( "Meteorological Drought.", fp_Fig4)),
+#   fpar(ftext( "Defined as a lack of rainfall" , fp_Fig3)))
+# 
+# fp_D_A <-  block_list(
+#   fpar(ftext( "Agriculture Drought", fp_Fig4)),
+#   fpar(ftext( "Refers to a period of declining soil moisture and subsequent crop failure", fp_Fig3)))
+# 
+# fp_D_H <-  block_list( 
+#   fpar(ftext( "Hydrological Drought", fp_Fig4)),
+#   fpar(ftext( "Expressed as decreased streamflow and sub-surface water storage", fp_Fig3)))
+# 
+# fp_D_E<-  block_list(
+#   fpar(ftext( "Ecological Drought", fp_Fig4)),
+#   fpar(ftext( "Includes any impacts to ecosystems including an increase in wildfire occurrence" , fp_Fig3)))
+# 
+# fp_D_S<-  block_list(   
+#   fpar(ftext( "Socio-Economic Drought", fp_Fig4)),
+#   fpar(ftext( "Includes impacts to social and economic systems, including increased costs or revenue losses, and impacts on public health and safety", fp_Fig3)))
 
-fp_D_A <-  block_list(
-  fpar(ftext( "Agriculture Drought", fp_Fig4)),
-  fpar(ftext( "Refers to a period of declining soil moisture and subsequent crop failure", fp_Fig3)))
+D_t <- paste0("There are five major types of drought. During droughts there is sometimes a progression from ",
+              "one type to the next. Depending on local factors, these drought types can also happen simultaneously ",
+              "and at different levels of severity.")
 
-fp_D_H <-  block_list( 
-  fpar(ftext( "Hydrological Drought", fp_Fig4)),
-  fpar(ftext( "Expressed as decreased streamflow and sub-surface water storage", fp_Fig3)))
-
-fp_D_E<-  block_list(
-  fpar(ftext( "Ecological Drought", fp_Fig4)),
-  fpar(ftext( "Includes any impacts to ecosystems including an increase in wildfire occurrence" , fp_Fig3)))
-
-fp_D_S<-  block_list(   
-  fpar(ftext( "Socio-Economic Drought", fp_Fig4)),
-  fpar(ftext( "Includes impacts to social and economic systems, including increased costs or revenue losses, and impacts on public health and safety", fp_Fig3)))
-
-
-
+fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
+fp_D_t <- fpar(ftext(D_t, fp_Tx))
 
 #################### Slide 17 ###############################
 
@@ -1641,33 +1647,36 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 5.45, top = 4.5, width = 3, height = 2)) %>%
     
 ###  Slide 16    
-    
     add_slide("Title and Content","Office Theme") %>%
     ph_with(TIT_D,ph_location_type("title",position_left = TRUE)) %>%
-    ph_with(value = "Frazier et al. (2019)", location = ph_location_type(type = "dt"))%>%
     ph_with(value = "17", location = ph_location_type(type = "sldNum"))%>%
-    ph_with(value = D_METimg, location = ph_location(label = "my_name",
-                                                     left = 0.3, top = 1.8, width = 2, height = 1.3)) %>%
-    ph_with(value = D_AGimg, location = ph_location(label = "my_name",
-                                                    left = 0.3, top = 3.6, width = 2, height = 1.3)) %>%
-    ph_with(value = D_HYDimg, location = ph_location(label = "my_name",
-                                                     left = 0.3, top = 5.4, width = 2, height = 1.3)) %>%
-    ph_with(value =  D_ECOimg, location = ph_location(label = "my_name",
-                                                      left = 5, top = 2.6, width = 2, height = 1.3))%>%
-    ph_with(value =  D_SOCimg, location = ph_location(label = "my_name",
-                                                      left = 5, top = 4.4, width = 2, height = 1.3))%>%
-    ## TEXT
-    ph_with(value =  fp_D_M, location = ph_location(label = "my_name",
-                                                    left = 2.4, top = 1.8, width = 2.6, height = 0.69))%>%
-    ph_with(value =  fp_D_A, location = ph_location(label = "my_name",
-                                                    left = 2.4, top = 3.6, width = 2.6, height = 1.17))%>% 
-    ph_with(value =  fp_D_H, location = ph_location(label = "my_name",
-                                                    left = 2.4, top = 5.4, width = 2.6, height = 1.17))%>% 
-    ph_with(value =  fp_D_E, location = ph_location(label = "my_name",
-                                                    left = 7.1, top = 2.6, width = 2.6, height = 1.3))%>% 
-    ph_with(value =  fp_D_S, location = ph_location(label = "my_name",
-                                                    left = 7.1, top = 4.3, width = 2.78, height = 1.56))%>% 
-  
+    # ph_with(value = D_METimg, location = ph_location(label = "my_name",
+    #                                                  left = 0.3, top = 1.8, width = 2, height = 1.3)) %>%
+    # ph_with(value = D_AGimg, location = ph_location(label = "my_name",
+    #                                                 left = 0.3, top = 3.6, width = 2, height = 1.3)) %>%
+    # ph_with(value = D_HYDimg, location = ph_location(label = "my_name",
+    #                                                  left = 0.3, top = 5.4, width = 2, height = 1.3)) %>%
+    # ph_with(value =  D_ECOimg, location = ph_location(label = "my_name",
+    #                                                   left = 5, top = 2.6, width = 2, height = 1.3))%>%
+    # ph_with(value =  D_SOCimg, location = ph_location(label = "my_name",
+    #                                                   left = 5, top = 4.4, width = 2, height = 1.3))%>%
+    # ## TEXT
+    # ph_with(value =  fp_D_M, location = ph_location(label = "my_name",
+    #                                                 left = 2.4, top = 1.8, width = 2.6, height = 0.69))%>%
+    # ph_with(value =  fp_D_A, location = ph_location(label = "my_name",
+    #                                                 left = 2.4, top = 3.6, width = 2.6, height = 1.17))%>% 
+    # ph_with(value =  fp_D_H, location = ph_location(label = "my_name",
+    #                                                 left = 2.4, top = 5.4, width = 2.6, height = 1.17))%>% 
+    # ph_with(value =  fp_D_E, location = ph_location(label = "my_name",
+    #                                                 left = 7.1, top = 2.6, width = 2.6, height = 1.3))%>% 
+    # ph_with(value =  fp_D_S, location = ph_location(label = "my_name",
+    #                                                 left = 7.1, top = 4.3, width = 2.78, height = 1.56))%>% 
+    
+    ph_with(value = D_fiveimg, location = ph_location(label = "my_name",
+                                                      left = 0.52, top = 2.6, width = 8.8, height = 4.5))%>%
+    ph_with(value = fp_D_t, location = ph_location(label = "my_name",
+                                                      left = 0.5, top = 1, width = 9.1, height = 2))%>%
+    ph_with(value = "Frazier et al. (2019)", location = ph_location_type(type = "dt"))%>%
   
   #Slide 17 
   add_slide("Two Content","Office Theme") %>%
