@@ -3155,7 +3155,7 @@ RF_Tif_files = dir(RF_Map_Path, pattern="*.tif", recursive=T, full.names=T)  #Mo
 nfiles <- length(RF_Tif_files)
 
 #Create a matrix for each cell
-Cell.ML_Maps <-data.frame(matrix(nrow = 395,ncol = 4))
+Cell.ML_Maps <-data.frame(matrix(nrow = 396,ncol = 4))
 colnames(Cell.ML_Maps) <- c("Date","Year","Month","RF")
 
 for (i in 1:nfiles) {
@@ -3292,7 +3292,7 @@ dev.off()
 MRF_AD3 =  Cell.AF_Maps[c(1:840),]
 head(MRF_AD3)
 tail(MRF_AD3)
-MRF_ND3 =  Cell.ML_Maps[c(1:384),]
+MRF_ND3 =  Cell.ML_Maps[c(1:396),]
 head(MRF_ND3)
 tail(MRF_ND3)
 
@@ -3305,8 +3305,8 @@ if(RFUnit == " in") {MRF100$RF <-  as.numeric(MRF100$RF) * 0.0393701}
 write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv"),row.names = F)
 
 # ## Can read in the csv from above to start script here
-# setwd("E:/PDKE/CCVD/MINI_Phase2/Hakalau Forest National Wildlife Refuge - Koolau Unit/")
-# MRF100<-read.csv("Hakalau Forest National Wildlife Refuge - Koolau Unit Monthly Rainfall_in.csv")
+# setwd("E:/PDKE/CCVD/MINI_Phase2/Hakalau Forest National Wildlife Refuge - Kona Unit")
+# MRF100<-read.csv("Hakalau Forest National Wildlife Refuge - Kona Unit Monthly Rainfall_in.csv")
 # # fix month values
 # MRF100$Month<-sub(".*/","",MRF100$Date)
 
@@ -3324,21 +3324,21 @@ MRF_Min <- round(min(RF_IN,na.rm=TRUE),1)
 MRF_MED <- round(median(RF_IN,na.rm=TRUE),1)
 MRF_MEAN <- round(mean(RF_IN,na.rm=TRUE),1)
 
-MoRF.ts <- ts(RF_IN, c(1920,1), end = c(2021,12), frequency = 12) 
+MoRF.ts <- ts(RF_IN, c(1920,1), end = c(2022,12), frequency = 12) 
 
-myts1 <- as.vector(window(MoRF.ts, start=c(1920, 1), end=c(2021, 12)))
-myts2 <- as.vector(window(MoRF.ts, start=c(1940, 1), end=c(2021, 12)))
-myts3 <- as.vector(window(MoRF.ts, start=c(1960, 1), end=c(2021, 12)))
-myts4 <- as.vector(window(MoRF.ts, start=c(1980, 1), end=c(2021, 12)))
-myts5 <- as.vector(window(MoRF.ts, start=c(2000, 1), end=c(2021, 12)))
-myts6 <- as.vector(window(MoRF.ts, start=c(2010, 1), end=c(2021, 12)))
+myts1 <- as.vector(window(MoRF.ts, start=c(1920, 1), end=c(2022, 12)))
+myts2 <- as.vector(window(MoRF.ts, start=c(1940, 1), end=c(2022, 12)))
+myts3 <- as.vector(window(MoRF.ts, start=c(1960, 1), end=c(2022, 12)))
+myts4 <- as.vector(window(MoRF.ts, start=c(1980, 1), end=c(2022, 12)))
+myts5 <- as.vector(window(MoRF.ts, start=c(2000, 1), end=c(2022, 12)))
+myts6 <- as.vector(window(MoRF.ts, start=c(2010, 1), end=c(2022, 12)))
 
-DateT1 <- seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="months")
-DateT2 <- seq(as.Date("1940-01-01"), as.Date("2021-12-31"), by="months")
-DateT3 <- seq(as.Date("1960-01-01"), as.Date("2021-12-31"), by="months")
-DateT4 <- seq(as.Date("1980-01-01"), as.Date("2021-12-31"), by="months")
-DateT5 <- seq(as.Date("2000-01-01"), as.Date("2021-12-31"), by="months")
-DateT6 <- seq(as.Date("2010-01-01"), as.Date("2021-12-31"), by="months")
+DateT1 <- seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="months")
+DateT2 <- seq(as.Date("1940-01-01"), as.Date("2022-12-31"), by="months")
+DateT3 <- seq(as.Date("1960-01-01"), as.Date("2022-12-31"), by="months")
+DateT4 <- seq(as.Date("1980-01-01"), as.Date("2022-12-31"), by="months")
+DateT5 <- seq(as.Date("2000-01-01"), as.Date("2022-12-31"), by="months")
+DateT6 <- seq(as.Date("2010-01-01"), as.Date("2022-12-31"), by="months")
 
 LM1 <- lm(myts1~DateT1)
 LM2 <- lm(myts2~DateT2)
@@ -3404,20 +3404,20 @@ colnames(Mean_Y_RF) <- c("Date","RF")
 
 ##########   Plot Annual RF  
 
-YrRF.ts <- ts(Mean_Y_RF$RF, c(1920), end = c(2021), frequency = 1) 
-myts1Y <- as.vector(window(YrRF.ts, start=c(1920), end=c(2021)))
-myts2Y <- as.vector(window(YrRF.ts, start=c(1940), end=c(2021)))
-myts3Y <- as.vector(window(YrRF.ts, start=c(1960), end=c(2021)))
-myts4Y <- as.vector(window(YrRF.ts, start=c(1980), end=c(2021)))
-myts5Y <- as.vector(window(YrRF.ts, start=c(2000), end=c(2021)))
-myts6Y <- as.vector(window(YrRF.ts, start=c(2010), end=c(2021)))
+YrRF.ts <- ts(Mean_Y_RF$RF, c(1920), end = c(2022), frequency = 1) 
+myts1Y <- as.vector(window(YrRF.ts, start=c(1920), end=c(2022)))
+myts2Y <- as.vector(window(YrRF.ts, start=c(1940), end=c(2022)))
+myts3Y <- as.vector(window(YrRF.ts, start=c(1960), end=c(2022)))
+myts4Y <- as.vector(window(YrRF.ts, start=c(1980), end=c(2022)))
+myts5Y <- as.vector(window(YrRF.ts, start=c(2000), end=c(2022)))
+myts6Y <- as.vector(window(YrRF.ts, start=c(2010), end=c(2022)))
 
-YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="years")
-YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2021-12-31"), by="years")
-YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2021-12-31"), by="years")
-YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2021-12-31"), by="years")
-YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2021-12-31"), by="years")
-YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2021-12-31"), by="years")
+YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="years")
+YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2022-12-31"), by="years")
+YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2022-12-31"), by="years")
+YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2022-12-31"), by="years")
+YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2022-12-31"), by="years")
+YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2022-12-31"), by="years")
 
 LM1Y <- lm(myts1Y~YDateT1)
 LM2Y <- lm(myts2Y~YDateT2)
@@ -3493,30 +3493,30 @@ colnames(Dry_RF) <- c("Date","RF")
 ####### Seasonal Trends ########################
 
 #WET Season 
-YrRF.tsW <- ts(WET_RF5, c(1920), end = c(2021), frequency = 1) 
-myts1YW <- as.vector(window(YrRF.tsW, start=c(1920), end=c(2021)))
-myts2YW <- as.vector(window(YrRF.tsW, start=c(1940), end=c(2021)))
-myts3YW <- as.vector(window(YrRF.tsW, start=c(1960), end=c(2021)))
-myts4YW <- as.vector(window(YrRF.tsW, start=c(1980), end=c(2021)))
-myts5YW <- as.vector(window(YrRF.tsW, start=c(2000), end=c(2021)))
-myts6YW <- as.vector(window(YrRF.tsW, start=c(2010), end=c(2021)))
+YrRF.tsW <- ts(WET_RF5, c(1920), end = c(2022), frequency = 1) 
+myts1YW <- as.vector(window(YrRF.tsW, start=c(1920), end=c(2022)))
+myts2YW <- as.vector(window(YrRF.tsW, start=c(1940), end=c(2022)))
+myts3YW <- as.vector(window(YrRF.tsW, start=c(1960), end=c(2022)))
+myts4YW <- as.vector(window(YrRF.tsW, start=c(1980), end=c(2022)))
+myts5YW <- as.vector(window(YrRF.tsW, start=c(2000), end=c(2022)))
+myts6YW <- as.vector(window(YrRF.tsW, start=c(2010), end=c(2022)))
 
 #DRy Season 
-YrRF.tsD <- ts(DRY_RF2, c(1920), end = c(2021), frequency = 1) 
-myts1YD <- as.vector(window(YrRF.tsD, start=c(1920), end=c(2021)))
-myts2YD <- as.vector(window(YrRF.tsD, start=c(1940), end=c(2021)))
-myts3YD<- as.vector(window(YrRF.tsD, start=c(1960), end=c(2021)))
-myts4YD <- as.vector(window(YrRF.tsD, start=c(1980), end=c(2021)))
-myts5YD <- as.vector(window(YrRF.tsD, start=c(2000), end=c(2021)))
-myts6YD <- as.vector(window(YrRF.tsD, start=c(2010), end=c(2021)))
+YrRF.tsD <- ts(DRY_RF2, c(1920), end = c(2022), frequency = 1) 
+myts1YD <- as.vector(window(YrRF.tsD, start=c(1920), end=c(2022)))
+myts2YD <- as.vector(window(YrRF.tsD, start=c(1940), end=c(2022)))
+myts3YD<- as.vector(window(YrRF.tsD, start=c(1960), end=c(2022)))
+myts4YD <- as.vector(window(YrRF.tsD, start=c(1980), end=c(2022)))
+myts5YD <- as.vector(window(YrRF.tsD, start=c(2000), end=c(2022)))
+myts6YD <- as.vector(window(YrRF.tsD, start=c(2010), end=c(2022)))
 
 # WET and DRy # Annual 
-YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="years")
-YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2021-12-31"), by="years")
-YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2021-12-31"), by="years")
-YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2021-12-31"), by="years")
-YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2021-12-31"), by="years")
-YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2021-12-31"), by="years")
+YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="years")
+YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2022-12-31"), by="years")
+YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2022-12-31"), by="years")
+YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2022-12-31"), by="years")
+YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2022-12-31"), by="years")
+YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2022-12-31"), by="years")
 
 #WET Regression
 LM1YW <- lm(myts1YW~YDateT1)
@@ -3687,7 +3687,7 @@ SPI3 <- spi(RF, scale = 3, distribution = 'Gamma')
 #PlOT ALL SPI
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SPI.png"),width=6.5*dpi,height=4*dpi,res=dpi)
 
-plot(spi(ts(RF,freq=12,start=c(1920,1)),scale = 12,distribution = 'Gamma'),main = paste0("SPI-12 1920-2021: ",UNIT_Ns[u]))
+plot(spi(ts(RF,freq=12,start=c(1920,1)),scale = 12,distribution = 'Gamma'),main = paste0("SPI-12 1920-2022: ",UNIT_Ns[u]))
 
 dev.off()
 
@@ -3710,6 +3710,7 @@ Cell.DataSPI
     
     spi<-spi(ts(RF_Data$RF, freq=12, start=c(1920, 1)), scale = 12)
     plot(spi)
+    
     spi3<-spi(ts(RF_Data$RF, freq=12, start=c(1920,1)), scale = 3)
     plot(spi3)
     
@@ -3727,11 +3728,14 @@ Cell.DataSPI
     spi3_val$date<-sub("\\..*","",spi3_val$date)
     
     head(spi3_val, 20)
+    tail(spi3_val)
     
     # combine dataframes
     SPI_ALL<-rbind(spi_val,spi3_val)
     head(SPI_ALL, 20)
     
+    tail(SPI_ALL)
+
     # fix date column
     library(zoo)
     SPI_ALL$date2<-rep(c(1:12))
@@ -3923,9 +3927,9 @@ Cell.DataSPI
         }
         
         # fix date formats
-        # library(zoo)
-        # Cell.DataSPI$start<-as.yearmon(sub(" .*","", Cell.DataSPI$start), "%Y-%m-%d")
-        # Cell.DataSPI$stop<-as.yearmon(sub(" .*","", Cell.DataSPI$stop), "%Y-%m-%d")
+        library(zoo)
+        Cell.DataSPI$Start2<-as.yearmon(sub(" .*","", Cell.DataSPI$Start), "%Y-%m-%d")
+        Cell.DataSPI$End2<-as.yearmon(sub(" .*","", Cell.DataSPI$End), "%Y-%m-%d")
         
 Cell.DataSPI  
 
@@ -3958,9 +3962,9 @@ SPIVEC<-SPI_ALL[which(SPI_ALL$m.scale == 12),]$SPI
 SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
-M_SPI.ts <- ts(SPIVEC_Abs, c(1920,1), end = c(2021,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(2021, 12)))
-DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2021-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1920,1), end = c(2022,12), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(2022, 12)))
+DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="months"))
 #short.date_M = strftime(MonthlyRF$Ndate, "%Y-%m")
 
 xx <- data.frame(DateT1,myts66)
@@ -3976,7 +3980,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-12 Drought Events 1920 -2021: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-12 Drought Events 1920 -2022: ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4179,6 +4183,8 @@ Cell.DataSPI3_S$End<-as.yearmon(sub(" .*","", Cell.DataSPI3_S$End), "%Y-%m-%d")
 
 Cell.DataSPI3_S
 
+write.csv(Cell.DataSPI3_S,          paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"Drought History SPI_3.csv"),row.names = F)
+
 ##########   Count Droughts For Figure - Derek's edits
 Cell.DataSPI3_S$`P Intensity`<-as.numeric(Cell.DataSPI3_S$`P Intensity`)
 
@@ -4210,13 +4216,15 @@ SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
 # make dataframe of date and drought (absolute SPI) value
-M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2021,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2021, 12)))
-DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2021-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2022,12), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2022, 12)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2022-12-31"), by="months"))
 xx <- data.frame(DateT1,myts66)
 colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
 xx
+
+write.csv(xx,          paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"SPI_3.csv"),row.names = F)
 
 # plot and write figure
 dpi=300
@@ -4226,7 +4234,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-3 Drought Events 1990-2021: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-3 Drought Events 1990-2022: ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4438,7 +4446,6 @@ MO_Cnt2 <- D_Cnt -  SV_Cnt2 - EX_Cnt
 
 Cell.SPICNT[1:4,4] <- c(D_Cnt,MO_Cnt2,SV_Cnt2,EX_Cnt)
 Cell.SPICNT
-Cell.SPICNT
 
 write.csv(Cell.SPICNT,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Drought Count.csv"),row.names = F)
 
@@ -4459,9 +4466,9 @@ SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
 # make dataframe of date and drought (absolute SPI) value
-M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2021,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2021, 12)))
-DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2021-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2022,12), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2022, 12)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2022-12-31"), by="months"))
 xx <- data.frame(DateT1,myts66)
 colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
@@ -4475,7 +4482,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-12 Drought Events 1990-2021: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-12 Drought Events 1990-2022: ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4792,10 +4799,8 @@ text(5,MAXD22, paste0("Min = ",Mn_LA_W_S),cex=0.7)
 
 dev.off()
 
+# I don't think this is used...
 write.csv(Cell.MEI,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_A.csv"),row.names = F)
-
-### Export seasonal sum rainfall instead of seasaonal average rainfall
-Cell.MEI
 
 
 
@@ -4807,7 +4812,7 @@ enso<-MEI
 enso
 
 # Add date column
-enso$date<-c(1950:2021)
+enso$date<-c(1950:2022)
 enso$date<-as.Date(paste0(enso$date,"-01-01"))
 
 # add seasonal ENSO phase columns based on MEI values

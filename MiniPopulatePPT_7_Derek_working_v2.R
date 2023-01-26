@@ -831,8 +831,8 @@ S15_TIT<- block_list(
   fpar(ftext("Standard Precipitation Index", FTXTT),fp_p = fp_par(text.align = "center")))
 
 
-SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most widely used drought indices. SPI compares rainfall with ",
-              "its multi-year average, and because droughts are generally defined relative to the local normal, this standardized index allows wet and dry climates ",
+SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most widely used indices for meteorological drought. SPI compares current rainfall with ",
+              "its multi-year average, so that droughts are defined relative to local average rainfall. This standardized index allows wet and dry climates ",
               "to be represented on a common scale. Here, 100+ years of monthly rainfall are used to used to calculate SPI-12, which compares how ",
               "a 12-month period compares with all 12-month periods in the record. SPI-12 is a good measure of sustained droughts that affect hydrological processes ",
               "at ",SNameF, ".")
@@ -844,7 +844,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 
   FIG_12 <- block_list(
    fpar(ftext(paste0("Figure 18. 102-year (1920-2022) SPI-12 time series at ", 
-                      SNameF ," positive SPI (blue) indicate wet periods, negative ", 
+                      SNameF ,". Positive SPI (blue) indicate wet periods, negative ", 
                      "SPI (red) indicate dry periods."), fp_Fig)))
 
 
@@ -857,8 +857,8 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 
     #INFO for Slides 16 & 17
   DROT <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought History.csv"),sep=",")
-  
-  D_Sum <- sum(!is.na(DROT$A.Intensity))
+
+    D_Sum <- sum(!is.na(DROT$A.Intensity))
   #if(DROT$P.Intensity[D_Sum] > 1){DROT <- DROT[-D_Sum,]}
   EX_Cnt <- sum(DROT$P.Intensity > 2)
   SV_Cnt <- sum(DROT$P.Intensity > 1.5)
@@ -883,8 +883,9 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   if(Drot_ct > 12) {DROT2<-DROT[13:nrow(DROT),]}
   if(Drot_ct > 24) {DROT2<-DROT2[1:12,]}
   if(Drot_ct > 24) {DROT3<-DROT[25:nrow(DROT),]}
+  DROT1
 
-  DrotT_T1 <- flextable(DROT1)
+  DrotT_T1 <- flextable(DROT1[1:6])
   DrotT_T1 <- bg(DrotT_T1, bg = "orange", part = "header")
   DrotT_T1 <- autofit(DrotT_T1)
   DrotT_T1
@@ -905,7 +906,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                  "of Moderate (SPI > 1), Severe (SPI > 1.5), and Extreme (SPI > 2) drought.") 
                  
   DHist2 <- paste0("A total of ",CNTDRT," droughts were observed over the entire record ",
-                   "with total of ", SoG, " drought events of severe strength or greater. The longest drought lasted for a total of ",LongD," months (see Annex III).")
+                   "with a total of ", SoG, " drought events of severe strength or greater. The longest drought lasted for a total of ",LongD," months (see Annex III).")
  
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18)
   
@@ -953,15 +954,89 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   SPI12_SMimg <- external_img(src = SPI_12_SMfile, height = 2,width = 4)
   
   FIG_14 <- block_list(
-    fpar(ftext(paste0("Figure 20. 32-year (1990-2022) SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+    fpar(ftext(paste0("Figure 20. SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
   FIG_15 <- block_list(
-    fpar(ftext(paste0("Figure 21. 32-year (1990-2022) SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+    fpar(ftext(paste0("Figure 21. SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
   SPI3v12<- block_list(
-    fpar(ftext(paste0("The SPI-3 provides a comparison of the precipitation over a specific 3-month period and reflects short- and medium-term moisture ", 
-                       "conditions over the 32-year period (1990-2022). A total of ", SPICNT[1,3], " droughts were observed at ",
-                        SNameF , ". Over this same time period, only ", SPICNT[1,4] ," droughts were identified when looking at the SPI-12 timeseries. It is important to compare the 3-month SPI with longer time scales. ",
-                       "A relatively normal 3-month period could occur in the middle of a longer-term drought that would only be visible at longer time scales. Looking at longer time scales ",
-                       "would prevent a misinterpretation that a drought might be over."), fp_Txa)))
+    fpar(ftext(paste0("SPI-3 provides a comparison of rainfall over a specific 3-month period and reflects short-term ", 
+                       "conditions. SPI-12 provides 12-month comparisions and reflects long-term conditions. It is important ",
+                       "to consider both timescales for planning."), fp_Txa)))
+  
+  # bring in monthly rainfall dataset to get dates
+  MRF<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Monthly Rainfall_in.csv"),sep=",")
+  RFC<-MRF[nrow(MRF),]
+  
+  RFC.y<-RFC$Year
+  
+  if(RFC$Month == 1) {RFC.m<-c("January")}
+  if(RFC$Month == 2) {RFC.m<-c("February")}
+  if(RFC$Month == 3) {RFC.m<-c("March")}
+  if(RFC$Month == 4) {RFC.m<-c("April")}
+  if(RFC$Month == 5) {RFC.m<-c("May")}
+  if(RFC$Month == 6) {RFC.m<-c("June")}
+  if(RFC$Month == 7) {RFC.m<-c("July")}
+  if(RFC$Month == 8) {RFC.m<-c("August")}
+  if(RFC$Month == 9) {RFC.m<-c("September")}
+  if(RFC$Month == 10) {RFC.m<-c("October")}
+  if(RFC$Month == 11) {RFC.m<-c("November")}
+  if(RFC$Month == 12) {RFC.m<-c("December")}
+  
+  ### determine current drought status
+  # SPI3
+  spi3A<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"SPI_3.csv"),sep=",")
+  spi3C<-round(spi3A[nrow(spi3A),]$SP,1)
+  
+  spi3H<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought History SPI_3.csv"),sep=",")
+  spi3HC<-spi3H[nrow(spi3H),]
+  spi3HC
+  
+  if(spi3HC$P.Intensity <= 1.5) {spi3HRL <- "moderate"}
+  if(spi3HC$P.Intensity <= 2 && spi3HC$P.Intensity > 1.5) {spi3HRL <- "severe"}
+  if(spi3HC$P.Intensity >2) {spi3HRL <- "extreme"}
+  
+  spi3HRs<-spi3HC$Start
+  spi3HRe<-spi3HC$End
+  
+  if(!is.na(spi3HC$End)) {spi3CT <- paste0("SPI-3: Currently not in drought. Most recently there was ",
+                                           spi3HRL," drought from ",spi3HRs," - ",spi3HRe,". Current SPI-3 ",
+                                           "value ",spi3C,".")}
+  if(is.na(spi3HC$End)) {spi3CT <- paste0("SPI-3: Currently in ",spi3HRL, " drought since ",spi3HRs,". ",
+                                          "Current SPI-3 value ",spi3C,".")}
+ 
+  # SPI12
+  spi12A<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"SPI_12.csv"),sep=",")
+  spi12C<-round(spi12A[nrow(spi12A),]$SP, 1)
+  
+  spi12H<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought History.csv"),sep=",")
+  spi12HC<-spi12H[nrow(spi12H),]
+  spi12HC
+  
+  if(spi12HC$P.Intensity <= 1.5) {spi12HRL <- "moderate"}
+  if(spi12HC$P.Intensity <= 2 && spi12HC$P.Intensity > 1.5) {spi12HRL <- "severe"}
+  if(spi12HC$P.Intensity >2) {spi12HRL <- "extreme"}
+  
+  spi12HRs<-spi12HC$Start2
+  spi12HRe<-spi12HC$End2
+  
+  if(!is.na(spi12HC$End)) {spi12CT <- paste0("SPI-12: Currently not in drought. Most recently there was ",
+                                           spi12HRL," drought from ",spi12HRs," - ",spi12HRe,". Current SPI-12 ",
+                                           "value ",spi12C,".")}
+  if(is.na(spi12HC$End)) {spi12CT <- paste0("SPI-12: Currently in ",spi12HRL, " drought since ",spi12HRs,". ",
+                                          "Current SPI-12 value ",spi12C,".")}
+
+  SPI3v12.1<- block_list(
+    fpar(ftext(paste0("As of ",RFC.m," ",RFC.y," the most recent drought events are as follows:"), fp_NM6)))
+  
+  SPI3v12.2<- block_list(
+    fpar(ftext(paste0(spi3CT), fp_Txa)))
+  
+  SPI3v12.3<- block_list(
+    fpar(ftext(paste0(spi12CT), fp_Txa)))
+  
+                       # A total of ", SPICNT[1,3], " droughts were observed at ",
+                       #  SNameF , ". Over this same time period, only ", SPICNT[1,4] ," droughts were identified when looking at the SPI-12 timeseries. It is important to compare the 3-month SPI with longer time scales. ",
+                       # "A relatively normal 3-month period could occur in the middle of a longer-term drought that would only be visible at longer time scales. Looking at longer time scales ",
+                       # "would prevent a misinterpretation that a drought might be over."), fp_Txa)))
 
   #################### Slide 21 ###############################
   
@@ -1258,15 +1333,12 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                    fpar(ftext("US Drought Monitor"      , fp_NM6)),
                    fpar(ftext("https://droughtmonitor.unl.edu/", fp_NM3)),
                    fpar(ftext( "                    ", fp_Fig2)),
+                   # fpar(ftext("National Drought Mitigation Center (NDMC)" , fp_NM6)),
+                   # fpar(ftext("https://drought.unl.edu/ranchplan/Overview.aspx", fp_NM3)),
+                   # fpar(ftext( "     "   , fp_Fig2)),
                    fpar(ftext("State of Hawaii Drought Plan"      , fp_NM6)),
                    fpar(ftext(" https://files.hawaii.gov/dlnr/cwrm/planning/HDP2017.pdf", fp_NM3)),
                    fpar(ftext( "                    ", fp_Fig2)),
-                   # fpar(ftext("Rainfall Atlas of Hawaii" , fp_NM6)),
-                   # fpar(ftext("http://rainfall.geography.hawaii.edu/", fp_NM3)),
-                   # fpar(ftext( "                    ", fp_Fig2)),
-                   # fpar(ftext( "Climate Of Hawaii", fp_NM6)),
-                   # fpar(ftext("http://climate.geography.hawaii.edu/", fp_NM3)),
-                   # fpar(ftext( "                    ",   fp_Fig2)),
                    fpar(ftext( "Hawaii Climate Data Portal", fp_NM6)),
                    fpar(ftext("https://www.hawaii.edu/climate-data-portal/", fp_NM3)),
                    fpar(ftext( "                    ",   fp_Fig2)),
@@ -1703,23 +1775,28 @@ add_slide("Two Content","Office Theme") %>%
                              left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (In Prep)", location = ph_location_type(type = "dt"))%>% 
  
-    
   #Slide 19
   add_slide("Title and Content","Office Theme") %>%
   ph_with(SP_TIT,ph_location_type("title",position_left = TRUE)) %>%
   #ph_with(value = "Lucas et al. (In Review)", location = ph_location_type(type = "dt"))%>%
   ph_with(value = "20", location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = SPI3_SMimg, location = ph_location(label = "my_name",
-                                                     left = 0.4, top = 1.8, width = 4.25, height = 2.62)) %>%
+                                                     left = 0.4, top = 1.7, width = 4.2, height = 2.58)) %>%
   ph_with(value = SPI12_SMimg , location = ph_location(label = "my_name",
-                                                       left = 5.1, top = 1.8, width = 4.25, height = 2.62)) %>%
+                                                       left = 5.1, top = 1.7, width = 4.2, height = 2.58)) %>%
   ph_with(value = FIG_14, location = ph_location(label = "my_name",
-                                                 left = 0.5, top = 4.35, width = 4, height = 0.5)) %>%
+                                                 left = 0.5, top = 4.1, width = 4.2, height = 0.5)) %>%
   ph_with(value = FIG_15, location = ph_location(label = "my_name",
-                                                 left = 5.2, top = 4.35, width = 4, height = 0.5)) %>%
+                                                 left = 5.2, top = 4.1, width = 4.2, height = 0.5)) %>%
   ph_with(value = SPI3v12, location = ph_location(label = "my_name",
-                                                  left = 0.2, top = 4.85, width = 9.68, height = 2.5)) %>%
-  
+                                                  left = 0.2, top = 3.9, width = 9.68, height = 2.5)) %>%
+  ph_with(value = SPI3v12.1, location = ph_location(label = "my_name",
+                                                  left = 0.2, top = 4.6, width = 9.68, height = 2.5)) %>%
+  ph_with(value = SPI3v12.2, location = ph_location(label = "my_name",
+                                                  left = 0.2, top = 5.1, width = 9.68, height = 2.5)) %>%
+  ph_with(value = SPI3v12.3, location = ph_location(label = "my_name",
+                                                  left = 0.2, top = 5.6, width = 9.68, height = 2.5)) %>%
+
    #Slide 20
    add_slide("Two Content","Office Theme") %>%
    ph_with(S18_TIT,  ph_location_type("title")) %>%
@@ -1808,8 +1885,8 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(S25_TIT, ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_RES, ph_location_type("body"))%>%
     ph_with(value = "28", location = ph_location_type(type = "sldNum"))%>%
-    ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
-                                                 left = 7.3, top = 1.9, width = 2.3, height = 2.83))%>%
+    # ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
+    #                                              left = 7.3, top = 1.9, width = 2.3, height = 2.83))%>%
 
     #Slide 28 #Acknowledgements
     add_slide("Title and Content","Office Theme") %>%
