@@ -201,6 +201,7 @@ LAND <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Landcover.csv"),sep=",")
   fp_NM5 <- fp_text(font.size = 18, color = "darkred",underlined = TRUE,bold = TRUE)
   fp_NM6<- fp_text(font.size = 18, color = "black",bold = TRUE)
   fp_NM7<- fp_text(font.size = 18, color = "black")
+  fp_NM8<- fp_text(font.size = 16, color = "black", bold = TRUE)
   fp_Fig <- fp_text(font.size = 12, color = "black")
   fp_Fig2 <- fp_text(font.size = 10, color = "black")
   fp_Fig3 <- fp_text(font.size = 14, color = "black")
@@ -1025,7 +1026,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                                           "Current SPI-12 value ",spi12C,".")}
 
   SPI3v12.1<- block_list(
-    fpar(ftext(paste0("As of ",RFC.m," ",RFC.y," the most recent drought events are as follows:"), fp_NM6)))
+    fpar(ftext(paste0("As of ",RFC.m," ",RFC.y," the most recent drought events are as follows:"), fp_NM8)))
   
   SPI3v12.2<- block_list(
     fpar(ftext(paste0(spi3CT), fp_Txa)))
@@ -1041,13 +1042,13 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   #################### Slide 21 ###############################
   
   S18_TIT<- block_list(
-    fpar(ftext(paste("Fire Occurrence",ISL), FTXTT),fp_p = fp_par(text.align = "center")))
+    fpar(ftext(paste("Fire Occurrence in ",ISL), FTXTT),fp_p = fp_par(text.align = "center")))
 
   
-  FIRE <- paste0("Ecological drought in Hawaii is often drives an increase in wildfire occurrence. In Hawaii, wildfires are most extensive in dry ",
-                 "and mesic non-native grasslands and shrublands. During drought events, wildfire risk in grasslands increases rapidly. ",
-                 "Changes in land use that shift agricultural land to non-native cover of fire-prone grasses and shrubs ",
-                 "combined with recurring incidences of drought are expected to increase the risk of future wildfire in Hawaii.")
+  FIRE <- paste0("Ecological drought often drives an increase in wildfire occurrence. In Hawaii, wildfires are most extensive in dry ",
+                 "and mesic non-native grass and shrublands. During drought events, wildfire risk in these areas increases rapidly. ",
+                 "Currently, agricultural abandonment is resulting in increased grass and shrublands. ",
+                 "This combined with recurring incidences of drought is expected to increase the risk of future wildfire in Hawaii.")
                   
   
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
@@ -1068,10 +1069,10 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
   
   Part4<- paste0("To simulate future rainfall and temperature, Global Climate Models are used. These can simulate future conditions under ",
-                 "different scenarios for how much carbon dioxide we emit into the air. Two common scenarios are used: RCP 4.5 which assumes ",
-                 "we reduce our carbon emissions, and RCP 8.5, a high emissions scenario. The outputs from global models are too coarse to ",
-                 "accurately capture changes over the complex terrain of Hawaii. Therefore, we use an additional step called Downscaling to ",
-                 "relate the global-scale information down to the local island scale. ")
+                 "different greenhouse gas emission scenarios. Two common scenarios are used: RCP 4.5 which assumes ",
+                 "we reduce our emissions, and RCP 8.5, a high emissions scenario. The outputs from global models are too coarse to ",
+                 "accurately capture changes over the complex terrain of Hawaii. Therefore, we use an additional step called Climate Downscaling to ",
+                 "relate the global-scale information down to the local management scale. ")
 
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
   fp_Part4 <- fpar(ftext(Part4, fp_Tx))
@@ -1095,6 +1096,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
   
   Down <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Downscaling.csv"),sep=",")
+  Down
 
   RFA_Thresh100 <-  Down[c(1,4,9,12),2]
   RFD_Thresh100 <-  Down[c(2,5,10,13),2]
@@ -1774,7 +1776,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = DHistimg, location = ph_location(label = "my_name",
                              left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (In Prep)", location = ph_location_type(type = "dt"))%>% 
- 
+    
   #Slide 19
   add_slide("Title and Content","Office Theme") %>%
   ph_with(SP_TIT,ph_location_type("title",position_left = TRUE)) %>%
@@ -1791,12 +1793,15 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = SPI3v12, location = ph_location(label = "my_name",
                                                   left = 0.2, top = 3.9, width = 9.68, height = 2.5)) %>%
   ph_with(value = SPI3v12.1, location = ph_location(label = "my_name",
-                                                  left = 0.2, top = 4.6, width = 9.68, height = 2.5)) %>%
+                                                  left = 0.4, top = 4.6, width = 9.68, height = 2.5)) %>%
   ph_with(value = SPI3v12.2, location = ph_location(label = "my_name",
-                                                  left = 0.2, top = 5.1, width = 9.68, height = 2.5)) %>%
+                                                  left = 0.4, top = 5.1, width = 8.7, height = 2.5)) %>%
   ph_with(value = SPI3v12.3, location = ph_location(label = "my_name",
-                                                  left = 0.2, top = 5.6, width = 9.68, height = 2.5)) %>%
+                                                  left = 0.4, top = 5.6, width = 8.7, height = 2.5)) %>%
 
+  
+  mypowerpoint <- read_pptx() %>%
+    
    #Slide 20
    add_slide("Two Content","Office Theme") %>%
    ph_with(S18_TIT,  ph_location_type("title")) %>%
@@ -1809,6 +1814,10 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 5.2, top = 6.1, width = 4.3, height = 1.4))%>%
    ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (In Review)", location = ph_location_type(type = "dt"))%>% 
 
+    
+    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4_test.pptx"))
+  
+  
    #Slide 21 #Part 4
    add_slide("Title and Content","Office Theme") %>%
    ph_with(P4_TIT, ph_location_type("title",position_left = TRUE)) %>%
