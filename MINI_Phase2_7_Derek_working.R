@@ -5233,7 +5233,7 @@ head(dat.y)
 # make date column
 dat.y$date<-as.Date(paste0(dat.y$year,"-01-01"))
 
-# write to csv
+# write to csv table of annual air temp values from monthly means (min, max, mean)
 write.csv(dat.y, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp.csv"))
 
 slope<-formatC((coef(lm(dat.y$mean~dat.y$date))[2]), format="e", digits=2)
@@ -5262,7 +5262,7 @@ dev.off()
 dat2<-merge(dat,dat.y[,c("year","mean","min","max")], by="year", all.x=T)
 head(dat2)
 
-# write to csv
+# write to csv table of monthly air temp values (min, max, mean)
 write.csv(dat2, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_daily_airtemp.csv"))
 
 # set y-axis limits
