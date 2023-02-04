@@ -96,6 +96,7 @@ Coast_MO <- spTransform(Coast_Crop, crs(EXAMP))
 #Lanai
 Coast_Crop <- crop(Coast, extent(-157.07, -156.8, 20.05, 21.02)) #Lanai
 Coast_LA <- spTransform(Coast_Crop, crs(EXAMP))
+plot(Coast_LA)
 #Oahu
 Coast_Crop <- crop(Coast, extent(-158.29, -157.35, 21.05, 22.02)) #Oahu
 Coast_OA <- spTransform(Coast_Crop, crs(EXAMP))
@@ -142,20 +143,53 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Hakalau Forest National Wildlife Refuge - Koolau Unit"
 # NM_s <- "Hakalau Koolau Unit"
 
-#Hakalau Kona Site, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_kona.shp")
+# #Hakalau Kona Site, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_kona.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Hakalau Forest National Wildlife Refuge - Kona Unit"
+# NM_s <- "Hakalau Kona Unit"
+
+# #Hakalau Kona Site, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Egami_Ranch/Egami Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Egami Ranch"
+# NM_s <- "Egami Ranch"
+
+# #Huawai Watershed, Lanai
+# NP_ALL <- readOGR("E:/PDKE/CCVD/huawai_lanai.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Huawai Watershed"
+# NM_s <- "Huawai"
+
+# #Umipaa Watershed, Molokai
+# NP_ALL <- readOGR("E:/PDKE/CCVD/umipaa_molokai.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Umipaa Watershed"
+# NM_s <- "Umipaa"
+
+#Umipaa Watershed, Molokai
+NP_ALL <- readOGR("E:/PDKE/CCVD/kulanihakoi_maui.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Hakalau Forest National Wildlife Refuge - Kona Unit"
-NM_s <- "Hakalau Kona Unit"
+NM <- "Kulanihakoi Watershed"
+NM_s <- "Kulanihakoi"
 
 # Set island
-ILE<-"Big Island"
-ILE_s<-"BI"
+ILE<-"Maui"
+ILE_s<-"MN"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
-plot(Coast_BI, main = ILE)
-plot(HALE ,add = T, col="red")
+if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
+if(ILE_s == "MN") {plot(Coast_MN, main = ILE) + plot(HALE ,add = T, col="red")}
+if(ILE_s == "MO") {plot(Coast_MO, main = ILE) + plot(HALE ,add = T, col="red")}
+if(ILE_s == "LA") {plot(Coast_LA, main = ILE) + plot(HALE ,add = T, col="red")}
+if(ILE_s == "KO") {plot(Coast_KO, main = ILE) + plot(HALE ,add = T, col="red")}
+if(ILE_s == "OA") {plot(Coast_OA, main = ILE) + plot(HALE ,add = T, col="red")}
+if(ILE_s == "KA") {plot(Coast_KA, main = ILE) + plot(HALE ,add = T, col="red")}
 
 ##################################################
 ##########   Define Units   
@@ -256,10 +290,12 @@ if(ELUnit == " ft") {ELEV =  ELEV * 3.28084 }
 crs(ELEV) <- "+proj=longlat +datum=WGS84 +no_defs" 
 plot(ELEV)
 
+ELEV
 ##########  Landcover
 
 LC2 = dir(paste0(IFOLDER, "Landcover/"), recursive=T, full.names=T)
-LC <- raster(LC2[3])
+LC2[5]
+LC <- raster(LC2[5])
 crs(LC) <- "+proj=longlat +datum=WGS84 +no_defs"
 plot(LC)
 
@@ -423,14 +459,14 @@ legend("topright", legend = c("Fire Occurrence",UNIT_Ns[[u]]), pch=c(15,15),col=
 
 dev.off()
 
-########## Road Map 
+########## Road Map
 
 Roads_CropI <- crop(x = F_Roads, y = extent(CoastM))
 
 TITF <- paste0("Forest Roads (",Iname,")")
 
 dpi=300
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Forest_Roads.png"),width=5*dpi,height=5*dpi,res=dpi) 
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Forest_Roads.png"),width=5*dpi,height=5*dpi,res=dpi)
 
 par(mfrow=c(1,1))
 plot(CoastM,lwd=1,lty = "solid",axes=TRUE,las=2)
@@ -443,25 +479,25 @@ legend("topright", legend = c("Forest Roads",UNIT_Ns[[u]]), pch=c(15,15),col=c("
 
 dev.off()
 
-########## Trail Map
-
-Trails_CropI <- crop(x = I_Trails, y = extent(CoastM))
-
-TITF <- paste0("Trail Inventory (",Iname,")")
-
-dpi=300
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Trails.png"),width=5*dpi,height=5*dpi,res=dpi) 
-
-par(mfrow=c(1,1))
-plot(CoastM,lwd=1,lty = "solid",axes=TRUE,las=2)
-title(TITF , line = 0.5,cex.main = 1.5)
-plot(SH,add=TRUE,lwd=2,col="cyan")
-plot(Trails_CropI ,add=TRUE,col="brown")
-
-legend("topright", legend = c("Trails",UNIT_Ns[[u]]), pch=c(15,15),col=c("brown","cyan"),
-       bty = "n", horiz = FALSE, inset = c(0.05, 0.05),cex=0.8)
-
-dev.off()
+# ########## Trail Map
+# 
+# Trails_CropI <- crop(x = I_Trails, y = extent(CoastM))
+# 
+# TITF <- paste0("Trail Inventory (",Iname,")")
+# 
+# dpi=300
+# png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Trails.png"),width=5*dpi,height=5*dpi,res=dpi) 
+# 
+# par(mfrow=c(1,1))
+# plot(CoastM,lwd=1,lty = "solid",axes=TRUE,las=2)
+# title(TITF , line = 0.5,cex.main = 1.5)
+# plot(SH,add=TRUE,lwd=2,col="cyan")
+# plot(Trails_CropI ,add=TRUE,col="brown")
+# 
+# legend("topright", legend = c("Trails",UNIT_Ns[[u]]), pch=c(15,15),col=c("brown","cyan"),
+#        bty = "n", horiz = FALSE, inset = c(0.05, 0.05),cex=0.8)
+# 
+# dev.off()
 
 ########### Elevation Extract and Map
 
@@ -509,6 +545,9 @@ print("Landcover")
 
 LC_MaskI <- mask(x = LC, mask = CoastM)
 LC_CropI <- crop(x = LC_MaskI, y = extent(CoastM))
+LC_MaskI
+plot(LC)
+plot(CoastM)
 
 #Mask For Geography
 LC_Mask <- mask(x = LC, mask = UNIT_X[[u]])
@@ -3272,18 +3311,18 @@ legend("topleft",c(paste("R2 = ",LM1R),paste("MBE = ",MBE),paste("MAE = ",MAE)))
 
 dev.off()
 
-##########   Make the same figure in a different folder.
-# Derek added "SFOLDER" (same location as RFOLDER)
-SFOLDER<-paste0("E:/PDKE/CCVD/MINI_Phase2/", UNIT_N[u],"/RF_Compare/")
-
-png(paste0(SFOLDER, UNIT_N[u]," 23yr_RF_Compare.png"),width=5*dpi,height=5*dpi,res=dpi)
-
-plot(MRF_A3~MRF_N3,ylim=c(0,Mx),xlim=c(0,Mx),main=TITLE,
-     ylab = "ABBY",xlab="NEW")
-abline(0,1)
-legend("topleft",c(paste("R2 = ",LM1R),paste("MBE = ",MBE),paste("MAE = ",MAE)))
-
-dev.off()
+# ##########   Make the same figure in a different folder.
+# # Derek added "SFOLDER" (same location as RFOLDER)
+# SFOLDER<-paste0("E:/PDKE/CCVD/MINI_Phase2/", UNIT_N[u],"/RF_Compare/")
+# 
+# png(paste0(SFOLDER, UNIT_N[u]," 23yr_RF_Compare.png"),width=5*dpi,height=5*dpi,res=dpi)
+# 
+# plot(MRF_A3~MRF_N3,ylim=c(0,Mx),xlim=c(0,Mx),main=TITLE,
+#      ylab = "ABBY",xlab="NEW")
+# abline(0,1)
+# legend("topleft",c(paste("R2 = ",LM1R),paste("MBE = ",MBE),paste("MAE = ",MAE)))
+# 
+# dev.off()
 
 ##########   Create a 100-Year timeseries and do analysis
 
@@ -4812,7 +4851,7 @@ enso<-MEI
 enso
 
 # Add date column
-enso$date<-c(1950:2022)
+enso$date<-c(1950:2021)
 enso$date<-as.Date(paste0(enso$date,"-01-01"))
 
 # add seasonal ENSO phase columns based on MEI values
@@ -5303,10 +5342,10 @@ dev.off()
 
 
 #END OF LOOP 
-write.csv(Cell.DataCL,paste0(SFOLDER,UNIT_N[u],"_CL.csv"),row.names = F)
-
-Cell.RF_Year[2] <- Cell.DataCL[3]
-write.csv(Cell.RF_Year,paste0(SFOLDER,UNIT_N[u],"_RF.csv"),row.names = F)
+# write.csv(Cell.DataCL,paste0(SFOLDER,UNIT_N[u],"_CL.csv"),row.names = F)
+# 
+# Cell.RF_Year[2] <- Cell.DataCL[3]
+# write.csv(Cell.RF_Year,paste0(SFOLDER,UNIT_N[u],"_RF.csv"),row.names = F)
 
 #write.csv(Cell.MEI_All,paste0(SFOLDER,Shape_Name,"_MEI.csv"),row.names = F)
 ###  END  #############
