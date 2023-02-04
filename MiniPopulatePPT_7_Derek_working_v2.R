@@ -152,7 +152,7 @@ D_SOCimg <- external_img(src = D_SOCfile , height = 1, width = 1)
 D_ECOfile <- paste0(I_FOLDER,"ECO_D.png")
 D_ECOimg <- external_img(src = D_ECOfile , height = 1, width = 1)
 
-D_fivefile <- paste0(I_FOLDER,"types_of_drought.png")
+D_fivefile <- paste0(I_FOLDER,"types_of_drought2.png")
 D_fiveimg <- external_img(src = D_fivefile , height = 1, width = 1)
 
 #media
@@ -164,7 +164,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-1
+f<-8
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
@@ -175,6 +175,7 @@ RAN_F <- paste0(R_FOLDER,RANL[f],"/")
 RANL2 <- list.files(RAN_F)
 #Unit Name
 NameF <- basename(RAN_F)
+NameF
 
 ##### Read in CSV Files 
 ## Read in Mean Climate File 
@@ -477,7 +478,8 @@ min.col <- function(m, ...) max.col(-m, ...)
 
 TAh<-TAT[max.col(TAT)]
 TAl<-TAT[min.col(TAT)]
-TAv<-TAh-TAl
+TAv<-round(TAh-TAl, 2)
+TAv
 
 CLIMO_TA <- paste0("Average monthly air temperature patterns vary over the course of the year. At ", SNameF, " there is a ",TAv, TUnit2," annual variation in temperature,",
                 " with the warmest month of ",MONLIST[TAxm]," (", TAx, TUnit2,") and the coolest month in ",MONLIST[TAnm],
@@ -733,11 +735,11 @@ ra<-round(mean(AT$range), 1)
 
 # find month-year with hottest daily temp
 ATd<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"_daily_airtemp.csv"),sep=",")
-
-mt<-max(ATd$max)
+head(ATd)
+mt<-max(ATd$max.x)
 mt2<-round(mt, 1)
 
-hot<-ATd[which(ATd$max == mt),]
+hot<-ATd[which(ATd$max.x == mt),]
 hot.y<-hot$year
 
 if(hot$month == 1) {hot.m<-c("January")}
@@ -884,18 +886,18 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   if(Drot_ct > 12) {DROT2<-DROT[13:nrow(DROT),]}
   if(Drot_ct > 24) {DROT2<-DROT2[1:12,]}
   if(Drot_ct > 24) {DROT3<-DROT[25:nrow(DROT),]}
-  DROT1
+  DROT2
 
   DrotT_T1 <- flextable(DROT1[1:6])
   DrotT_T1 <- bg(DrotT_T1, bg = "orange", part = "header")
   DrotT_T1 <- autofit(DrotT_T1)
   DrotT_T1
 
-  if(exists("DROT2")) {DrotT_T2 <- flextable(DROT2);
+  if(exists("DROT2")) {DrotT_T2 <- flextable(DROT2[1:6]);
                        DrotT_T2 <- bg(DrotT_T2, bg = "orange", part = "header");
                        DrotT_T2 <- autofit(DrotT_T2)}
   
-  if(exists("DROT3")) {DrotT_T3 <- flextable(DROT3);
+  if(exists("DROT3")) {DrotT_T3 <- flextable(DROT3[1:6]);
                        DrotT_T3 <- bg(DrotT_T3, bg = "orange", part = "header");
                        DrotT_T3 <- autofit(DrotT_T3)}
 
@@ -987,7 +989,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   spi3A<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"SPI_3.csv"),sep=",")
   spi3C<-round(spi3A[nrow(spi3A),]$SP,1)
   
-  spi3H<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought History SPI_3.csv"),sep=",")
+  spi3H<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"Drought History SPI_3.csv"),sep=",")
   spi3HC<-spi3H[nrow(spi3H),]
   spi3HC
   
@@ -1435,19 +1437,19 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
  
   
-  ################ Slide 33 ANNEX III #############
-  
-  Roadfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Forest_Roads.png")
-  
-  Roadimg <- external_img(src = Roadfile) 
-  
-  Trailfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Trails.png")
-  Trailimg <- external_img(src = Trailfile) 
-  
-  FIG_A2 <- block_list(
-    fpar(ftext(paste0("Figure A2: Forest roads ",ISL,"."), fp_Fig)))
-  FIG_A3 <- block_list(
-    fpar(ftext(paste0("Figure A3: Trail Inventory ",ISL,"."), fp_Fig)))
+  # ################ Slide 33 ANNEX III #############
+  # 
+  # Roadfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Forest_Roads.png")
+  # 
+  # Roadimg <- external_img(src = Roadfile) 
+  # 
+  # Trailfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Trails.png")
+  # Trailimg <- external_img(src = Trailfile) 
+  # 
+  # FIG_A2 <- block_list(
+  #   fpar(ftext(paste0("Figure A2: Forest roads ",ISL,"."), fp_Fig)))
+  # FIG_A3 <- block_list(
+  #   fpar(ftext(paste0("Figure A3: Trail Inventory ",ISL,"."), fp_Fig)))
   
   
   
@@ -1626,7 +1628,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 add_slide("Two Content","Office Theme") %>%
   ph_with(S8_TIT, ph_location_type("title")) %>%
   ph_with(value = RFFimg, ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = "9", location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = "10", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = TAimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_5, location = ph_location(label = "my_name",
                                                 left = 0.5, top = 6.08, width = 4.5, height = 1.4))%>%
@@ -1639,7 +1641,7 @@ add_slide("Two Content","Office Theme") %>%
 add_slide("Two Content","Office Theme") %>%
   ph_with(S9_TIT,      ph_location_type("title")) %>%
   ph_with(fp_SEA,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = "10", location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = "11", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = SEAimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_12.1, location = ph_location(label = "my_name",
                                                 left = 6, top = 6.2, width = 3, height = 1.4))%>%
@@ -1649,7 +1651,7 @@ add_slide("Two Content","Office Theme") %>%
   #Slide 10
   add_slide("Title and Content","Office Theme") %>%
     ph_with(S10_TIT,      ph_location_type("title")) %>%
-    ph_with(value = "11", location = ph_location_type(type = "sldNum"))%>% 
+    ph_with(value = "12", location = ph_location_type(type = "sldNum"))%>% 
     #ph_with(value = ACLIM_T, ph_location_type("body")) %>%
     ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
     ph_with(value =   TAB1, location = ph_location(label = "my_name",
@@ -1662,7 +1664,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(P2_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(value = InterAn, location = ph_location(label = "my_name",
                                                     left = 0.6, top = 1.3, width = 5, height = 3)) %>%
-  ph_with(value = "12", location = ph_location_type(type = "sldNum"))%>%
+  ph_with(value = "13", location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = ENSO2img, location = ph_location(label = "my_name",
                                            left = 6, top = 1.5, width = 3.2, height = 4.4)) %>%
   ph_with(value = MEIimg, location = ph_location(label = "my_name",
@@ -1674,7 +1676,7 @@ add_slide("Two Content","Office Theme") %>%
 add_slide("Two Content","Office Theme") %>%
   ph_with(EN_TIT,ph_location_type("title")) %>%
   ph_with(value = MEI3, location = ph_location(label = "my_name", left = 0.4, top = .25, width = 9, height = 5)) %>%
-  ph_with(value = "13", location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = "14", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = MEISimg, location = ph_location(label = "my_name",
                                                    left = 2, top = 4.15, width = 6, height = 2.5)) %>%
   ph_with(value = FIG_14.1, location = ph_location(label = "my_name",
@@ -1685,7 +1687,7 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(S13_TIT,         ph_location_type("title")) %>%
   ph_with(value = fp_Trend, location = ph_location(label = "my_name",
                                                    left = 0.5, top = 0.3, width = 4.5, height = 5.1)) %>%
-  #ph_with(value = "14", location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = "15", location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = Trendimg, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 1.4, width = 4.5, height = 5.1))%>%
   ph_with(value = RFT_T, location = ph_location(label = "my_name",
@@ -1708,13 +1710,13 @@ add_slide("Two Content","Office Theme") %>%
     
   ph_with(value = FIG_10_11, location = ph_location(label = "my_name", 
                                                 left = 4.3, top = 6, width = 5, height = 1.4))%>%
-  ph_with(value = "15", location = ph_location_type(type = "sldNum"))%>%
+  ph_with(value = "16", location = ph_location_type(type = "sldNum"))%>%
   
 #Slide 15 #Part 3
   add_slide("Title and Content","Office Theme") %>%
   ph_with(P3_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_Part3,ph_location_type("body"))%>%
-  ph_with(value = "16", location = ph_location_type(type = "sldNum"))%>%
+  ph_with(value = "17", location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = Droughtimg, location = ph_location(label = "my_name",
                                                  left = 1.9, top = 4.5, width = 3, height = 2)) %>%
   ph_with(value = Fireimg, location = ph_location(label = "my_name",
@@ -1723,7 +1725,6 @@ add_slide("Two Content","Office Theme") %>%
 ###  Slide 16    
     add_slide("Title and Content","Office Theme") %>%
     ph_with(TIT_D,ph_location_type("title",position_left = TRUE)) %>%
-    ph_with(value = "17", location = ph_location_type(type = "sldNum"))%>%
     # ph_with(value = D_METimg, location = ph_location(label = "my_name",
     #                                                  left = 0.3, top = 1.8, width = 2, height = 1.3)) %>%
     # ph_with(value = D_AGimg, location = ph_location(label = "my_name",
@@ -1747,16 +1748,18 @@ add_slide("Two Content","Office Theme") %>%
     #                                                 left = 7.1, top = 4.3, width = 2.78, height = 1.56))%>% 
     
     ph_with(value = D_fiveimg, location = ph_location(label = "my_name",
-                                                      left = 0.52, top = 2.6, width = 8.8, height = 4.5))%>%
+                                                      left = 0.65, top = 2.4, width = 8.8, height = 4.9))%>%
     ph_with(value = fp_D_t, location = ph_location(label = "my_name",
                                                       left = 0.5, top = 1, width = 9.1, height = 2))%>%
     ph_with(value = "Frazier et al. (2019)", location = ph_location_type(type = "dt"))%>%
-  
+    
+    ph_with(value = "18", location = ph_location_type(type = "sldNum"))%>%
+    
   #Slide 17 
   add_slide("Two Content","Office Theme") %>%
   ph_with(S15_TIT,       ph_location_type("title")) %>%
   ph_with(fp_SPI,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = "18", location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = "19", location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = SPIimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_12, location = ph_location(label = "my_name",
                                                 left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
@@ -1769,7 +1772,7 @@ add_slide("Two Content","Office Theme") %>%
   add_slide("Two Content","Office Theme") %>%
   ph_with(S16_TIT,         ph_location_type("title")) %>%
   ph_with(fp_DHist,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = "19", location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = "20", location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = DHistimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_13, location = ph_location(label = "my_name",
                              left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
@@ -1781,7 +1784,7 @@ add_slide("Two Content","Office Theme") %>%
   add_slide("Title and Content","Office Theme") %>%
   ph_with(SP_TIT,ph_location_type("title",position_left = TRUE)) %>%
   #ph_with(value = "Lucas et al. (In Review)", location = ph_location_type(type = "dt"))%>%
-  ph_with(value = "20", location = ph_location_type(type = "sldNum"))%>%
+  ph_with(value = "21", location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = SPI3_SMimg, location = ph_location(label = "my_name",
                                                      left = 0.4, top = 1.7, width = 4.2, height = 2.58)) %>%
   ph_with(value = SPI12_SMimg , location = ph_location(label = "my_name",
@@ -1799,14 +1802,12 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(value = SPI3v12.3, location = ph_location(label = "my_name",
                                                   left = 0.4, top = 5.6, width = 8.7, height = 2.5)) %>%
 
-  
-  mypowerpoint <- read_pptx() %>%
     
    #Slide 20
    add_slide("Two Content","Office Theme") %>%
    ph_with(S18_TIT,  ph_location_type("title")) %>%
    ph_with(fp_Fire,        ph_location_type("body",position_right = FALSE)) %>%
-   ph_with(value = "21", location = ph_location_type(type = "sldNum")) %>%
+   ph_with(value = "22", location = ph_location_type(type = "sldNum")) %>%
    # ph_with(value = FireMimg, ph_location_type("body",position_right = TRUE)) %>%
    ph_with(value = FireMimg, location = ph_location(label = "my_name",
                                                     left = 5.2, top = 1.7, height = 4.5, width = 4.5)) %>%
@@ -1814,15 +1815,12 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 5.2, top = 6.1, width = 4.3, height = 1.4))%>%
    ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (In Review)", location = ph_location_type(type = "dt"))%>% 
 
-    
-    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4_test.pptx"))
-  
-  
+
    #Slide 21 #Part 4
    add_slide("Title and Content","Office Theme") %>%
    ph_with(P4_TIT, ph_location_type("title",position_left = TRUE)) %>%
    ph_with(fp_Part4,ph_location_type("body"))%>%
-   ph_with(value = "22", location = ph_location_type(type = "sldNum"))%>%
+   ph_with(value = "23", location = ph_location_type(type = "sldNum"))%>%
    ph_with(my_pres, value = "See Annex II", location = ph_location_type(type = "dt"))%>% 
    ph_with(value = Downimg, location = ph_location(label = "my_name",
                                                      left = 6, top = 4.5, width = 3, height = 2)) %>%
@@ -1834,7 +1832,7 @@ add_slide("Two Content","Office Theme") %>%
   add_slide("Two Content","Office Theme") %>%
   ph_with(S20_TIT,   ph_location_type("title")) %>%
   ph_with(RF_Down,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = "23", location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = "24", location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = RF10085img, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_17, location = ph_location(label = "my_name",
                                                  left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
@@ -1847,7 +1845,7 @@ add_slide("Two Content","Office Theme") %>%
     add_slide("Two Content","Office Theme") %>%
     ph_with(S21_TIT,         ph_location_type("title")) %>%
     ph_with(RF_Down4,        ph_location_type("body",position_right = FALSE)) %>%
-    ph_with(value = "24", location = ph_location_type(type = "sldNum")) %>%
+    ph_with(value = "25", location = ph_location_type(type = "sldNum")) %>%
     #ph_with(value = RF40img, ph_location_type("body",position_right = TRUE))  %>%
     ph_with(value = FIG_18, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
@@ -1861,7 +1859,7 @@ add_slide("Two Content","Office Theme") %>%
     add_slide("Two Content","Office Theme") %>%
     ph_with(S22_TIT,       ph_location_type("title")) %>%
     ph_with(TA_Down,        ph_location_type("body",position_right = FALSE)) %>%
-    ph_with(value = "25", location = ph_location_type(type = "sldNum")) %>%
+    ph_with(value = "26", location = ph_location_type(type = "sldNum")) %>%
     #ph_with(value = TA100img, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = FIG_19, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
@@ -1873,7 +1871,7 @@ add_slide("Two Content","Office Theme") %>%
     add_slide("Two Content","Office Theme") %>%
     ph_with(S23_TIT,         ph_location_type("title")) %>%
     ph_with(TA_Down4,        ph_location_type("body",position_right = FALSE)) %>%
-    ph_with(value = "26", location = ph_location_type(type = "sldNum")) %>%
+    ph_with(value = "27", location = ph_location_type(type = "sldNum")) %>%
     #ph_with(value = TA40img, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = FIG_20, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
@@ -1886,14 +1884,14 @@ add_slide("Two Content","Office Theme") %>%
     add_slide("Title and Content","Office Theme") %>%
     ph_with(S24_TIT,   ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_Summary,ph_location_type("body"))%>%
-    #ph_with(value = "27", location = ph_location_type(type = "sldNum"))%>%
+    #ph_with(value = "28", location = ph_location_type(type = "sldNum"))%>%
  
   
     #Slide 27#Respirces 
     add_slide("Title and Content","Office Theme") %>%
     ph_with(S25_TIT, ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_RES, ph_location_type("body"))%>%
-    ph_with(value = "28", location = ph_location_type(type = "sldNum"))%>%
+    ph_with(value = "29", location = ph_location_type(type = "sldNum"))%>%
     # ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
     #                                              left = 7.3, top = 1.9, width = 2.3, height = 2.83))%>%
 
@@ -1902,7 +1900,7 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(S26_TIT, ph_location_type("title",position_left = TRUE)) %>%
     ph_with(fp_Ack, location = ph_location(label = "myname",
                                                  left = 0.5, top = 0.08, width = 9, height = 5))%>%
-    ph_with(value = "29", location = ph_location_type(type = "sldNum"))%>%
+    ph_with(value = "30", location = ph_location_type(type = "sldNum"))%>%
     ph_with(value = EWCimg, location = ph_location(label = "my_name",
                                                    left = 0.05, top = 3.5, width = 1.4, height = 1.4)) %>%
     ph_with(value = CASCimg, location = ph_location(label = "my_name",
@@ -1933,7 +1931,7 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(S27_TIT,  ph_location_type("title",position_left = TRUE)) %>%
     ph_with(value = Worksimg, location = ph_location(label = "my_name",
                                                   left = 1.5, top = 1.2, width = 7, height = 6)) %>%
-    ph_with(value = "30", location = ph_location_type(type = "sldNum"))%>%
+    ph_with(value = "31", location = ph_location_type(type = "sldNum"))%>%
     
     
     
@@ -1942,7 +1940,7 @@ add_slide("Two Content","Office Theme") %>%
     add_slide("Two Content","Office Theme") %>%
     ph_with("Annex I: 100+ Year Rainfall ",ph_location_type("title")) %>%
     ph_with(fp_RF100,        ph_location_type("body",position_right = FALSE)) %>%
-    #ph_with(value = "31", location = ph_location_type(type = "sldNum")) %>%
+    #ph_with(value = "32", location = ph_location_type(type = "sldNum")) %>%
     ph_with(value = SCAimg, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = FIG_A1, location = ph_location(label = "my_name",
                                                    left = 5, top = 6.3, width = 4.8, height = 1.4))%>%
@@ -1954,7 +1952,7 @@ add_slide("Two Content","Office Theme") %>%
     add_slide("Title and Content","Office Theme") %>%
     ph_with("Annex II: Climate Downscaling in Hawaii ",ph_location_type("title")) %>%
     ph_with(fp_DownA,        ph_location_type("body",position_right = FALSE)) %>%
-    ph_with(value = "32", location = ph_location_type(type = "sldNum")) %>%
+    ph_with(value = "33", location = ph_location_type(type = "sldNum")) %>%
     ph_with(value = Downimg, location = ph_location(label = "my_name",
                                                     left = 3.5, top = 5, width = 3, height = 2)) %>%
   
@@ -1962,14 +1960,14 @@ add_slide("Two Content","Office Theme") %>%
 
     add_slide("Title and Content","Office Theme") %>%
     ph_with("Annex III: Drought Events (1920 - 2022)",ph_location_type("title")) %>%
-    ph_with(value = "33", location = ph_location_type(type = "sldNum"))%>% 
+    ph_with(value = "34", location = ph_location_type(type = "sldNum"))%>% 
     ph_with(value = DrotT_T1, ph_location_type("body")) %>%
     ph_with(value = TAB3, location = ph_location(label = "my_name",
                                                  left = 7.85, top = 2.5, width = 2, height = 4)) %>%
     
     {if(Drot_ct>12) add_slide(.,"Title and Content", "Office Theme") %>% 
         ph_with("Annex III: Drought Events (1920 - 2019)",ph_location_type("title")) %>%
-        ph_with(value = "34", location = ph_location_type(type = "sldNum"))%>%
+        ph_with(value = "35", location = ph_location_type(type = "sldNum"))%>%
         ph_with(value = DrotT_T2, ph_location_type("body"))%>%
         ph_with(value = TAB3,
                 location = ph_location(label = "my_name",
@@ -1977,7 +1975,7 @@ add_slide("Two Content","Office Theme") %>%
     
     {if(Drot_ct>24) add_slide(.,"Title and Content", "Office Theme") %>% 
         ph_with("Annex III: Drought Events (1920 - 2019)",ph_location_type("title")) %>%
-        ph_with(value = "35", location = ph_location_type(type = "sldNum"))%>%
+        ph_with(value = "36", location = ph_location_type(type = "sldNum"))%>%
         ph_with(value = DrotT_T3, ph_location_type("body"))%>%
         ph_with(value = TAB3,
                 location = ph_location(label = "my_name",
@@ -1990,7 +1988,7 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 2, top = 1, width = 6, height = 6))%>%
 
   
-  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4_test.pptx"))
+  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v3.pptx"))
 
   
   
