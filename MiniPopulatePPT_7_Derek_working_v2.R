@@ -564,7 +564,7 @@ D_RF_P<-P[1,2]
 W_RF_P<-P[1,1]
 
 SEA <- paste0("Hawaii has two distinct 6-month seasons of rainfall: the Wet season (November to April) and the Dry season (May to October).",
-              " Average Wet season monthly rainfall across Parker Ranch is ",WetM, RFUnit3," and Dry season is ",DryM, RFUnit3,
+              " Average Wet season monthly rainfall across ",SNameF," is ",WetM, RFUnit3," and Dry season is ",DryM, RFUnit3,
               ". These monthly values are in the ",W_RF_P," and ",D_RF_P," percentiles for rainfall across the whole state, respectively.
               
 Management plans should anticipate and minimize negative impacts of these seasonal rainfall variations.")
@@ -666,7 +666,7 @@ DifDRF
 
 MEI2 <- paste0("In Hawaii, the Warm (El Niño) phase typically brings below average rainfall during the wet season, and above average rainfall in the dry season. This pattern is reversed for the Cool (La Niña) phase.
 
-At Parker Ranch, the wet season during a Strong El Nino is ",DifWRF,"% dryer than the long-term wet season average, and the dry season during a Strong La Nina is ",DifDRF,"% dryer than average. These patterns influence drought conditions and wildfire susceptibility, and management activities can benefit from incorporating this ENSO-influenced seasonal rainfall variability.")
+At ",SNameF,", the wet season during a Strong El Nino is ",DifWRF,"% dryer than the long-term wet season average, and the dry season during a Strong La Nina is ",DifDRF,"% dryer than average. These patterns influence drought conditions and wildfire susceptibility, and management activities can benefit from incorporating this ENSO-influenced seasonal rainfall variability.")
 MEI3 <-  block_list(
   fpar(ftext(MEI2, fp_Txa)))
 
