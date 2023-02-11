@@ -150,13 +150,6 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Hakalau Forest National Wildlife Refuge - Kona Unit"
 # NM_s <- "Hakalau Kona Unit"
 
-# #Hakalau Kona Site, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Egami_Ranch/Egami Ranch.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Egami Ranch"
-# NM_s <- "Egami Ranch"
-
 # #Huawai Watershed, Lanai
 # NP_ALL <- readOGR("E:/PDKE/CCVD/huawai_lanai.shp")
 # HALE <- NP_ALL
@@ -171,16 +164,30 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Umipaa Watershed"
 # NM_s <- "Umipaa"
 
-#Umipaa Watershed, Molokai
-NP_ALL <- readOGR("E:/PDKE/CCVD/kulanihakoi_maui.shp")
+# #Umipaa Watershed, Molokai
+# NP_ALL <- readOGR("E:/PDKE/CCVD/kulanihakoi_maui.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Kulanihakoi Watershed"
+# NM_s <- "Kulanihakoi"
+
+# #Egami Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Egami_Ranch/Egami Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Egami Ranch"
+# NM_s <- "Egami Ranch"
+
+#Ernest Deluz Ranch, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Kulanihakoi Watershed"
-NM_s <- "Kulanihakoi"
+NM <- "Ernest De Luz Ranch"
+NM_s <- "Ernest De Luz Ranch"
 
 # Set island
-ILE<-"Maui"
-ILE_s<-"MN"
+ILE<-"Big Island"
+ILE_s<-"BI"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
 if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
@@ -2600,7 +2607,7 @@ Cell.matrix <- matrix(nrow = 36,ncol = 2)
 Cell.Data_DS <-data.frame(Cell.matrix)
 colnames(Cell.Data_DS) <- c("Metric","Value")
 
-########## Percent Change DyDs RCP 4.5 & 8.5
+########## Percent Change DyDs RCP 4.5 & 8.5 2100
 
 DyDs_P_4.5_ANN <- raster(DyDs_files[1])
 Dy4.5A_M <- mask(x = DyDs_P_4.5_ANN, mask = PWW_T)
@@ -2689,7 +2696,6 @@ Dy8.5A_n <- round(cellStats(Dy8.5A_CT ,'min'),1)
 ##########   StDs Rainfall 2100 
 
 ##########   Percent Change StDs RCP 4.5 & 8.5
-
 StDs_P_4.5_ANN <- raster(DyDs_files[50])
 St4.5A_M <- mask(x = StDs_P_4.5_ANN, mask = PWW_T)
 St4.5A_C <- crop(x = St4.5A_M, y = extent(PWW_T))
@@ -2934,48 +2940,59 @@ write.csv(Cell.Data_DS,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Downscaling.csv"
 colfunc2 <- colorRampPalette(brewer.pal(11,"RdBu"))(100)
 BI_brks2<-round(seq(RFdslo, RFdsup , length = 9),0)
 
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," DS_RF_8.5_v2.png"),width=6.5*dpi,height=4*dpi,res=dpi)
 
-
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," DS_RF_8.5.png"),width=6.5*dpi,height=4*dpi,res=dpi)
-
-title1=textGrob("Dynamical and Statistical DS RCP 8.5, 2100", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
+title1=textGrob("Changes in Annual Rainfall by 2100", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
 
 grid.arrange(top = title1,
+             spplot(Dy4.5A_C, col.regions = colfunc2, equal=FALSE,
+                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+                    main=list(label=paste0("Dynamical 4.5 (",Dy4.5A_MM ,"% change)"),cex=0.9),
+                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+                    sp.layout = list(UNIT_X[u])) ,
+             
+             spplot(St4.5A_C, col.regions = colfunc2, equal=FALSE,
+                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+                    main=list(label=paste0("Statistical 4.5 (",St4.5A_MM ,"% change)"),cex=0.9),
+                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+                    sp.layout = list(UNIT_X[u])) ,
+             
              spplot(Dy8.5A_C, col.regions = colfunc2, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("DyDs ANN (",Dy8.5A_MM ,"%)"),cex=0.9),
+                    main=list(label=paste0("Dynamical 8.5 (",Dy8.5A_MM ,"% change)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])) ,
              
              spplot(St8.5A_C, col.regions = colfunc2, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs ANN (",St8.5A_MM ,"%)"),cex=0.9),
+                    main=list(label=paste0("Statistical 8.5 (",St8.5A_MM ,"% change)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) ,
+                    sp.layout = list(UNIT_X[u])))
              
-             spplot(Dy8.5D_C, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("DyDs Dry (",Dy8.5D_MM ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) ,
              
-             spplot(St8.5D_C, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs Dry (",St8.5D_MM ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) , 
+             # spplot(Dy8.5D_C, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("DyDs Dry (",Dy8.5D_MM ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])) ,
              
-             spplot(Dy8.5W_C, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("DyDs Wet (",Dy8.5W_MM ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) ,
-             
-             spplot(St8.5W_C, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs Wet (",St8.5W_MM ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])))          
+             # spplot(St8.5D_C, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("StDs Dry (",St8.5D_MM ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])) , 
+             # 
+             # spplot(Dy8.5W_C, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("DyDs Wet (",Dy8.5W_MM ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])) ,
+             # 
+             # spplot(St8.5W_C, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("StDs Wet (",St8.5W_MM ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])))          
 
 dev.off()
 
