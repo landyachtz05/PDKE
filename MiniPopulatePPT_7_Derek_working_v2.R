@@ -164,7 +164,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-8
+f<-2
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
@@ -1070,132 +1070,95 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext("Part 4: Future Climate", FTXTT),fp_p = fp_par(text.align = "center")),
     fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
   
-  Part4<- paste0("To simulate future rainfall and temperature, Global Climate Models are used. These can simulate future conditions under ",
-                 "different greenhouse gas emission scenarios. Two common scenarios are used: RCP 4.5 which assumes ",
-                 "we reduce our emissions, and RCP 8.5, a high emissions scenario. The outputs from global models are too coarse to ",
-                 "accurately capture changes over the complex terrain of Hawaii. Therefore, we use an additional step called Climate Downscaling to ",
-                 "relate the global-scale information down to the local management scale. ")
-
+  Part4<- paste0("Global Climate Models are used to predict future changes in rainfall and temperature, simulating future conditions under different ",
+                 "scenarios for how much carbon dioxide we emit into the air. Two common scenarios are RCP 4.5 which assumes we reduce our carbon ",
+                 "emissions, and RCP 8.5, which is an increased emissions scenario.")
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
   fp_Part4 <- fpar(ftext(Part4, fp_Tx))
+  
+  Part4.2<- paste0("Data downscaling is used make these models useful at the local management level. In Hawaii, two types of downscaled ",
+                   "projections are available:")
+  fp_Part4.2 <- fpar(ftext(Part4.2, fp_Tx))
+  
+  Part4.3<- paste0("Statistical: Available for Mid & End-of-Century Dynamical: Only available for End-of-Century")
+  fp_Tx4.3 <- fp_text(italic = TRUE, bold = TRUE, color = "black", font.size = 18) 
+  fp_Part4.3 <- fpar(ftext(Part4.3, fp_Tx4.3))
+  
+  Part4.4<- paste0("Both downscaling projections are presented here. These two projections sometimes agree with each other, ",
+                   "and other times they provide conflicting results. When viewing the maps, we can observe where these similarities ",
+                   "and differences are, for example which areas show reduced rainfall under both projections.")
+  fp_Part4.4 <- fpar(ftext(Part4.4, fp_Tx))
 
-  
-  
-  M_Down <-  block_list(
-    fpar(ftext("In Hawaii, two types of downscaled " , fp_NM3)),
-    fpar(ftext("projections are available.", fp_NM3)),
-    fpar(ftext("Dynamical Downscaling (End of Century)" , fp_NM3)),
-    fpar(ftext("Statistical Downscaling (Mid & End of Century)" , fp_NM3)),
-    fpar(ftext("Results for both types of downscaling ", fp_NM3)),
-    fpar(ftext("and both scenarios will be shown here.", fp_NM3)))
+  # M_Down <-  block_list(
+  #   fpar(ftext("In Hawaii, two types of downscaled " , fp_NM3)),
+  #   fpar(ftext("projections are available.", fp_NM3)),
+  #   fpar(ftext("Dynamical Downscaling (End of Century)" , fp_NM3)),
+  #   fpar(ftext("Statistical Downscaling (Mid & End of Century)" , fp_NM3)),
+  #   fpar(ftext("Results for both types of downscaling ", fp_NM3)),
+  #   fpar(ftext("and both scenarios will be shown here.", fp_NM3)))
    
   
   #################### Slide 23 ###############################
-  
-  S20_TIT<- block_list(
-    fpar(ftext("Average Rainfall Change 2100", FTXTT),fp_p = fp_par(text.align = "center")),
-    fpar(ftext("Year 2100", FTXTT),fp_p = fp_par(text.align = "center")))
-  
-  
-  Down <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Downscaling.csv"),sep=",")
-  Down
-
-  RFA_Thresh100 <-  Down[c(1,4,9,12),2]
-  RFD_Thresh100 <-  Down[c(2,5,10,13),2]
-  RFW_Thresh100 <-  Down[c(3,6,11,14),2]
-  RFA_Thresh40 <-   Down[c(15,18),2]
-  RFD_Thresh40 <-   Down[c(16,19),2]
-  RFW_Thresh40 <-   Down[c(17,20),2]
-  
-  #Annual RF
-  RFA <- CLIMA[1,14]
-  MinRF <- round(RFA * (min(RFA_Thresh100*0.01)),0)
-  MaxRF <- round(RFA * (max(RFA_Thresh100*0.01)),0)
-
-  #Dry Season 
-  #DryM
-  MinRFD <- round(DryM * (min(RFD_Thresh100*0.01)),0)
-  MaxRFD <- round(DryM * (max(RFD_Thresh100*0.01)),0)
-
-  #WetM
-  MinRFW <- round(WetM * (min(RFW_Thresh100*0.01)),0)
-  MaxRFW <- round(WetM * (max(RFW_Thresh100*0.01)),0)
-
-  
- AnnualR  <- paste(min(RFA_Thresh100), " to ", max(RFA_Thresh100), "% Change")
- DryR  <- paste(min(RFD_Thresh100), " to ", max(RFD_Thresh100), "% Change")
- WetR  <- paste(min(RFW_Thresh100), " to ", max(RFW_Thresh100), "% Change") 
-  
-  
-  RF_Down <-  block_list(
-    fpar(ftext("Rainfall in the Year 2100" , fp_NM5)),
-    fpar(ftext(        "                    ", fp_Fig2)),
-    fpar(ftext("Annual", fp_NM6)),
-    fpar(ftext(paste0(MinRF," to ",MaxRF,RFUnit,"/year"), fp_NM3)),
-    fpar(ftext(paste0("(",AnnualR,")"),fp_NM3)),
-    fpar(ftext("Dry Season", fp_NM6)),
-    fpar(ftext(paste0(MinRFD," to ",MaxRFD,RFUnit,"/month"), fp_NM3)),
-    fpar(ftext(paste0("(",DryR,")"),fp_NM3)),
-    fpar(ftext("Wet Season", fp_NM6)),
-    fpar(ftext(paste0(MinRFW," to ",MaxRFW,RFUnit,"/month"), fp_NM3)),
-    fpar(ftext(paste0("(",WetR,")"),fp_NM3)),
-    fpar(ftext(        "                    ", fp_Fig2)),
-    fpar(ftext(paste0("The range in projections include estimates for both low emissions ",
-                       "(RCP 4.5) and high emissions     (RCP 8.5) scenarios, and for both ",
-                       "Dynamical and Statistical Downscaling approaches."), fp_NM2)))
-    
-  RF10085file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_RF_8.5.png")
-  RF10085img <- external_img(src = RF10085file, height = 4,width = 4) 
-  
-  FIG_17<- block_list(
-    fpar(ftext(paste0("Figure 23. Downscaled future rainfall projections (% Change; ", 
-                      "(2100) at ",SNameF,", Dynamical Downscaling (DyDS), ",
-                      "Statistical Downscaling (StDs), for annual (ANN), dry season (DRY) ", 
-                      "and wet season (WET)."), fp_Fig)))
-
-  
-##################### Slide 24 #################################################
-  
   S21_TIT<- block_list(
     fpar(ftext("Average Rainfall Change", FTXTT),fp_p = fp_par(text.align = "center")),
-    fpar(ftext("2040-2070", FTXTT),fp_p = fp_par(text.align = "center")))
+    fpar(ftext("Mid-Century (2040-2070)", FTXTT),fp_p = fp_par(text.align = "center")))
+  
+  Down <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Downscaling.csv"),sep=",")
+
+  RFA_Thresh40 <-   Down[c(15,18),2]
+  RFA_Thresh40_4.5 <-   Down[c(15),2]
+  RFA_Thresh40_8.5 <-   Down[c(18),2]
+
+  # RFD_Thresh40 <-   Down[c(16,19),2]
+  # RFW_Thresh40 <-   Down[c(17,20),2]
   
   #Annual RF
   RFA <- CLIMA[1,14]
-  MinRF4 <- round(RFA * (min(RFA_Thresh40*0.01)),0)
-  MaxRF4 <- round(RFA * (max(RFA_Thresh40*0.01)),0)
+  RF40_4.5 <- round(RFA * (RFA_Thresh40_4.5*0.01),0)
+  RF40_8.5 <- round(RFA * (RFA_Thresh40_8.5*0.01),0)
 
-  #Dry Season 
-  #DryM
-  MinRFD4 <- round(DryM * (min(RFD_Thresh40*0.01)),0)
-  MaxRFD4 <- round(DryM * (max(RFD_Thresh40*0.01)),0)
-
-  #WetSeason
-  #WetM
-  MinRFW4 <- round(WetM * (min(RFW_Thresh40*0.01)),0)
-  MaxRFW4 <- round(WetM * (max(RFW_Thresh40*0.01)),0)
-
-  AnnualRM  <- paste0(min(RFA_Thresh40), " to ", max(RFA_Thresh40), "% Change")
-  DryRM  <- paste0(min(RFD_Thresh40), " to ", max(RFD_Thresh40), "% Change")
-  WetRM  <- paste0(min(RFW_Thresh40), " to ", max(RFW_Thresh40), "% Change") 
+    # #Dry Season 
+  # #DryM
+  # MinRFD4 <- round(DryM * (min(RFD_Thresh40*0.01)),0)
+  # MaxRFD4 <- round(DryM * (max(RFD_Thresh40*0.01)),0)
+  # 
+  # #WetSeason
+  # #WetM
+  # MinRFW4 <- round(WetM * (min(RFW_Thresh40*0.01)),0)
+  # MaxRFW4 <- round(WetM * (max(RFW_Thresh40*0.01)),0)
   
+  # # choose whether change value has + or - before it
+  # ifelse(RFA_Thresh40_4.5>=0, RF40_4.5<-paste0("+",RF40_4.5), RF40_4.5<-RF40_4.5)
+  # ifelse(RFA_Thresh40_8.5>=0, RF40_8.5<-paste0("+",RF40_8.5), RF40_8.5<-RF40_8.5)
+
+  AnnualRM_in  <- paste0(RF40_4.5," to ",RF40_8.5," in/year")
+  AnnualRM_in
+  AnnualRM  <- paste0(RFA_Thresh40_4.5," to ",RFA_Thresh40_8.5,"% change from present")
+  AnnualRM
+  # DryRM  <- paste0(min(RFD_Thresh40), " to ", max(RFD_Thresh40), "% Change")
+  # WetRM  <- paste0(min(RFW_Thresh40), " to ", max(RFW_Thresh40), "% Change") 
+  
+  # choose whether text says "increase" or "decrease"
+  ifelse(RFA_Thresh40_4.5>=0, RF40_4.5_ch<-"increase", RF40_4.5_ch<-"decrease")
+  ifelse(RFA_Thresh40_8.5>=0, RF40_8.5_ch<-"increase", RF40_8.5_ch<-"decrease")
   
   RF_Down4 <-  block_list(
     fpar(ftext("Rainfall for Years 2040-2070" , fp_NM5)),
     fpar(ftext(        "                    ", fp_Fig2)),
-    fpar(ftext("Annual", fp_NM6)),
-    fpar(ftext(paste0(MinRF4," to ",MaxRF4,RFUnit,"/year"), fp_NM3)),
-    fpar(ftext(paste0("(",AnnualRM,")"),fp_NM3)),
-    fpar(ftext("Dry Season", fp_NM6)),
-    fpar(ftext(paste0(MinRFD4," to ",MaxRFD4,RFUnit,"/month"), fp_NM3)),
-    fpar(ftext(paste0("(",DryRM,")"),fp_NM3)),
-    fpar(ftext("Wet Season", fp_NM6)),
-    fpar(ftext(paste0(MinRFW4," to ",MaxRFW4,RFUnit,"/month"), fp_NM3)),
-    fpar(ftext(paste0("(",WetRM,")"),fp_NM3)),
-    fpar(ftext(        "                    ", fp_Fig2)),
-    fpar(ftext(paste0("The range in projections include estimates for both low emissions ", 
-                      "(RCP 4.5) and high emissions     (RCP 8.5) scenarios, for the ",
-                      "Statistical Downscaling approach."), fp_NM2)))
+    fpar(ftext("Change in Annual Rainfall", fp_NM6)),
+    fpar(ftext(AnnualRM_in, fp_NM3)),
+    fpar(ftext(AnnualRM,fp_NM3)),
+    # fpar(ftext("Dry Season", fp_NM6)),
+    # fpar(ftext(paste0(MinRFD4," to ",MaxRFD4,RFUnit,"/month"), fp_NM3)),
+    # fpar(ftext(paste0("(",DryRM,")"),fp_NM3)),
+    # fpar(ftext("Wet Season", fp_NM6)),
+    # fpar(ftext(paste0(MinRFW4," to ",MaxRFW4,RFUnit,"/month"), fp_NM3)),
+    # fpar(ftext(paste0("(",WetRM,")"),fp_NM3)),
+    # fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in rainfall under RCP 4.5 and 8.5 ",
+                      "conditions. At ",SNameF,", annual rainfall is projected to ",RF40_4.5_ch," by ",abs(RF40_4.5)," inches (RCP 4.5), ",
+                      "or ",RF40_8.5_ch," by ",abs(RF40_8.5)," inches (RCP 8.5) by mid-century."), fp_NM2)))
+  RF_Down4
   
   #RF40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDsRF2040.png")
   #RF40img <- external_img(src = RF40file, height = 6,width = 4) 
@@ -1204,18 +1167,158 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   RF40img <- external_img(src = RF40file) 
   
   FIG_18<- block_list(
-           fpar(ftext(paste0("Figure 24. Downscaled future rainfall projections (% Change; ",
-                             "2040-2070) at ",SNameF,", for the Statistical Downscaling (StDs) ",
-                             "approach, for annual (ANN), dry season (DRY), and wet season ",
-                             "(WET) for RCP 4.5 (left) and RCP 8.5 (right)."), fp_Fig)))
+    fpar(ftext(paste0("Figure 23. Downscaled future rainfall projections (% change from present) ",
+                      "at ",SNameF," by mid-century (2040-2070) using Statistical Downscaling. RCP 4.5 ",
+                      "(left) and RCP 8.5 (right)."), fp_Fig)))
+  
+  
+  ##################### Slide 24 #################################################
+  
+  S20_TIT<- block_list(
+    fpar(ftext("Average Rainfall Change", FTXTT),fp_p = fp_par(text.align = "center")),
+    fpar(ftext("End-of-Century (2100)", FTXTT),fp_p = fp_par(text.align = "center")))
+
+  RFA_Thresh100_D4.5 <- Down[1,2]
+  RFA_Thresh100_D8.5 <- Down[4,2]
+  RFA_Thresh100_S4.5 <- Down[9,2]
+  RFA_Thresh100_S8.5 <- Down[12,2]
+  
+  # Find largest change value for each RCP scenario
+  ifelse(abs(RFA_Thresh100_D4.5)>=abs(RFA_Thresh100_S4.5), RF100_4.5c<-RFA_Thresh100_D4.5, RF100_4.5c<-RFA_Thresh100_S4.5)
+  ifelse(abs(RFA_Thresh100_D8.5)>=abs(RFA_Thresh100_S8.5), RF100_8.5c<-RFA_Thresh100_D8.5, RF100_8.5c<-RFA_Thresh100_S8.5)
+  
+  RFA_Thresh100 <-  Down[c(1,4,9,12),2]
+  # RFD_Thresh100 <-  Down[c(2,5,10,13),2]
+  # RFW_Thresh100 <-  Down[c(3,6,11,14),2]
+  # RFA_Thresh40 <-   Down[c(15,18),2]
+  # RFD_Thresh40 <-   Down[c(16,19),2]
+  # RFW_Thresh40 <-   Down[c(17,20),2]
+  RFA_100m<-min(RFA_Thresh100)
+  
+  #Annual RF
+  RFA <- CLIMA[1,14]
+  MinRF <- round(RFA * (min(RFA_Thresh100*0.01)),0)
+  MaxRF <- round(RFA * (max(RFA_Thresh100*0.01)),0)
+  if(MinRF>=0) {MinRF<-paste0("+",MinRF)}
+  if(MaxRF>=0) {MaxRF<-paste0("+",MaxRF)}
+  
+  # RFD_Thresh100 <-  Down[c(2,5,10,13),2]
+  # RFW_Thresh100 <-  Down[c(3,6,11,14),2]
+
+  # #Dry Season 
+  # #DryM
+  # MinRFD <- round(DryM * (min(RFD_Thresh100*0.01)),0)
+  # MaxRFD <- round(DryM * (max(RFD_Thresh100*0.01)),0)
+  # 
+  # #WetM
+  # MinRFW <- round(WetM * (min(RFW_Thresh100*0.01)),0)
+  # MaxRFW <- round(WetM * (max(RFW_Thresh100*0.01)),0)
+
+  # choose whether text says "increase" or "decrease"
+  ifelse(RF100_4.5c>=0, RF100_4.5t<-"increase", RF100_4.5t<-"decrease")
+  ifelse(RF100_8.5c>=0, RF100_8.5t<-"increase", RF100_8.5t<-"decrease")
+  # if(RFA_Thresh100_S4.5>=0) {RF100_S4.5_ch<-"increase"}
+  # if(RFA_Thresh100_S4.5<0) {RF100_S4.5_ch<-"decrease"}
+  # if(RFA_Thresh100_S8.5>=0) {RF100_S8.5_ch<-"increase"}
+  # if(RFA_Thresh100_S8.5<0) {RF100_S8.5_ch<-"decrease"}
+  
+  # choose whether change value has + or - before it
+  ifelse(RF100_4.5c>=0, RF100_4.5c<-paste0("+",RF100_4.5c), RF100_4.5c<-RF100_4.5c)
+  ifelse(RF100_8.5c>=0, RF100_8.5c<-paste0("+",RF100_8.5c), RF100_8.5c<-RF100_8.5c)
+  
+ AnnualR  <- paste(min(RFA_Thresh100), " to ", max(RFA_Thresh100), "% change from present")
+ AnnualR
+ # DryR  <- paste(min(RFD_Thresh100), " to ", max(RFD_Thresh100), "% Change")
+ # WetR  <- paste(min(RFW_Thresh100), " to ", max(RFW_Thresh100), "% Change") 
+ #  
+
+ # determine if the downscaling method outputs agree on direction of change, and choose the appropriate text
+ ifelse(RFA_Thresh100_D4.5>=0, a<-1, a<-2)
+ ifelse(RFA_Thresh100_S4.5>=0, b<-1, b<-2)
+ ifelse(RFA_Thresh100_D8.5>=0, c<-1, c<-2)
+ ifelse(RFA_Thresh100_S8.5>=0, d<-1, d<-2)
+ 
+ if(a==b && c==d)
+ {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                        "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                        ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5c),
+                        " inches (RCP 4.5), or ",RF100_8.5t," by ",abs(RF100_8.5c)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
+ if(a!=b && c==d)
+ {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                        "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                        ", the models do not agree on the direction of change for RCP 4.5. Annual ",
+                        "rainfall is projected to ",RF100_8.5t," by ",abs(RF100_8.5c)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
+ if(a==b && c!=d)
+ {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                        "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                        ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5c),
+                        " inches (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
+ if(a!=b && c!=d)
+ {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                        "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                        ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
+ 
+  RF_Down <-  block_list(
+    fpar(ftext("Rainfall in the Year 2100" , fp_NM5)),
+    fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(ftext("Annual", fp_NM6)),
+    fpar(ftext(paste0(MinRF," to ",MaxRF,RFUnit,"/year"), fp_NM3)),
+    fpar(ftext(paste0("(",AnnualR,")"),fp_NM3)),
+    # fpar(ftext("Dry Season", fp_NM6)),
+    # fpar(ftext(paste0(MinRFD," to ",MaxRFD,RFUnit,"/month"), fp_NM3)),
+    # fpar(ftext(paste0("(",DryR,")"),fp_NM3)),
+    # fpar(ftext("Wet Season", fp_NM6)),
+    # fpar(ftext(paste0(MinRFW," to ",MaxRFW,RFUnit,"/month"), fp_NM3)),
+    # fpar(ftext(paste0("(",WetR,")"),fp_NM3)),
+    fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(RF2100t))
+  RF_Down  
+
+  RF10085file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_RF_8.5_v2.png")
+  RF10085img <- external_img(src = RF10085file, height = 4,width = 4) 
+  
+  FIG_17<- block_list(
+    fpar(ftext(paste0("Figure 24. Downscaled future rainfall projections (% change from present) ",
+                      "at ",SNameF," by end-of-century (2100), using both Dynamical and Statistical ",
+                      "downscaling. RCP 4.5 (top row) and RCP 8.5 (bottom row)."), fp_Fig)))
 
   
+
+#################### Slide 25 Temperature 2040
   
-#################### Slide 25 Temperature 2100
+  # S23_TIT<- block_list(
+  #   fpar(ftext("Average Air Temperature Change", FTXTT),fp_p = fp_par(text.align = "center")))
   
-  S22_TIT<- block_list(
-    fpar(ftext("End-of-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
-   
+  S23_TIT<- block_list(
+    fpar(ftext("Average Air Temperature Change", FTXTT),fp_p = fp_par(text.align = "center")),
+    fpar(ftext("Mid-Century (2040-2070)", FTXTT),fp_p = fp_par(text.align = "center")))
+ 
+  Down
+  TAA_Thresh40_4.5 <-   Down[c(21),2]
+  TAA_Thresh40_8.5 <-   Down[c(22),2]
+  
+  #Annual TA
+  TAA <- CLIMA[3,14]
+  TA40_4.5 <- round(TAA * (TAA_Thresh40_4.5*0.01),0)
+  TA40_8.5 <- round(TAA * (TAA_Thresh40_8.5*0.01),0)
+  
+  ####### RESUME EDITS HERE ######
+  
+  AnnualRM_in  <- paste0(RF40_4.5," to ",RF40_8.5," in/year")
+  AnnualRM_in
+  AnnualRM  <- paste0(RFA_Thresh40_4.5," to ",RFA_Thresh40_8.5,"% change from present")
+  AnnualRM
+  
+  # choose whether text says "increase" or "decrease"
+  ifelse(RFA_Thresh40_4.5>=0, RF40_4.5_ch<-"increase", RF40_4.5_ch<-"decrease")
+  ifelse(RFA_Thresh40_8.5>=0, RF40_8.5_ch<-"increase", RF40_8.5_ch<-"decrease")
+  
+  
+  ###
+  ###
+  ###
+  
+  
   
   TAA_Thresh100 <-  Down[c(7,8,21,22),2]
   
@@ -1225,40 +1328,6 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   MaxTA <- round(TAA + max(TAA_Thresh100),1)
   AvgTa <- round(mean(TAA_Thresh100),1)
   
-  
-  Tchg2100  <- paste0("(",min(TAA_Thresh100), TUnit, " to ", max(TAA_Thresh100), TUnit," Change)") 
-  
-
-  TA_Down <-  block_list(
-    fpar(ftext( "                    ", fp_Fig2)),
-    fpar(ftext("Mean Temperature Now" , fp_NM6)),
-    fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
-    fpar(ftext( "                    ", fp_Fig2)),
-    fpar(ftext("Mean Temperature 2100" , fp_NM6)),
-    fpar(ftext(paste0(MinTA,TUnit," to ", MaxTA,TUnit), fp_NM3)),
-    fpar(ftext(Tchg2100, fp_NM3)),
-    fpar(ftext("                    ", fp_Fig2)),
-    fpar(ftext("                    ", fp_Fig2)),
-    fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
-              "(RCP4.5) and high emissions (RCP8.5) scenarios, for both the ", 
-              "Dynamical and Statistical Downscaling approaches."), fp_NM2)))
-  
-  
-  
-  TA100file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_Temp2100.png")
-  TA100img <- external_img(src = TA100file) 
-  
-  FIG_19 <- block_list(
-    fpar(ftext(paste0("Figure 25. Downscaled projected change in mean temperature ",  
-                      "(Year 2100) at ",SNameF,", Dynamical Downscaling (DyDs), ",  
-                      "Statistical Downscaling (StDs)."), fp_Fig)))
-  
-  
-#################### Slide 26 Temperature 2040
-  
-  S23_TIT<- block_list(
-    fpar(ftext("Mid-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
-
   TAA_Thresh40 <-  Down[c(23,24),2]
   MinTA40 <- round(TAA + min(TAA_Thresh40),1)
   MaxTA40 <- round(TAA + max(TAA_Thresh40),1)
@@ -1282,7 +1351,24 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
               "(RCP 4.5) and high emissions (RCP 8.5) scenarios, for the ", 
                "Statistical Downscaling approach."), fp_NM2)))
-
+  
+  TA_Down4 <-  block_list(
+    fpar(ftext("Air Temp. for Years 2040-2070" , fp_NM5)),
+    fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(ftext("Change in Air Temperature", fp_NM6)),
+    fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
+    fpar(ftext(AnnualRM,fp_NM3)),
+    # fpar(ftext("Dry Season", fp_NM6)),
+    # fpar(ftext(paste0(MinRFD4," to ",MaxRFD4,RFUnit,"/month"), fp_NM3)),
+    # fpar(ftext(paste0("(",DryRM,")"),fp_NM3)),
+    # fpar(ftext("Wet Season", fp_NM6)),
+    # fpar(ftext(paste0(MinRFW4," to ",MaxRFW4,RFUnit,"/month"), fp_NM3)),
+    # fpar(ftext(paste0("(",WetRM,")"),fp_NM3)),
+    # fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in rainfall under RCP 4.5 and 8.5 ",
+                      "conditions. At ",SNameF,", annual rainfall is projected to ",RF40_4.5_ch," by ",abs(RF40_4.5)," inches (RCP 4.5), ",
+                      "or ",RF40_8.5_ch," by ",abs(RF40_8.5)," inches (RCP 8.5) by mid-century."), fp_NM2)))
+  RF_Down4
   
   TA40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDs_Temp2040.png")
   TA40img <- external_img(src = TA40file) 
@@ -1291,6 +1377,48 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext(paste0("Figure 26. Downscaled Future temperature projections ",
                       "(2040-2070) at ",SNameF," for the Statistical ", 
                       "Downscaling (StDs) approach."), fp_Fig)))
+  
+  #################### Slide 25 Temperature 2100
+  
+  S22_TIT<- block_list(
+    fpar(ftext("End-of-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
+  
+  
+  # TAA_Thresh100 <-  Down[c(7,8,21,22),2]
+  # 
+  # #Annual RF
+  # TAA <- CLIMA[3,14]
+  # MinTA <- round(TAA + min(TAA_Thresh100),1)
+  # MaxTA <- round(TAA + max(TAA_Thresh100),1)
+  # AvgTa <- round(mean(TAA_Thresh100),1)
+  
+  
+  Tchg2100  <- paste0("(",min(TAA_Thresh100), TUnit, " to ", max(TAA_Thresh100), TUnit," Change)") 
+  
+  
+  TA_Down <-  block_list(
+    fpar(ftext( "                    ", fp_Fig2)),
+    fpar(ftext("Mean Temperature Now" , fp_NM6)),
+    fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
+    fpar(ftext( "                    ", fp_Fig2)),
+    fpar(ftext("Mean Temperature 2100" , fp_NM6)),
+    fpar(ftext(paste0(MinTA,TUnit," to ", MaxTA,TUnit), fp_NM3)),
+    fpar(ftext(Tchg2100, fp_NM3)),
+    fpar(ftext("                    ", fp_Fig2)),
+    fpar(ftext("                    ", fp_Fig2)),
+    fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
+                      "(RCP4.5) and high emissions (RCP8.5) scenarios, for both the ", 
+                      "Dynamical and Statistical Downscaling approaches."), fp_NM2)))
+  
+  
+  
+  TA100file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_Temp2100.png")
+  TA100img <- external_img(src = TA100file) 
+  
+  FIG_19 <- block_list(
+    fpar(ftext(paste0("Figure 25. Downscaled projected change in mean temperature ",  
+                      "(Year 2100) at ",SNameF,", Dynamical Downscaling (DyDs), ",  
+                      "Statistical Downscaling (StDs)."), fp_Fig)))
   
   
   ################ Slide 27 Summary and Conclusions ###############

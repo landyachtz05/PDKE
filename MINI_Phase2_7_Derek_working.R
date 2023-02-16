@@ -178,12 +178,47 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Egami Ranch"
 # NM_s <- "Egami Ranch"
 
-#Ernest Deluz Ranch, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
+# #Ernest Deluz Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Ernest De Luz Ranch"
+# NM_s <- "Ernest De Luz Ranch"
+
+# #Gay and Robinson Ranch, Kauai
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Gay_Robinson_ranch/Gay and Robinson Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Gay and Robinson Ranch"
+# NM_s <- "Gay and Robinson Ranch"
+
+# #Hawaii Ranch, Kauai
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Hawaii_Ranch/Hawaii Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Hawaii Ranch"
+# NM_s <- "Hawaii Ranch"
+
+# #Hawaii Ranch, Kauai
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaonolulu Ranch/Kaonoulu Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Kaonoulu Ranch"
+# NM_s <- "Kaonoulu Ranch"
+
+# #Kapapala Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kapapala Ranch/Kapapala Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Kapapala Ranch"
+# NM_s <- "Kapapala Ranch"
+
+#Big Island (whole island)
+NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Ernest De Luz Ranch"
-NM_s <- "Ernest De Luz Ranch"
+NM <- "Big Island - Hawaii"
+NM_s <- "Big Island"
 
 # Set island
 ILE<-"Big Island"
@@ -292,23 +327,24 @@ plot(I_Trails)
 ##########   Digital Elevation Model 
 
 ELEV2 = dir(paste0(IFOLDER,"ned_dem/"), pattern="*x.adf", recursive=T, full.names=T)
+# ### if doing portfolio for whole island (needed for Big Island at least)
+#   ELEV2 = dir(paste0(IFOLDER), pattern="*ned_dem_crs.tif", recursive=T, full.names=T)
 ELEV <- raster(ELEV2[1])
 if(ELUnit == " ft") {ELEV =  ELEV * 3.28084 }
 crs(ELEV) <- "+proj=longlat +datum=WGS84 +no_defs" 
 plot(ELEV)
 
-ELEV
 ##########  Landcover
 
-LC2 = dir(paste0(IFOLDER, "Landcover/"), recursive=T, full.names=T)
-LC2[5]
-LC <- raster(LC2[5])
+LC2 = dir(paste0(IFOLDER, "Landcover/"), pattern = "*LCMAP_HI_2020_V10_LCPRI_crs.tif$", recursive=T, full.names=T)
+LC <- raster(LC2)
 crs(LC) <- "+proj=longlat +datum=WGS84 +no_defs"
 plot(LC)
 
 ##########  Downscaling
 
-DyDs_files = dir(paste0(IFOLDER,"HI_Downscaling_Final/"), recursive=T, full.names=T)  
+# should be 132 DyDs_files. If TIF's were opened in arcgis, extra files may have been created
+DyDs_files = dir(paste0(IFOLDER,"HI_Downscaling_Final/"), recursive=T, full.names=T, pattern = "\\.tif$")  
 D2_files = dir(paste0(IFOLDER,"Lulin_Downscaling/"), recursive=T, full.names=T)  
 
 ##########   Month Year Rainfall Maps (Frazier et al., 2016)
@@ -564,7 +600,6 @@ plot(LC_Crop)
 
 #Convert raster to dataframe for stats
 LC_Crop2 <- as.data.frame(LC_Crop, xy=T)
-head(LC_Crop2)
 
 # remove LC "0" (no data)
 LC_Crop3<-LC_Crop2[which(LC_Crop2$LCMAP_HI_2020_V10_LCPRI_crs != 0),]
@@ -2608,7 +2643,6 @@ Cell.Data_DS <-data.frame(Cell.matrix)
 colnames(Cell.Data_DS) <- c("Metric","Value")
 
 ########## Percent Change DyDs RCP 4.5 & 8.5 2100
-
 DyDs_P_4.5_ANN <- raster(DyDs_files[1])
 Dy4.5A_M <- mask(x = DyDs_P_4.5_ANN, mask = PWW_T)
 Dy4.5A_C <- crop(x = Dy4.5A_M, y = extent(PWW_T))
@@ -2696,6 +2730,7 @@ Dy8.5A_n <- round(cellStats(Dy8.5A_CT ,'min'),1)
 ##########   StDs Rainfall 2100 
 
 ##########   Percent Change StDs RCP 4.5 & 8.5
+
 StDs_P_4.5_ANN <- raster(DyDs_files[50])
 St4.5A_M <- mask(x = StDs_P_4.5_ANN, mask = PWW_T)
 St4.5A_C <- crop(x = St4.5A_M, y = extent(PWW_T))
@@ -2761,10 +2796,12 @@ StRF100LO <- min(c(St4.5A_n, St4.5D_n, St4.5W_n, St8.5A_n, St8.5D_n, St8.5W_n))
 ##########   Percent Change StDs RCP 4.5 & 8.5
 
 StDs_P_4.5_ANN40 <- raster(DyDs_files[49])
+StDs_P_4.5_ANN40
 St4.5A_M40 <- mask(x = StDs_P_4.5_ANN40 , mask = PWW_T)
 St4.5A_C40 <- crop(x = St4.5A_M40, y = extent(PWW_T))
 
 StDs_P_4.5_Dry40 <- raster(DyDs_files[51])
+StDs_P_4.5_Dry40
 St4.5D_M40 <- mask(x = StDs_P_4.5_Dry40 , mask = PWW_T)
 St4.5D_C40 <- crop(x = St4.5D_M40, y = extent(PWW_T))
 
@@ -3048,44 +3085,46 @@ dev.off()
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," StDsRF2040.png"),width=6.5*dpi,height=4*dpi,res=dpi)
 
-title1=textGrob("Statistical DS RCP 8.5 & RCP 4.5, 2040-2070)", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
+title1=textGrob("Changes in Annual Rainfall by Mid-Century", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
 
 grid.arrange(top = title1,
              spplot(St4.5A_C40, col.regions = colfunc2, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs ANN (",St4.5A_MM40 ,"%)"),cex=0.9),
+                    main=list(label=paste0("RCP 4.5 (",St4.5A_MM40 ,"% change)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])) ,
              
              spplot(St8.5A_C40, col.regions = colfunc2, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs ANN (",St8.5A_MM40 ,"%)"),cex=0.9),
+                    main=list(label=paste0("RCP 8.5 (",St8.5A_MM40 ,"% change)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) ,
+                    sp.layout = list(UNIT_X[u])),
+              
+             ncol=2)
              
-             spplot(St4.5D_C40, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs DRY (",St4.5D_MM40 ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) ,
-             
-             spplot(St8.5D_C40, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs DRY (",St8.5D_MM40 ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) ,
-             
-             spplot(St4.5W_C40, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs WET (",St4.5W_MM40 ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])) ,
-             
-             spplot(St8.5W_C, col.regions = colfunc2, equal=FALSE,
-                    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-                    main=list(label=paste0("StDs WET (",St8.5W_MM40 ,"%)"),cex=0.9),
-                    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])))           
+             # spplot(St4.5D_C40, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("StDs DRY (",St4.5D_MM40 ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])) ,
+             # 
+             # spplot(St8.5D_C40, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("StDs DRY (",St8.5D_MM40 ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])) ,
+             # 
+             # spplot(St4.5W_C40, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("StDs WET (",St4.5W_MM40 ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])) ,
+             # 
+             # spplot(St8.5W_C, col.regions = colfunc2, equal=FALSE,
+             #        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
+             #        main=list(label=paste0("StDs WET (",St8.5W_MM40 ,"%)"),cex=0.9),
+             #        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
+             #        sp.layout = list(UNIT_X[u])))           
 dev.off()
 
 ##########   Downscaling Compare TEMP RCP 8.5 & 4.5 2100
@@ -3097,49 +3136,53 @@ if(TUnit == "°F") {BI_brksF<-round(seq(0, 9 , length = 9),0)}
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," DS_Temp2100.png"),width=6.5*dpi,height=4*dpi,res=dpi)
 
-title4=textGrob("Dynamical & Statistical DS Compare TEMP (Yr 2100)", gp=gpar(col="darkred",fontface="bold",fontsize=15))
+title4=textGrob("Changes in Air Temperature by 2100", gp=gpar(col="darkred",fontface="bold",fontsize=15))
 grid.arrange(top = title4,
              spplot(Dy4.5A_CT, col.regions = colfunc3, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-                    main=list(label=paste0("DyDs ANN RCP 4.5 (",Dy4.5A_MMT ,TUnit2,")"),cex=0.9),
+                    main=list(label=paste0("Dynamical 4.5 (",Dy4.5A_MMT ,TUnit2," average)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])) ,
              
              spplot(St4.5A_CT, col.regions = colfunc3, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-                    main=list(label=paste0("StDs ANN RCP 4.5 (",St4.5A_MMT ,TUnit2,")"),cex=0.9),
+                    main=list(label=paste0("Statistical 4.5 (",St4.5A_MMT ,TUnit2," average)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])) ,
              
              spplot(Dy8.5A_CT, col.regions = colfunc3, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-                    main=list(label=paste0("DyDs ANN RCP 8.5 (",Dy8.5A_MMT ,TUnit2,")"),cex=0.9),
+                    main=list(label=paste0("Dynamical 8.5 (",Dy8.5A_MMT ,TUnit2," average)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])) ,
              
              spplot(St8.5A_CT, col.regions = colfunc3, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-                    main=list(label=paste0("StDs ANN RCP 8.5 (",St8.5A_MMT ,TUnit2,")"),cex=0.9),
+                    main=list(label=paste0("Statistical 8.5 (",St8.5A_MMT ,TUnit2," average)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])))
 dev.off()
 
+
+######################## AIR TEMP 2040-2070 
+
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," StDs_Temp2040.png"),width=6.5*dpi,height=4*dpi,res=dpi)  
 
-title4=textGrob("Statistical DS Compare TEMP (Yr 2040-2070)", gp=gpar(col="darkred",fontface="bold",fontsize=15))
+title4=textGrob("Changes in Air Temperature by Mid-Century", gp=gpar(col="darkred",fontface="bold",fontsize=15))
 
 grid.arrange(top = title4,
              spplot(St4.5A_CT40, col.regions = colfunc3, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-                    main=list(label=paste0("StDs ANN RCP 4.5 (",St4.5A_MMT40 ,TUnit2,")"),cex=0.9),
+                    main=list(label=paste0("RCP 4.5 (",St4.5A_MMT40 ,TUnit2," change)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
                     sp.layout = list(UNIT_X[u])) , 
              
              spplot(St8.5A_CT40, col.regions = colfunc3, equal=FALSE,
                     axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-                    main=list(label=paste0("StDs ANN RCP 4.5 (",St8.5A_MMT40 ,TUnit2,")"),cex=0.9),
+                    main=list(label=paste0("RCP 8.5 (",St8.5A_MMT40 ,TUnit2," change)"),cex=0.9),
                     colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-                    sp.layout = list(UNIT_X[u])))
+                    sp.layout = list(UNIT_X[u])),
+             ncol=2)
 
 dev.off()
 
