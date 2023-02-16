@@ -34,7 +34,7 @@ TUnit = "\u00B0F"
 TUnit2 = " \u00B0F"
 RFUnit = " in"
 RFUnit2 = "in"
-RFUnit3 = " inches"
+RFUnit3 = " °F"
 ELUnit = " ft"
 ELUnit2 = "ft"
 
@@ -164,7 +164,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-2
+f<-1
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
@@ -361,8 +361,8 @@ FIG_3.2 <- block_list(
     
     # Make a table of min and maxes
     T<-data.frame(matrix(0, ncol=3, nrow=6))
-    T$X1<-c("Rainfall (inches)","Air Temperature (°F)","Relative Humidity (%)",
-             "Solar Radiation (W/m2)","Soil Moisture (Ratio)","Evapotranspiration (inches)")
+    T$X1<-c("Rainfall (°F)","Air Temperature (°F)","Relative Humidity (%)",
+             "Solar Radiation (W/m2)","Soil Moisture (Ratio)","Evapotranspiration (°F)")
     T[1,]$X2<-CLIM[3,3]
     T[1,]$X3<-CLIM[2,3]
     T[2,]$X2<-CLIM[3,4]
@@ -1154,7 +1154,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     # fpar(ftext("Wet Season", fp_NM6)),
     # fpar(ftext(paste0(MinRFW4," to ",MaxRFW4,RFUnit,"/month"), fp_NM3)),
     # fpar(ftext(paste0("(",WetRM,")"),fp_NM3)),
-    # fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(ftext(        "                    ", fp_Fig2)),
     fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in rainfall under RCP 4.5 and 8.5 ",
                       "conditions. At ",SNameF,", annual rainfall is projected to ",RF40_4.5_ch," by ",abs(RF40_4.5)," inches (RCP 4.5), ",
                       "or ",RF40_8.5_ch," by ",abs(RF40_8.5)," inches (RCP 8.5) by mid-century."), fp_NM2)))
@@ -1202,6 +1202,9 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   if(MinRF>=0) {MinRF<-paste0("+",MinRF)}
   if(MaxRF>=0) {MaxRF<-paste0("+",MaxRF)}
   
+  RF100_4.5a <- round(RFA * (RF100_4.5c*0.01),0)
+  RF100_8.5a <- round(RFA * (RF100_8.5c*0.01),0)
+  
   # RFD_Thresh100 <-  Down[c(2,5,10,13),2]
   # RFW_Thresh100 <-  Down[c(3,6,11,14),2]
 
@@ -1241,17 +1244,17 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
  if(a==b && c==d)
  {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
                         "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-                        ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5c),
-                        " inches (RCP 4.5), or ",RF100_8.5t," by ",abs(RF100_8.5c)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
+                        ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
+                        " inches (RCP 4.5), or ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
  if(a!=b && c==d)
  {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
                         "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
                         ", the models do not agree on the direction of change for RCP 4.5. Annual ",
-                        "rainfall is projected to ",RF100_8.5t," by ",abs(RF100_8.5c)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
+                        "rainfall is projected to ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
  if(a==b && c!=d)
  {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
                         "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-                        ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5c),
+                        ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
                         " inches (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
  if(a!=b && c!=d)
  {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
@@ -1262,7 +1265,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext("Rainfall in the Year 2100" , fp_NM5)),
     fpar(ftext(        "                    ", fp_Fig2)),
     fpar(ftext("Annual", fp_NM6)),
-    fpar(ftext(paste0(MinRF," to ",MaxRF,RFUnit,"/year"), fp_NM3)),
+    fpar(ftext(paste0(RF100_4.5a," to ",RF100_8.5a,RFUnit,"/year"), fp_NM3)),
     fpar(ftext(paste0("(",AnnualR,")"),fp_NM3)),
     # fpar(ftext("Dry Season", fp_NM6)),
     # fpar(ftext(paste0(MinRFD," to ",MaxRFD,RFUnit,"/month"), fp_NM3)),
@@ -1302,123 +1305,181 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   TA40_4.5 <- round(TAA * (TAA_Thresh40_4.5*0.01),0)
   TA40_8.5 <- round(TAA * (TAA_Thresh40_8.5*0.01),0)
   
-  ####### RESUME EDITS HERE ######
-  
-  AnnualRM_in  <- paste0(RF40_4.5," to ",RF40_8.5," in/year")
-  AnnualRM_in
-  AnnualRM  <- paste0(RFA_Thresh40_4.5," to ",RFA_Thresh40_8.5,"% change from present")
-  AnnualRM
+  TAA_RM  <- paste0(TA40_4.5," to ",TA40_8.5,"°F")
+  TAA_RM
+  TAAnnualRM  <- paste0(TAA_Thresh40_4.5," to ",TAA_Thresh40_8.5,"% change from present")
+  TAAnnualRM
   
   # choose whether text says "increase" or "decrease"
-  ifelse(RFA_Thresh40_4.5>=0, RF40_4.5_ch<-"increase", RF40_4.5_ch<-"decrease")
-  ifelse(RFA_Thresh40_8.5>=0, RF40_8.5_ch<-"increase", RF40_8.5_ch<-"decrease")
-  
-  
-  ###
-  ###
-  ###
-  
-  
+  ifelse(TAA_Thresh40_4.5>=0, TA40_4.5_ch<-"increase", TA40_4.5_ch<-"decrease")
+  ifelse(TAA_Thresh40_8.5>=0, TA40_8.5_ch<-"increase", TA40_8.5_ch<-"decrease")
   
   TAA_Thresh100 <-  Down[c(7,8,21,22),2]
   
-  #Annual RF
-  TAA <- CLIMA[3,14]
-  MinTA <- round(TAA + min(TAA_Thresh100),1)
-  MaxTA <- round(TAA + max(TAA_Thresh100),1)
-  AvgTa <- round(mean(TAA_Thresh100),1)
-  
-  TAA_Thresh40 <-  Down[c(23,24),2]
-  MinTA40 <- round(TAA + min(TAA_Thresh40),1)
-  MaxTA40 <- round(TAA + max(TAA_Thresh40),1)
-  #Annual RF
-  TAA <- CLIMA[3,14]
-  
-  Tchg2040  <- paste0("(",min(TAA_Thresh40),TUnit, " to ", max(TAA_Thresh40), TUnit," Change)") 
- 
-  AvgTa4 <- round(mean(TAA_Thresh40),1)
-  
-  TA_Down4 <-  block_list(
-    fpar(ftext( "                    ", fp_Fig2)),
-    fpar(ftext("Mean Temperature Now" , fp_NM6)),
-    fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
-    fpar(ftext( "                    ", fp_Fig2)),
-    fpar(ftext("Mean Temperature 2040-2070" , fp_NM6)),
-    fpar(ftext(paste0(MinTA40,TUnit," to ", MaxTA40,TUnit), fp_NM3)),
-    fpar(ftext(Tchg2040, fp_NM3)),
-    fpar(ftext( "                    ", fp_Fig2)),
-    fpar(ftext(        "                    ", fp_Fig2)),
-    fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
-              "(RCP 4.5) and high emissions (RCP 8.5) scenarios, for the ", 
-               "Statistical Downscaling approach."), fp_NM2)))
+  # TA_Down4 <-  block_list(
+  #   fpar(ftext( "                    ", fp_Fig2)),
+  #   fpar(ftext("Mean Temperature Now" , fp_NM6)),
+  #   fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
+  #   fpar(ftext( "                    ", fp_Fig2)),
+  #   fpar(ftext("Mean Temperature 2040-2070" , fp_NM6)),
+  #   fpar(ftext(paste0(MinTA40,TUnit," to ", MaxTA40,TUnit), fp_NM3)),
+  #   fpar(ftext(Tchg2040, fp_NM3)),
+  #   fpar(ftext( "                    ", fp_Fig2)),
+  #   fpar(ftext(        "                    ", fp_Fig2)),
+  #   fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
+  #             "(RCP 4.5) and high emissions (RCP 8.5) scenarios, for the ", 
+  #              "Statistical Downscaling approach."), fp_NM2)))
   
   TA_Down4 <-  block_list(
     fpar(ftext("Air Temp. for Years 2040-2070" , fp_NM5)),
     fpar(ftext(        "                    ", fp_Fig2)),
     fpar(ftext("Change in Air Temperature", fp_NM6)),
-    fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
-    fpar(ftext(AnnualRM,fp_NM3)),
-    # fpar(ftext("Dry Season", fp_NM6)),
-    # fpar(ftext(paste0(MinRFD4," to ",MaxRFD4,RFUnit,"/month"), fp_NM3)),
-    # fpar(ftext(paste0("(",DryRM,")"),fp_NM3)),
-    # fpar(ftext("Wet Season", fp_NM6)),
-    # fpar(ftext(paste0(MinRFW4," to ",MaxRFW4,RFUnit,"/month"), fp_NM3)),
-    # fpar(ftext(paste0("(",WetRM,")"),fp_NM3)),
-    # fpar(ftext(        "                    ", fp_Fig2)),
-    fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in rainfall under RCP 4.5 and 8.5 ",
-                      "conditions. At ",SNameF,", annual rainfall is projected to ",RF40_4.5_ch," by ",abs(RF40_4.5)," inches (RCP 4.5), ",
-                      "or ",RF40_8.5_ch," by ",abs(RF40_8.5)," inches (RCP 8.5) by mid-century."), fp_NM2)))
-  RF_Down4
+    fpar(ftext(TAA_RM, fp_NM3)),
+    fpar(ftext(TAAnnualRM,fp_NM3)),
+    fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in air temperature under RCP 4.5 and 8.5 ",
+                      "conditions. At ",SNameF,", air temperature is projected to ",TA40_4.5_ch," by ",abs(TA40_4.5),"°F (RCP 4.5), ",
+                      "or ",TA40_8.5_ch," by ",abs(TA40_8.5),"°F (RCP 8.5) by mid-century."), fp_NM2)))
+  TA_Down4
   
   TA40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDs_Temp2040.png")
   TA40img <- external_img(src = TA40file) 
   
   FIG_20 <- block_list(
-    fpar(ftext(paste0("Figure 26. Downscaled Future temperature projections ",
-                      "(2040-2070) at ",SNameF," for the Statistical ", 
-                      "Downscaling (StDs) approach."), fp_Fig)))
+    fpar(ftext(paste0("Figure 25. Downscaled future temperature projections (°F change from present) ",
+                      "at ",SNameF," by mid-century (2040-2070) using Statistical Downscaling. ",
+                      "RCP 4.5 (left) and RCP 8.5 (right)."), fp_Fig)))
   
   #################### Slide 25 Temperature 2100
   
-  S22_TIT<- block_list(
-    fpar(ftext("End-of-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
-  
-  
-  # TAA_Thresh100 <-  Down[c(7,8,21,22),2]
+  # S22_TIT<- block_list(
+  #   fpar(ftext("End-of-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
   # 
-  # #Annual RF
-  # TAA <- CLIMA[3,14]
-  # MinTA <- round(TAA + min(TAA_Thresh100),1)
-  # MaxTA <- round(TAA + max(TAA_Thresh100),1)
-  # AvgTa <- round(mean(TAA_Thresh100),1)
+  # 
+  # # TAA_Thresh100 <-  Down[c(7,8,21,22),2]
+  # # 
+  # # #Annual RF
+  # # TAA <- CLIMA[3,14]
+  # # MinTA <- round(TAA + min(TAA_Thresh100),1)
+  # # MaxTA <- round(TAA + max(TAA_Thresh100),1)
+  # # AvgTa <- round(mean(TAA_Thresh100),1)
+  # 
+  # 
+  # Tchg2100  <- paste0("(",min(TAA_Thresh100), TUnit, " to ", max(TAA_Thresh100), TUnit," Change)") 
+  # 
+  # 
+  # TA_Down <-  block_list(
+  #   fpar(ftext( "                    ", fp_Fig2)),
+  #   fpar(ftext("Mean Temperature Now" , fp_NM6)),
+  #   fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
+  #   fpar(ftext( "                    ", fp_Fig2)),
+  #   fpar(ftext("Mean Temperature 2100" , fp_NM6)),
+  #   fpar(ftext(paste0(MinTA,TUnit," to ", MaxTA,TUnit), fp_NM3)),
+  #   fpar(ftext(Tchg2100, fp_NM3)),
+  #   fpar(ftext("                    ", fp_Fig2)),
+  #   fpar(ftext("                    ", fp_Fig2)),
+  #   fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
+  #                     "(RCP4.5) and high emissions (RCP8.5) scenarios, for both the ", 
+  #                     "Dynamical and Statistical Downscaling approaches."), fp_NM2)))
+  # 
+  # 
+  # 
+  # 
+  # FIG_19 <- block_list(
+  #   fpar(ftext(paste0("Figure 25. Downscaled projected change in mean temperature ",  
+  #                     "(Year 2100) at ",SNameF,", Dynamical Downscaling (DyDs), ",  
+  #                     "Statistical Downscaling (StDs)."), fp_Fig)))
   
   
-  Tchg2100  <- paste0("(",min(TAA_Thresh100), TUnit, " to ", max(TAA_Thresh100), TUnit," Change)") 
+  S22_TIT<- block_list(
+    fpar(ftext("Average Air Temperature Change", FTXTT),fp_p = fp_par(text.align = "center")),
+    fpar(ftext("End-of-Century (2100)", FTXTT),fp_p = fp_par(text.align = "center")))
   
+  TAA_Thresh100_D4.5 <- Down[7,2]
+  TAA_Thresh100_D8.5 <- Down[8,2]
+  TAA_Thresh100_S4.5 <- Down[21,2]
+  TAA_Thresh100_S8.5 <- Down[22,2]
+  
+  # Find largest change value for each RCP scenario
+  ifelse(abs(TAA_Thresh100_D4.5)>=abs(TAA_Thresh100_S4.5), TA100_4.5c<-TAA_Thresh100_D4.5, TA100_4.5c<-TAA_Thresh100_S4.5)
+  ifelse(abs(TAA_Thresh100_D8.5)>=abs(TAA_Thresh100_S8.5), TA100_8.5c<-TAA_Thresh100_D8.5, TA100_8.5c<-TAA_Thresh100_S8.5)
+  Down
+  TAA_Thresh100 <-  Down[c(7,8,21,22),2]
+  TAA_100m<-min(TAA_Thresh100)
+  CLIMA
+  
+  #Annual TA
+  TAA <- CLIMA[3,14]
+  MinTA <- round(TAA * (min(TAA_Thresh100*0.01)),0)
+  MaxTA <- round(TAA * (max(TAA_Thresh100*0.01)),0)
+  # if(MinTA>=0) {MinTA<-paste0("+",MinTA)}
+  # if(MaxTA>=0) {MaxTA<-paste0("+",MaxTA)}
+  
+  TA100_4.5a <- round(TAA * (TA100_4.5c*0.01),0)
+  TA100_8.5a <- round(TAA * (TA100_8.5c*0.01),0)
+  
+  # choose whether text says "increase" or "decrease"
+  ifelse(TA100_4.5c>=0, TA100_4.5t<-"increase", TA100_4.5t<-"decrease")
+  ifelse(TA100_8.5c>=0, TA100_8.5t<-"increase", TA100_8.5t<-"decrease")
+
+  # # choose whether change value has + or - before it
+  # ifelse(TA100_4.5c>=0, TA100_4.5c<-paste0("+ ",TA100_4.5c), TA100_4.5c<-TA100_4.5c)
+  # ifelse(TA100_8.5c>=0, TA100_8.5c<-paste0("+ ",TA100_8.5c), TA100_8.5c<-TA100_8.5c)
+  
+  AnnualT  <- paste(min(TAA_Thresh100), " to ", max(TAA_Thresh100), "% change from present")
+  AnnualT
+  # DryR  <- paste(min(TAD_Thresh100), " to ", max(TAD_Thresh100), "% Change")
+  # WetR  <- paste(min(TAW_Thresh100), " to ", max(TAW_Thresh100), "% Change") 
+  #  
+  
+  # determine if the downscaling method outputs agree on direction of change, and choose the appropriate text
+  ifelse(TAA_Thresh100_D4.5>=0, a<-1, a<-2)
+  ifelse(TAA_Thresh100_S4.5>=0, b<-1, b<-2)
+  ifelse(TAA_Thresh100_D8.5>=0, c<-1, c<-2)
+  ifelse(TAA_Thresh100_S8.5>=0, d<-1, d<-2)
+  
+  
+  if(a==b && c==d)
+  {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                         "change in air temperature under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                         ", air temperature is projected to ",TA100_4.5t," by ",abs(TA100_4.5a),
+                         " °F (RCP 4.5), or ",TA100_8.5t," by ",abs(TA100_8.5a)," °F (RCP 8.5) by end-of-century."), fp_NM2)}
+  if(a!=b && c==d)
+  {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                         "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                         ", the models do not agree on the direction of change for RCP 4.5. Annual ",
+                         "rainfall is projected to ",TA100_8.5t," by ",abs(TA100_8.5a)," °F (RCP 8.5) by end-of-century."), fp_NM2)}
+  if(a==b && c!=d)
+  {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                         "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                         ", annual rainfall is projected to ",TA100_4.5t," by ",abs(TA100_4.5a),
+                         " °F (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
+  if(a!=b && c!=d)
+  {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+                         "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                         ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
+  TA2100t
   
   TA_Down <-  block_list(
-    fpar(ftext( "                    ", fp_Fig2)),
-    fpar(ftext("Mean Temperature Now" , fp_NM6)),
-    fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
-    fpar(ftext( "                    ", fp_Fig2)),
-    fpar(ftext("Mean Temperature 2100" , fp_NM6)),
-    fpar(ftext(paste0(MinTA,TUnit," to ", MaxTA,TUnit), fp_NM3)),
-    fpar(ftext(Tchg2100, fp_NM3)),
-    fpar(ftext("                    ", fp_Fig2)),
-    fpar(ftext("                    ", fp_Fig2)),
-    fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
-                      "(RCP4.5) and high emissions (RCP8.5) scenarios, for both the ", 
-                      "Dynamical and Statistical Downscaling approaches."), fp_NM2)))
-  
-  
+    fpar(ftext("Air Temp. in the Year 2100" , fp_NM5)),
+    fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(ftext("Change in Air Temperature", fp_NM6)),
+    fpar(ftext(paste0(TA100_4.5a," to ",TA100_8.5a,"°F "), fp_NM3)),
+    fpar(ftext(AnnualT, fp_NM3)),
+    fpar(ftext(        "                    ", fp_Fig2)),
+    fpar(TA2100t))
+  TA_Down  
+    
+  RF10085file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_RF_8.5_v2.png")
+  RF10085img <- external_img(src = RF10085file, height = 4,width = 4) 
   
   TA100file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_Temp2100.png")
-  TA100img <- external_img(src = TA100file) 
+  TA100img <- external_img(src = TA100file)
   
-  FIG_19 <- block_list(
-    fpar(ftext(paste0("Figure 25. Downscaled projected change in mean temperature ",  
-                      "(Year 2100) at ",SNameF,", Dynamical Downscaling (DyDs), ",  
-                      "Statistical Downscaling (StDs)."), fp_Fig)))
+  FIG_19<- block_list(
+    fpar(ftext(paste0("Figure 26. Downscaled future rainfall projections (% change from present) ",
+                      "at ",SNameF," by end-of-century (2100), using both Dynamical and Statistical ",
+                      "downscaling. RCP 4.5 (top row) and RCP 8.5 (bottom row)."), fp_Fig)))
   
   
   ################ Slide 27 Summary and Conclusions ###############
@@ -1442,10 +1503,10 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                  "Drought is a reoccurring feature in the climate system of ", SNameF, " with a total of ",
                  CNTDRT, " occurring over the record which is approximately ",DecD," per decade. A total of ",SoG, " drought events were at severe strength ",
                  "or greater and the longest drought lasted for a total of ", LongD, " consecutive months. ",
-                 "Future projections of rainfall are uncertain, with end-of-century annual changes ranging from ", min(RFA_Thresh100)," to " ,max(RFA_Thresh100), "% and more pronounced changes occurring during the wet and dry seasons. ",
-                 "Future projections of temperature suggest an increase of ", min(TAA_Thresh40), TUnit, 
-                 " to ", max(TAA_Thresh40),TUnit," by mid century (2040-2070) ",
-                 "and an increase of ", min(TAA_Thresh100),TUnit," to ",  max(TAA_Thresh100), TUnit," by the end of the century (2100). ")
+                 "Future projections of rainfall are uncertain, with end-of-century annual changes ranging from ", min(RFA_Thresh100)," to " ,max(RFA_Thresh100),
+                 ". Future projections of temperature suggest an increase of ", TA40_4.5,TUnit, 
+                 " to ", TA40_8.5,TUnit," by mid century (2040-2070) ",
+                 "and an increase of ", MinTA,TUnit," to ",  MaxTA, TUnit," by the end of the century (2100). ")
                  
                  fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17) 
                  fp_Summary <- fpar(ftext(Summary, fp_Tx))
@@ -1943,70 +2004,84 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 5.2, top = 6.1, width = 4.3, height = 1.4))%>%
    ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (In Review)", location = ph_location_type(type = "dt"))%>% 
 
-
    #Slide 21 #Part 4
    add_slide("Title and Content","Office Theme") %>%
    ph_with(P4_TIT, ph_location_type("title",position_left = TRUE)) %>%
    ph_with(fp_Part4,ph_location_type("body"))%>%
+   ph_with(fp_Part4.2, location = ph_location(label = "my_name",
+                                                    left = 0.45, top = 2.9, width = 6, height = 2)) %>%
+   ph_with(fp_Part4.3, location = ph_location(label = "my_name",
+                                               left = 0.45, top = 4, width = 6, height = 2)) %>%
+    ph_with(fp_Part4.4, location = ph_location(label = "my_name",
+                                               left = 0.45, top = 4.8, width = 9, height = 3)) %>%
    ph_with(value = "23", location = ph_location_type(type = "sldNum"))%>%
    ph_with(my_pres, value = "See Annex II", location = ph_location_type(type = "dt"))%>% 
    ph_with(value = Downimg, location = ph_location(label = "my_name",
-                                                     left = 6, top = 4.5, width = 3, height = 2)) %>%
-  ph_with(value = M_Down, location = ph_location(label = "my_name",
-                                                     left = 0.5, top = 4.5, width = 6.3, height = 2)) %>%
-  
+                                                     left = 6.5, top = 3.4, width = 3, height = 2)) %>%
+  # ph_with(value = M_Down, location = ph_location(label = "my_name",
+  #                                                    left = 0.5, top = 4.5, width = 6.3, height = 2)) %>%
   
   #Slide 22
   add_slide("Two Content","Office Theme") %>%
+  ph_with(S21_TIT,         ph_location_type("title")) %>%
+  # ph_with(RF_Down4,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(RF_Down4, location = ph_location(label = "my_name",
+                                                 left = 0.5, top = 1.7, width = 4, height = 5))%>%
+  ph_with(value = "25", location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = RF40img, ph_location_type("body",position_right = TRUE))  %>%
+  ph_with(value = FIG_18, location = ph_location(label = "my_name",
+                                                 left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
+  ph_with(my_pres, value = "Elison Timm et al., 2015; See Annex II", location = ph_location_type(type = "dt"))%>% 
+  ph_with(value = RF40img, location = ph_location(label = "my_name",
+                                                  left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
+    
+  #Slide 23
+  add_slide("Two Content","Office Theme") %>%
   ph_with(S20_TIT,   ph_location_type("title")) %>%
-  ph_with(RF_Down,        ph_location_type("body",position_right = FALSE)) %>%
+  # ph_with(RF_Down,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(RF_Down, location = ph_location(label = "my_name",
+                                           left = 0.5, top = 1.7, width = 4, height = 5))%>%
   ph_with(value = "24", location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = RF10085img, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_17, location = ph_location(label = "my_name",
                                                  left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Elison Timm et al., 2015; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = RF10085img, location = ph_location(label = "my_name",
-                                                   left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
+                                                   left = 4.6, top = 2, width = 5.3, height = 3.6)) %>%
+
   
-   
-    #Slide 23
-    add_slide("Two Content","Office Theme") %>%
-    ph_with(S21_TIT,         ph_location_type("title")) %>%
-    ph_with(RF_Down4,        ph_location_type("body",position_right = FALSE)) %>%
-    ph_with(value = "25", location = ph_location_type(type = "sldNum")) %>%
-    #ph_with(value = RF40img, ph_location_type("body",position_right = TRUE))  %>%
-    ph_with(value = FIG_18, location = ph_location(label = "my_name",
-                                                   left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
-    ph_with(my_pres, value = "Elison Timm et al., 2015; See Annex II", location = ph_location_type(type = "dt"))%>% 
-    ph_with(value = RF40img, location = ph_location(label = "my_name",
-                                                       left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
-    
-    
+  mypowerpoint <- read_pptx() %>%
     
     #Slide 24
     add_slide("Two Content","Office Theme") %>%
-    ph_with(S22_TIT,       ph_location_type("title")) %>%
-    ph_with(TA_Down,        ph_location_type("body",position_right = FALSE)) %>%
-    ph_with(value = "26", location = ph_location_type(type = "sldNum")) %>%
-    #ph_with(value = TA100img, ph_location_type("body",position_right = TRUE)) %>%
-    ph_with(value = FIG_19, location = ph_location(label = "my_name",
-                                                   left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
-    ph_with(my_pres, value = "Elison Timm 2017; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
-    ph_with(value = TA100img, location = ph_location(label = "my_name",
-                                                       left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
-    
-    #Slide 25
-    add_slide("Two Content","Office Theme") %>%
     ph_with(S23_TIT,         ph_location_type("title")) %>%
-    ph_with(TA_Down4,        ph_location_type("body",position_right = FALSE)) %>%
+    # ph_with(TA_Down4,        ph_location_type("body",position_right = FALSE)) %>%
+    ph_with(TA_Down4, location = ph_location(label = "my_name",
+                                            left = 0.5, top = 1.7, width = 4, height = 5))%>%
     ph_with(value = "27", location = ph_location_type(type = "sldNum")) %>%
     #ph_with(value = TA40img, ph_location_type("body",position_right = TRUE)) %>%
     ph_with(value = FIG_20, location = ph_location(label = "my_name",
                                                    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
     ph_with(my_pres, value = "Elison Timm 2017; See Annex II", location = ph_location_type(type = "dt"))%>% 
     ph_with(value = TA40img, location = ph_location(label = "my_name",
-                                                     left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
+                                                    left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
     
+    #Slide 25
+    add_slide("Two Content","Office Theme") %>%
+    ph_with(S22_TIT,       ph_location_type("title")) %>%
+    # ph_with(TA_Down,        ph_location_type("body",position_right = FALSE)) %>%
+    ph_with(TA_Down, location = ph_location(label = "my_name",
+                                            left = 0.5, top = 1.7, width = 4, height = 5))%>%
+    ph_with(value = "26", location = ph_location_type(type = "sldNum")) %>%
+    #ph_with(value = TA100img, ph_location_type("body",position_right = TRUE)) %>%
+    ph_with(value = FIG_19, location = ph_location(label = "my_name",
+                                                   left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
+    ph_with(my_pres, value = "Elison Timm 2017; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
+    ph_with(value = TA100img, location = ph_location(label = "my_name",
+                                                       left = 4.6, top = 2, width = 5.3, height = 3.6)) %>%
+    
+    
+    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_tstst.pptx"))
     
     #Slide 26 #Summary
     add_slide("Title and Content","Office Theme") %>%
