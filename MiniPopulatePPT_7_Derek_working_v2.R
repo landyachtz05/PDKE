@@ -1105,6 +1105,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
   Down <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Downscaling.csv"),sep=",")
 
+  # Get PERCENT CHANGE values
   RFA_Thresh40 <-   Down[c(15,18),2]
   RFA_Thresh40_4.5 <-   Down[c(15),2]
   RFA_Thresh40_8.5 <-   Down[c(18),2]
@@ -1112,31 +1113,15 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   # RFD_Thresh40 <-   Down[c(16,19),2]
   # RFW_Thresh40 <-   Down[c(17,20),2]
   
-  #Annual RF
+  # Get AMMOUNT (inches) change values
   RFA <- CLIMA[1,14]
   RF40_4.5 <- round(RFA * (RFA_Thresh40_4.5*0.01),0)
   RF40_8.5 <- round(RFA * (RFA_Thresh40_8.5*0.01),0)
-
-    # #Dry Season 
-  # #DryM
-  # MinRFD4 <- round(DryM * (min(RFD_Thresh40*0.01)),0)
-  # MaxRFD4 <- round(DryM * (max(RFD_Thresh40*0.01)),0)
-  # 
-  # #WetSeason
-  # #WetM
-  # MinRFW4 <- round(WetM * (min(RFW_Thresh40*0.01)),0)
-  # MaxRFW4 <- round(WetM * (max(RFW_Thresh40*0.01)),0)
-  
-  # # choose whether change value has + or - before it
-  # ifelse(RFA_Thresh40_4.5>=0, RF40_4.5<-paste0("+",RF40_4.5), RF40_4.5<-RF40_4.5)
-  # ifelse(RFA_Thresh40_8.5>=0, RF40_8.5<-paste0("+",RF40_8.5), RF40_8.5<-RF40_8.5)
 
   AnnualRM_in  <- paste0(RF40_4.5," to ",RF40_8.5," in/year")
   AnnualRM_in
   AnnualRM  <- paste0(RFA_Thresh40_4.5," to ",RFA_Thresh40_8.5,"% change from present")
   AnnualRM
-  # DryRM  <- paste0(min(RFD_Thresh40), " to ", max(RFD_Thresh40), "% Change")
-  # WetRM  <- paste0(min(RFW_Thresh40), " to ", max(RFW_Thresh40), "% Change") 
   
   # choose whether text says "increase" or "decrease"
   ifelse(RFA_Thresh40_4.5>=0, RF40_4.5_ch<-"increase", RF40_4.5_ch<-"decrease")
@@ -1148,12 +1133,6 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext("Change in Annual Rainfall", fp_NM6)),
     fpar(ftext(AnnualRM_in, fp_NM3)),
     fpar(ftext(AnnualRM,fp_NM3)),
-    # fpar(ftext("Dry Season", fp_NM6)),
-    # fpar(ftext(paste0(MinRFD4," to ",MaxRFD4,RFUnit,"/month"), fp_NM3)),
-    # fpar(ftext(paste0("(",DryRM,")"),fp_NM3)),
-    # fpar(ftext("Wet Season", fp_NM6)),
-    # fpar(ftext(paste0(MinRFW4," to ",MaxRFW4,RFUnit,"/month"), fp_NM3)),
-    # fpar(ftext(paste0("(",WetRM,")"),fp_NM3)),
     fpar(ftext(        "                    ", fp_Fig2)),
     fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in rainfall under RCP 4.5 and 8.5 ",
                       "conditions. At ",SNameF,", annual rainfall is projected to ",RF40_4.5_ch," by ",abs(RF40_4.5)," inches (RCP 4.5), ",
@@ -1178,12 +1157,13 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext("Average Rainfall Change", FTXTT),fp_p = fp_par(text.align = "center")),
     fpar(ftext("End-of-Century (2100)", FTXTT),fp_p = fp_par(text.align = "center")))
 
+  # get PERCENT change
   RFA_Thresh100_D4.5 <- Down[1,2]
   RFA_Thresh100_D8.5 <- Down[4,2]
   RFA_Thresh100_S4.5 <- Down[9,2]
   RFA_Thresh100_S8.5 <- Down[12,2]
   
-  # Find largest change value for each RCP scenario
+  # Find largest percent change value for each RCP scenario
   ifelse(abs(RFA_Thresh100_D4.5)>=abs(RFA_Thresh100_S4.5), RF100_4.5c<-RFA_Thresh100_D4.5, RF100_4.5c<-RFA_Thresh100_S4.5)
   ifelse(abs(RFA_Thresh100_D8.5)>=abs(RFA_Thresh100_S8.5), RF100_8.5c<-RFA_Thresh100_D8.5, RF100_8.5c<-RFA_Thresh100_S8.5)
   
@@ -1194,46 +1174,28 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   # RFD_Thresh40 <-   Down[c(16,19),2]
   # RFW_Thresh40 <-   Down[c(17,20),2]
   RFA_100m<-min(RFA_Thresh100)
+  # report minimum and maximum percent change
+  AnnualR  <- paste(min(RFA_Thresh100), " to ", max(RFA_Thresh100), "% change from present")
+  AnnualR
   
-  #Annual RF
+  # get minimum and maximum AMMOUNT change
   RFA <- CLIMA[1,14]
   MinRF <- round(RFA * (min(RFA_Thresh100*0.01)),0)
   MaxRF <- round(RFA * (max(RFA_Thresh100*0.01)),0)
   if(MinRF>=0) {MinRF<-paste0("+",MinRF)}
   if(MaxRF>=0) {MaxRF<-paste0("+",MaxRF)}
   
+  # get RCP setting AMMOUNT changes
   RF100_4.5a <- round(RFA * (RF100_4.5c*0.01),0)
   RF100_8.5a <- round(RFA * (RF100_8.5c*0.01),0)
-  
-  # RFD_Thresh100 <-  Down[c(2,5,10,13),2]
-  # RFW_Thresh100 <-  Down[c(3,6,11,14),2]
-
-  # #Dry Season 
-  # #DryM
-  # MinRFD <- round(DryM * (min(RFD_Thresh100*0.01)),0)
-  # MaxRFD <- round(DryM * (max(RFD_Thresh100*0.01)),0)
-  # 
-  # #WetM
-  # MinRFW <- round(WetM * (min(RFW_Thresh100*0.01)),0)
-  # MaxRFW <- round(WetM * (max(RFW_Thresh100*0.01)),0)
 
   # choose whether text says "increase" or "decrease"
   ifelse(RF100_4.5c>=0, RF100_4.5t<-"increase", RF100_4.5t<-"decrease")
   ifelse(RF100_8.5c>=0, RF100_8.5t<-"increase", RF100_8.5t<-"decrease")
-  # if(RFA_Thresh100_S4.5>=0) {RF100_S4.5_ch<-"increase"}
-  # if(RFA_Thresh100_S4.5<0) {RF100_S4.5_ch<-"decrease"}
-  # if(RFA_Thresh100_S8.5>=0) {RF100_S8.5_ch<-"increase"}
-  # if(RFA_Thresh100_S8.5<0) {RF100_S8.5_ch<-"decrease"}
-  
+
   # choose whether change value has + or - before it
   ifelse(RF100_4.5c>=0, RF100_4.5c<-paste0("+",RF100_4.5c), RF100_4.5c<-RF100_4.5c)
   ifelse(RF100_8.5c>=0, RF100_8.5c<-paste0("+",RF100_8.5c), RF100_8.5c<-RF100_8.5c)
-  
- AnnualR  <- paste(min(RFA_Thresh100), " to ", max(RFA_Thresh100), "% change from present")
- AnnualR
- # DryR  <- paste(min(RFD_Thresh100), " to ", max(RFD_Thresh100), "% Change")
- # WetR  <- paste(min(RFW_Thresh100), " to ", max(RFW_Thresh100), "% Change") 
- #  
 
  # determine if the downscaling method outputs agree on direction of change, and choose the appropriate text
  ifelse(RFA_Thresh100_D4.5>=0, a<-1, a<-2)
@@ -1260,13 +1222,13 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
  {RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
                         "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
                         ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
- 
+ AnnualR
   RF_Down <-  block_list(
     fpar(ftext("Rainfall in the Year 2100" , fp_NM5)),
     fpar(ftext(        "                    ", fp_Fig2)),
     fpar(ftext("Annual", fp_NM6)),
     fpar(ftext(paste0(RF100_4.5a," to ",RF100_8.5a,RFUnit,"/year"), fp_NM3)),
-    fpar(ftext(paste0("(",AnnualR,")"),fp_NM3)),
+    fpar(ftext(AnnualR,fp_NM3)),
     # fpar(ftext("Dry Season", fp_NM6)),
     # fpar(ftext(paste0(MinRFD," to ",MaxRFD,RFUnit,"/month"), fp_NM3)),
     # fpar(ftext(paste0("(",DryR,")"),fp_NM3)),
@@ -1296,39 +1258,26 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext("Average Air Temperature Change", FTXTT),fp_p = fp_par(text.align = "center")),
     fpar(ftext("Mid-Century (2040-2070)", FTXTT),fp_p = fp_par(text.align = "center")))
  
+  # get AMMOUNT change (deg F)
   Down
-  TAA_Thresh40_4.5 <-   Down[c(21),2]
-  TAA_Thresh40_8.5 <-   Down[c(22),2]
+  TAA_Thresh40_4.5 <-   Down[c(23),2]
+  TAA_Thresh40_4.5
+  TAA_Thresh40_8.5 <-   Down[c(24),2]
   
-  #Annual TA
-  TAA <- CLIMA[3,14]
-  TA40_4.5 <- round(TAA * (TAA_Thresh40_4.5*0.01),0)
-  TA40_8.5 <- round(TAA * (TAA_Thresh40_8.5*0.01),0)
-  
-  TAA_RM  <- paste0(TA40_4.5," to ",TA40_8.5,"°F")
+  TAA_RM  <- paste0(TAA_Thresh40_4.5," to ",TAA_Thresh40_8.5,"°F")
   TAA_RM
-  TAAnnualRM  <- paste0(TAA_Thresh40_4.5," to ",TAA_Thresh40_8.5,"% change from present")
+  
+  # get percent change
+  TAA <- CLIMA[3,14]
+  TA40_4.5 <- round((TAA_Thresh40_4.5*100)/TAA,0)
+  TA40_8.5 <- round((TAA_Thresh40_8.5*100)/TAA,0)
+  
+  TAAnnualRM  <- paste0(TA40_4.5," to ",TA40_8.5,"% change from present")
   TAAnnualRM
   
   # choose whether text says "increase" or "decrease"
   ifelse(TAA_Thresh40_4.5>=0, TA40_4.5_ch<-"increase", TA40_4.5_ch<-"decrease")
   ifelse(TAA_Thresh40_8.5>=0, TA40_8.5_ch<-"increase", TA40_8.5_ch<-"decrease")
-  
-  TAA_Thresh100 <-  Down[c(7,8,21,22),2]
-  
-  # TA_Down4 <-  block_list(
-  #   fpar(ftext( "                    ", fp_Fig2)),
-  #   fpar(ftext("Mean Temperature Now" , fp_NM6)),
-  #   fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
-  #   fpar(ftext( "                    ", fp_Fig2)),
-  #   fpar(ftext("Mean Temperature 2040-2070" , fp_NM6)),
-  #   fpar(ftext(paste0(MinTA40,TUnit," to ", MaxTA40,TUnit), fp_NM3)),
-  #   fpar(ftext(Tchg2040, fp_NM3)),
-  #   fpar(ftext( "                    ", fp_Fig2)),
-  #   fpar(ftext(        "                    ", fp_Fig2)),
-  #   fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
-  #             "(RCP 4.5) and high emissions (RCP 8.5) scenarios, for the ", 
-  #              "Statistical Downscaling approach."), fp_NM2)))
   
   TA_Down4 <-  block_list(
     fpar(ftext("Air Temp. for Years 2040-2070" , fp_NM5)),
@@ -1338,8 +1287,8 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext(TAAnnualRM,fp_NM3)),
     fpar(ftext(        "                    ", fp_Fig2)),
     fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in air temperature under RCP 4.5 and 8.5 ",
-                      "conditions. At ",SNameF,", air temperature is projected to ",TA40_4.5_ch," by ",abs(TA40_4.5),"°F (RCP 4.5), ",
-                      "or ",TA40_8.5_ch," by ",abs(TA40_8.5),"°F (RCP 8.5) by mid-century."), fp_NM2)))
+                      "conditions. At ",SNameF,", air temperature is projected to ",TA40_4.5_ch," by ",abs(TAA_Thresh40_4.5),"°F (RCP 4.5), ",
+                      "or ",TA40_8.5_ch," by ",abs(TAA_Thresh40_8.5),"°F (RCP 8.5) by mid-century."), fp_NM2)))
   TA_Down4
   
   TA40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDs_Temp2040.png")
@@ -1351,72 +1300,33 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                       "RCP 4.5 (left) and RCP 8.5 (right)."), fp_Fig)))
   
   #################### Slide 25 Temperature 2100
-  
-  # S22_TIT<- block_list(
-  #   fpar(ftext("End-of-Century Change in Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
-  # 
-  # 
-  # # TAA_Thresh100 <-  Down[c(7,8,21,22),2]
-  # # 
-  # # #Annual RF
-  # # TAA <- CLIMA[3,14]
-  # # MinTA <- round(TAA + min(TAA_Thresh100),1)
-  # # MaxTA <- round(TAA + max(TAA_Thresh100),1)
-  # # AvgTa <- round(mean(TAA_Thresh100),1)
-  # 
-  # 
-  # Tchg2100  <- paste0("(",min(TAA_Thresh100), TUnit, " to ", max(TAA_Thresh100), TUnit," Change)") 
-  # 
-  # 
-  # TA_Down <-  block_list(
-  #   fpar(ftext( "                    ", fp_Fig2)),
-  #   fpar(ftext("Mean Temperature Now" , fp_NM6)),
-  #   fpar(ftext(paste0(TAA,TUnit), fp_NM3)),
-  #   fpar(ftext( "                    ", fp_Fig2)),
-  #   fpar(ftext("Mean Temperature 2100" , fp_NM6)),
-  #   fpar(ftext(paste0(MinTA,TUnit," to ", MaxTA,TUnit), fp_NM3)),
-  #   fpar(ftext(Tchg2100, fp_NM3)),
-  #   fpar(ftext("                    ", fp_Fig2)),
-  #   fpar(ftext("                    ", fp_Fig2)),
-  #   fpar(ftext(paste0("The range in projections include estimates for both low emission ", 
-  #                     "(RCP4.5) and high emissions (RCP8.5) scenarios, for both the ", 
-  #                     "Dynamical and Statistical Downscaling approaches."), fp_NM2)))
-  # 
-  # 
-  # 
-  # 
-  # FIG_19 <- block_list(
-  #   fpar(ftext(paste0("Figure 25. Downscaled projected change in mean temperature ",  
-  #                     "(Year 2100) at ",SNameF,", Dynamical Downscaling (DyDs), ",  
-  #                     "Statistical Downscaling (StDs)."), fp_Fig)))
-  
-  
+
   S22_TIT<- block_list(
     fpar(ftext("Average Air Temperature Change", FTXTT),fp_p = fp_par(text.align = "center")),
     fpar(ftext("End-of-Century (2100)", FTXTT),fp_p = fp_par(text.align = "center")))
   
+  # get ammount change (deg F)
   TAA_Thresh100_D4.5 <- Down[7,2]
   TAA_Thresh100_D8.5 <- Down[8,2]
   TAA_Thresh100_S4.5 <- Down[21,2]
   TAA_Thresh100_S8.5 <- Down[22,2]
   
   # Find largest change value for each RCP scenario
-  ifelse(abs(TAA_Thresh100_D4.5)>=abs(TAA_Thresh100_S4.5), TA100_4.5c<-TAA_Thresh100_D4.5, TA100_4.5c<-TAA_Thresh100_S4.5)
+  ifelse(abs(TAA_Thresh100_D4.5)>=abs(TAA_Thresh100_S4.5), TA100_4.5c<-TAA_Thresh100_S4.5, TA100_4.5c<-TAA_Thresh100_D4.5)
   ifelse(abs(TAA_Thresh100_D8.5)>=abs(TAA_Thresh100_S8.5), TA100_8.5c<-TAA_Thresh100_D8.5, TA100_8.5c<-TAA_Thresh100_S8.5)
-  Down
+  
+  # find minimum change
   TAA_Thresh100 <-  Down[c(7,8,21,22),2]
   TAA_100m<-min(TAA_Thresh100)
-  CLIMA
-  
-  #Annual TA
+  TAA_100ma<-max(TAA_Thresh100)
+
+  # get percent change
   TAA <- CLIMA[3,14]
-  MinTA <- round(TAA * (min(TAA_Thresh100*0.01)),0)
-  MaxTA <- round(TAA * (max(TAA_Thresh100*0.01)),0)
-  # if(MinTA>=0) {MinTA<-paste0("+",MinTA)}
-  # if(MaxTA>=0) {MaxTA<-paste0("+",MaxTA)}
-  
-  TA100_4.5a <- round(TAA * (TA100_4.5c*0.01),0)
-  TA100_8.5a <- round(TAA * (TA100_8.5c*0.01),0)
+  MinTA <- round((min(TAA_Thresh100*100))/TAA,0)
+  MaxTA <- round((max(TAA_Thresh100*100))/TAA,0)
+
+  TA100_4.5a <- round((TA100_4.5c*100)/TAA,0)
+  TA100_8.5a <- round((TA100_8.5c*100)/TAA,0)
   
   # choose whether text says "increase" or "decrease"
   ifelse(TA100_4.5c>=0, TA100_4.5t<-"increase", TA100_4.5t<-"decrease")
@@ -1426,7 +1336,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   # ifelse(TA100_4.5c>=0, TA100_4.5c<-paste0("+ ",TA100_4.5c), TA100_4.5c<-TA100_4.5c)
   # ifelse(TA100_8.5c>=0, TA100_8.5c<-paste0("+ ",TA100_8.5c), TA100_8.5c<-TA100_8.5c)
   
-  AnnualT  <- paste(min(TAA_Thresh100), " to ", max(TAA_Thresh100), "% change from present")
+  AnnualT  <- paste(MinTA, " to ", MaxTA, "% change from present")
   AnnualT
   # DryR  <- paste(min(TAD_Thresh100), " to ", max(TAD_Thresh100), "% Change")
   # WetR  <- paste(min(TAW_Thresh100), " to ", max(TAW_Thresh100), "% Change") 
@@ -1442,17 +1352,17 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   if(a==b && c==d)
   {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
                          "change in air temperature under RCP 4.5 and 8.5 conditions. At ",SNameF,
-                         ", air temperature is projected to ",TA100_4.5t," by ",abs(TA100_4.5a),
-                         " °F (RCP 4.5), or ",TA100_8.5t," by ",abs(TA100_8.5a)," °F (RCP 8.5) by end-of-century."), fp_NM2)}
+                         ", air temperature is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
+                         " °F (RCP 4.5), or ",TA100_8.5t," by ",abs(TA100_8.5c)," °F (RCP 8.5) by end-of-century."), fp_NM2)}
   if(a!=b && c==d)
   {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
                          "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
                          ", the models do not agree on the direction of change for RCP 4.5. Annual ",
-                         "rainfall is projected to ",TA100_8.5t," by ",abs(TA100_8.5a)," °F (RCP 8.5) by end-of-century."), fp_NM2)}
+                         "rainfall is projected to ",TA100_8.5t," by ",abs(TA100_8.5c)," °F (RCP 8.5) by end-of-century."), fp_NM2)}
   if(a==b && c!=d)
   {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
                          "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-                         ", annual rainfall is projected to ",TA100_4.5t," by ",abs(TA100_4.5a),
+                         ", annual rainfall is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
                          " °F (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
   if(a!=b && c!=d)
   {TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
@@ -1464,7 +1374,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     fpar(ftext("Air Temp. in the Year 2100" , fp_NM5)),
     fpar(ftext(        "                    ", fp_Fig2)),
     fpar(ftext("Change in Air Temperature", fp_NM6)),
-    fpar(ftext(paste0(TA100_4.5a," to ",TA100_8.5a,"°F "), fp_NM3)),
+    fpar(ftext(paste0(TA100_4.5c," to ",TA100_8.5c,"°F "), fp_NM3)),
     fpar(ftext(AnnualT, fp_NM3)),
     fpar(ftext(        "                    ", fp_Fig2)),
     fpar(TA2100t))
@@ -1504,9 +1414,9 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                  CNTDRT, " occurring over the record which is approximately ",DecD," per decade. A total of ",SoG, " drought events were at severe strength ",
                  "or greater and the longest drought lasted for a total of ", LongD, " consecutive months. ",
                  "Future projections of rainfall are uncertain, with end-of-century annual changes ranging from ", min(RFA_Thresh100)," to " ,max(RFA_Thresh100),
-                 ". Future projections of temperature suggest an increase of ", TA40_4.5,TUnit, 
-                 " to ", TA40_8.5,TUnit," by mid century (2040-2070) ",
-                 "and an increase of ", MinTA,TUnit," to ",  MaxTA, TUnit," by the end of the century (2100). ")
+                 ". Future projections of temperature suggest an increase of ", TAA_Thresh40_4.5,TUnit, 
+                 " to ", TAA_Thresh40_8.5,TUnit," by mid century (2040-2070) ",
+                 "and an increase of ", TAA_100m,TUnit," to ",  TAA_100ma, TUnit," by the end of the century (2100). ")
                  
                  fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17) 
                  fp_Summary <- fpar(ftext(Summary, fp_Tx))
@@ -2048,9 +1958,6 @@ add_slide("Two Content","Office Theme") %>%
   ph_with(my_pres, value = "Elison Timm et al., 2015; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = RF10085img, location = ph_location(label = "my_name",
                                                    left = 4.6, top = 2, width = 5.3, height = 3.6)) %>%
-
-  
-  mypowerpoint <- read_pptx() %>%
     
     #Slide 24
     add_slide("Two Content","Office Theme") %>%
@@ -2079,9 +1986,6 @@ add_slide("Two Content","Office Theme") %>%
     ph_with(my_pres, value = "Elison Timm 2017; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
     ph_with(value = TA100img, location = ph_location(label = "my_name",
                                                        left = 4.6, top = 2, width = 5.3, height = 3.6)) %>%
-    
-    
-    print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_tstst.pptx"))
     
     #Slide 26 #Summary
     add_slide("Title and Content","Office Theme") %>%
@@ -2191,7 +2095,7 @@ add_slide("Two Content","Office Theme") %>%
                                                  left = 2, top = 1, width = 6, height = 6))%>%
 
   
-  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v3.pptx"))
+  print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v4.pptx"))
 
   
   

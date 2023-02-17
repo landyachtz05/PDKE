@@ -2703,8 +2703,8 @@ DyRF100UP <- max(c(Dy4.5A_x, Dy4.5D_x, Dy4.5W_x, Dy8.5A_x, Dy8.5D_x, Dy8.5W_x))
 DyRF100LO <- min(c(Dy4.5A_n, Dy4.5D_n, Dy4.5W_n, Dy8.5A_n, Dy8.5D_n, Dy8.5W_n))
 
 ########## DyDs Temperature 2100 
-
 #Percent Change DyDs RCP 4.5 & 8.5
+DyDs_files
 DyDs_P_4.5_T_ChgF  <- raster(DyDs_files[37])
 if(TUnit == "\u00B0F") {DyDs_P_4.5_T_ChgF  <- raster(DyDs_files[39])}
 Dy4.5A_MT <- mask(x = DyDs_P_4.5_T_ChgF, mask = PWW_T)
