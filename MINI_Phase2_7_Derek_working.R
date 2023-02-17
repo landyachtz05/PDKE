@@ -213,16 +213,23 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Kapapala Ranch"
 # NM_s <- "Kapapala Ranch"
 
-#Big Island (whole island)
-NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")
+#Kaupo Ranch, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Big Island - Hawaii"
-NM_s <- "Big Island"
+NM <- "Kaupo Ranch"
+NM_s <- "Kaupo Ranch"
+
+# #Big Island (whole island)
+# NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Big Island - Hawaii"
+# NM_s <- "Big Island"
 
 # Set island
-ILE<-"Big Island"
-ILE_s<-"BI"
+ILE<-"Maui Nui"
+ILE_s<-"MN"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
 if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
