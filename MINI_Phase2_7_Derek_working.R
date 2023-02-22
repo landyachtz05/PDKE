@@ -212,13 +212,13 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # HALE@data
 # NM <- "Kapapala Ranch"
 # NM_s <- "Kapapala Ranch"
-
-#Kaupo Ranch, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
-HALE <- NP_ALL
-HALE@data
-NM <- "Kaupo Ranch"
-NM_s <- "Kaupo Ranch"
+# 
+# #Kaupo Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Kaupo Ranch"
+# NM_s <- "Kaupo Ranch"
 
 # #Big Island (whole island)
 # NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")
@@ -227,9 +227,30 @@ NM_s <- "Kaupo Ranch"
 # NM <- "Big Island - Hawaii"
 # NM_s <- "Big Island"
 
+# #Parker Ranch, Oahu
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Parker Ranch/Parker Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Parker Ranch"
+# NM_s <- "Parker Ranch"
+
+# #Rocker G Livestock, Oahu
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/RockerG_Ranch/Rocker_G.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Rocker G Livestock"
+# NM_s <- "Rocker G Livestock"
+
+#Z Bar Ranch, Hawaii
+NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Zbar_Ranch/zbar_new_merge.shp")
+HALE <- NP_ALL
+HALE@data
+NM <- "Z Bar Ranch"
+NM_s <- "Z Bar Ranch"
+
 # Set island
-ILE<-"Maui Nui"
-ILE_s<-"MN"
+ILE<-"Big Island"
+ILE_s<-"BI"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
 if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
