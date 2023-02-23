@@ -164,7 +164,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-1
+f<-17
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
@@ -562,9 +562,9 @@ SeaD <- round((WetM - DryM),1)
 P<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"RF percentiles.csv"),sep=",")
 D_RF_P<-P[1,2]
 W_RF_P<-P[1,1]
-
+RFUnit3
 SEA <- paste0("Hawaii has two distinct 6-month seasons of rainfall: the Wet season (November to April) and the Dry season (May to October).",
-              " Average Wet season monthly rainfall across ",SNameF," is ",WetM, RFUnit3," and Dry season is ",DryM, RFUnit3,
+              " Average Wet season monthly rainfall across ",SNameF," is ",WetM," ",RFUnit2," and Dry season is ",DryM," ",RFUnit2,
               ". These monthly values are in the ",W_RF_P," and ",D_RF_P," percentiles for rainfall across the whole state, respectively.
               
 Management plans should anticipate and minimize negative impacts of these seasonal rainfall variations.")
@@ -740,6 +740,7 @@ mt<-max(ATd$max.x)
 mt2<-round(mt, 1)
 
 hot<-ATd[which(ATd$max.x == mt),]
+if(nrow(hot)>1) {hot<-hot[nrow(hot),]}
 hot.y<-hot$year
 
 if(hot$month == 1) {hot.m<-c("January")}

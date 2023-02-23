@@ -264,3 +264,48 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
       write.csv(event.t, "haleakala_spi_drought_events_derek2.csv")
     
 ### END ###
+ 
+      
+     
+##################################
+### EGWAS ###
+
+# Calculate site's min, max, mean SPI over entire rainfall record (1920 - 2022)
+      
+setwd("E:/PDKE/CCVD/MINI_Phase2/Kapapala Ranch/")
+
+spi12<-read.csv("Kapapala RanchSPI_12.csv")
+head(spi12, 20)
+
+min<-min(spi12$SP, na.rm=T)
+
+
+### Make season-year average SPI value dataset for EGWAS ranch sites
+
+setwd("E:/PDKE/CCVD/MINI_Phase2/Kapapala Ranch/")
+
+spi12<-read.csv("Kapapala RanchSPI_12.csv")
+head(spi12, 20)
+
+# get month and year columns
+spi12$year<-substr(spi12$DT,1,4)
+spi12$month<-as.numeric(substr(spi12$DT,6,7))
+
+### seasons are wet november-march, dry april-october, so needs to start in 1921 dry season
+spi12<-spi12[16:nrow(spi12),]
+spi12<-spi12[which(spi12$DT>as.Date("1921-04-01")),]
+
+spi12$season<-"na"
+
+# make season column
+for (x in 1:nrow(spi12)) {
+  d<-spi12[x,]
+  if(d$month > 4 && d$month < 11) {spi12[x,]$season <-"dry"}
+  if(d$month > 10 | d$month < 5) {spi12[x,]$season <- "wet"}
+}
+
+# calculate average seasonal SPI value
+dry<-mean(spi12[which(spi12$season == "dry"),]$SP)
+dry
+wet<-mean(spi12[which(spi12$season == "wet"),]$SP)
+wet

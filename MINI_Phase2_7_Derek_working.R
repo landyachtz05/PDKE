@@ -227,12 +227,12 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Big Island - Hawaii"
 # NM_s <- "Big Island"
 
-# #Parker Ranch, Oahu
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Parker Ranch/Parker Ranch.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Parker Ranch"
-# NM_s <- "Parker Ranch"
+#Parker Ranch, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Parker Ranch/Parker Ranch.shp")
+HALE <- NP_ALL
+HALE@data
+NM <- "Parker Ranch"
+NM_s <- "Parker Ranch"
 
 # #Rocker G Livestock, Oahu
 # NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/RockerG_Ranch/Rocker_G.shp")
@@ -241,12 +241,12 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Rocker G Livestock"
 # NM_s <- "Rocker G Livestock"
 
-#Z Bar Ranch, Hawaii
-NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Zbar_Ranch/zbar_new_merge.shp")
-HALE <- NP_ALL
-HALE@data
-NM <- "Z Bar Ranch"
-NM_s <- "Z Bar Ranch"
+# #Z Bar Ranch, Hawaii
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Zbar_Ranch/zbar_new_merge.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Z Bar Ranch"
+# NM_s <- "Z Bar Ranch"
 
 # Set island
 ILE<-"Big Island"
@@ -4086,6 +4086,23 @@ Cell.SPICNT
 ##########   Remove Postive SPI and make absloute values 
 ### Derek's code
 SPIVEC<-SPI_ALL[which(SPI_ALL$m.scale == 12),]$SPI
+# SPIVEC[SPIVEC > 0] <- 0
+# SPIVEC_Abs <- as.vector(abs(SPIVEC))
+
+M_SPI.ts <- ts(SPIVEC, c(1920,1), end = c(2022,12), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(2022, 12)))
+DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="months"))
+#short.date_M = strftime(MonthlyRF$Ndate, "%Y-%m")
+
+xx <- data.frame(DateT1,myts66)
+colnames(xx)<- c("DT","SP")
+xx$DT <- as.Date(xx$DT)
+xx
+
+write.csv(xx,          paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"SPI_12.csv"),row.names = F)
+
+# change positive SPI values to 0 and make drought figure
+SPIVEC<-SPI_ALL[which(SPI_ALL$m.scale == 12),]$SPI
 SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
@@ -4097,8 +4114,7 @@ DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="months")
 xx <- data.frame(DateT1,myts66)
 colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
-
-write.csv(xx,          paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"SPI_12.csv"),row.names = F)
+xx
 
 dpi=300
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"Drought_History.png"),width=6.5*dpi,height=4*dpi,res=dpi)
