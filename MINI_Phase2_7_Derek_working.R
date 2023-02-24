@@ -178,12 +178,12 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Egami Ranch"
 # NM_s <- "Egami Ranch"
 
-# #Ernest Deluz Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Ernest De Luz Ranch"
-# NM_s <- "Ernest De Luz Ranch"
+#Ernest Deluz Ranch, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
+HALE <- NP_ALL
+HALE@data
+NM <- "Ernest De Luz Ranch"
+NM_s <- "Ernest De Luz Ranch"
 
 # #Gay and Robinson Ranch, Kauai
 # NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Gay_Robinson_ranch/Gay and Robinson Ranch.shp")
@@ -227,12 +227,12 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Big Island - Hawaii"
 # NM_s <- "Big Island"
 
-#Parker Ranch, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Parker Ranch/Parker Ranch.shp")
-HALE <- NP_ALL
-HALE@data
-NM <- "Parker Ranch"
-NM_s <- "Parker Ranch"
+# #Parker Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Parker Ranch/Parker Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Parker Ranch"
+# NM_s <- "Parker Ranch"
 
 # #Rocker G Livestock, Oahu
 # NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/RockerG_Ranch/Rocker_G.shp")
