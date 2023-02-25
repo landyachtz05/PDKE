@@ -178,12 +178,12 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Egami Ranch"
 # NM_s <- "Egami Ranch"
 
-#Ernest Deluz Ranch, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
-HALE <- NP_ALL
-HALE@data
-NM <- "Ernest De Luz Ranch"
-NM_s <- "Ernest De Luz Ranch"
+# #Ernest Deluz Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Ernest De Luz Ranch"
+# NM_s <- "Ernest De Luz Ranch"
 
 # #Gay and Robinson Ranch, Kauai
 # NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Gay_Robinson_ranch/Gay and Robinson Ranch.shp")
@@ -199,7 +199,7 @@ NM_s <- "Ernest De Luz Ranch"
 # NM <- "Hawaii Ranch"
 # NM_s <- "Hawaii Ranch"
 
-# #Hawaii Ranch, Kauai
+# #Kaonoulu Ranch, Maui
 # NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaonolulu Ranch/Kaonoulu Ranch.shp")
 # HALE <- NP_ALL
 # HALE@data
@@ -213,12 +213,12 @@ NM_s <- "Ernest De Luz Ranch"
 # NM <- "Kapapala Ranch"
 # NM_s <- "Kapapala Ranch"
 # 
-# #Kaupo Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Kaupo Ranch"
-# NM_s <- "Kaupo Ranch"
+#Kaupo Ranch, Big Island
+NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
+HALE <- NP_ALL
+HALE@data
+NM <- "Kaupo Ranch"
+NM_s <- "Kaupo Ranch"
 
 # #Big Island (whole island)
 # NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")

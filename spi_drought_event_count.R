@@ -271,41 +271,53 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
 ### EGWAS ###
 
 # Calculate site's min, max, mean SPI over entire rainfall record (1920 - 2022)
-      
-setwd("E:/PDKE/CCVD/MINI_Phase2/Kapapala Ranch/")
 
-spi12<-read.csv("Kapapala RanchSPI_12.csv")
+# ranch name
+ranch<-"Egami Ranch"
+setwd(paste0("E:/PDKE/CCVD/MINI_Phase2/",ranch,"/"))
+
+spi12<-read.csv(paste0(ranch,"SPI_12.csv"))
 head(spi12, 20)
 
 min<-min(spi12$SP, na.rm=T)
+mean<-mean(spi12$SP, na.rm=T)
+max<-max(spi12$SP, na.rm=T)
 
-
-### Make season-year average SPI value dataset for EGWAS ranch sites
-
-setwd("E:/PDKE/CCVD/MINI_Phase2/Kapapala Ranch/")
-
-spi12<-read.csv("Kapapala RanchSPI_12.csv")
-head(spi12, 20)
+### Make monthly min, mean, max SPI value dataset
 
 # get month and year columns
 spi12$year<-substr(spi12$DT,1,4)
 spi12$month<-as.numeric(substr(spi12$DT,6,7))
 
-### seasons are wet november-march, dry april-october, so needs to start in 1921 dry season
-spi12<-spi12[16:nrow(spi12),]
-spi12<-spi12[which(spi12$DT>as.Date("1921-04-01")),]
+# remove NA rows
+spi12<-spi12[which(!is.na(spi12$SP)),]
 
-spi12$season<-"na"
+# aggregate over months
+spi12mean<-sapply(split(spi12$SP,spi12$month),mean)
+spi12min<-sapply(split(spi12$SP,spi12$month),min)
+spi12max<-sapply(split(spi12$SP,spi12$month),max)
+spi12mean
 
-# make season column
-for (x in 1:nrow(spi12)) {
-  d<-spi12[x,]
-  if(d$month > 4 && d$month < 11) {spi12[x,]$season <-"dry"}
-  if(d$month > 10 | d$month < 5) {spi12[x,]$season <- "wet"}
-}
+spi12m<-rbind(spi12mean,spi12min,spi12max)
+spi12m
 
-# calculate average seasonal SPI value
-dry<-mean(spi12[which(spi12$season == "dry"),]$SP)
-dry
-wet<-mean(spi12[which(spi12$season == "wet"),]$SP)
-wet
+write.csv(spi12m, paste0(ranch,"SPI_12 monthly.csv"))
+
+# # ### seasons are wet november-march, dry april-october, so needs to start in 1921 dry season
+# # spi12<-spi12[16:nrow(spi12),]
+# # spi12<-spi12[which(spi12$DT>as.Date("1921-04-01")),]
+# 
+# spi12$season<-"na"
+# 
+# # make season column
+# for (x in 1:nrow(spi12)) {
+#   d<-spi12[x,]
+#   if(d$month > 4 && d$month < 11) {spi12[x,]$season <-"dry"}
+#   if(d$month > 10 | d$month < 5) {spi12[x,]$season <- "wet"}
+# }
+# 
+# # calculate average seasonal SPI value
+# dry<-mean(spi12[which(spi12$season == "dry"),]$SP)
+# dry
+# wet<-mean(spi12[which(spi12$season == "wet"),]$SP)
+# wet
