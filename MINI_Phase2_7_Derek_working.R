@@ -213,19 +213,12 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Kapapala Ranch"
 # NM_s <- "Kapapala Ranch"
 # 
-#Kaupo Ranch, Big Island
-NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
-HALE <- NP_ALL
-HALE@data
-NM <- "Kaupo Ranch"
-NM_s <- "Kaupo Ranch"
-
-# #Big Island (whole island)
-# NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")
+# #Kaupo Ranch, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
 # HALE <- NP_ALL
 # HALE@data
-# NM <- "Big Island - Hawaii"
-# NM_s <- "Big Island"
+# NM <- "Kaupo Ranch"
+# NM_s <- "Kaupo Ranch"
 
 # #Parker Ranch, Big Island
 # NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Parker Ranch/Parker Ranch.shp")
@@ -248,9 +241,30 @@ NM_s <- "Kaupo Ranch"
 # NM <- "Z Bar Ranch"
 # NM_s <- "Z Bar Ranch"
 
+# #Big Island (whole island)
+# NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Big Island - Hawaii"
+# NM_s <- "Big Island"
+
+# #Molokai (whole island)
+# NP_ALL <- readOGR("E:/PDKE/CCVD/molokai_coastline.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Molokai - Hawaii"
+# NM_s <- "Molokai"
+
+#Lanai (whole island)
+NP_ALL <- readOGR("E:/PDKE/CCVD/lanai_coastline.shp")
+HALE <- NP_ALL
+HALE@data
+NM <- "Lanai - Hawaii"
+NM_s <- "Lanai"
+
 # Set island
-ILE<-"Big Island"
-ILE_s<-"BI"
+ILE<-"Lanai"
+ILE_s<-"LA"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
 if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
@@ -530,25 +544,24 @@ legend("topright", legend = c("Fire Occurrence",UNIT_Ns[[u]]), pch=c(15,15),col=
 
 dev.off()
 
-########## Road Map
-
-Roads_CropI <- crop(x = F_Roads, y = extent(CoastM))
-
-TITF <- paste0("Forest Roads (",Iname,")")
-
-dpi=300
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Forest_Roads.png"),width=5*dpi,height=5*dpi,res=dpi)
-
-par(mfrow=c(1,1))
-plot(CoastM,lwd=1,lty = "solid",axes=TRUE,las=2)
-title(TITF , line = 0.5,cex.main = 1.5)
-plot(SH,add=TRUE,lwd=2,col="cyan")
-plot(Roads_CropI,add=TRUE,col="darkgreen")
-
-legend("topright", legend = c("Forest Roads",UNIT_Ns[[u]]), pch=c(15,15),col=c("darkgreen","cyan"),
-       bty = "n", horiz = FALSE, inset = c(0.05, 0.05),cex=0.8)
-
-dev.off()
+# ########## Road Map
+# Roads_CropI <- crop(x = F_Roads, y = extent(CoastM))
+# 
+# TITF <- paste0("Forest Roads (",Iname,")")
+# 
+# dpi=300
+# png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Forest_Roads.png"),width=5*dpi,height=5*dpi,res=dpi)
+# 
+# par(mfrow=c(1,1))
+# plot(CoastM,lwd=1,lty = "solid",axes=TRUE,las=2)
+# title(TITF , line = 0.5,cex.main = 1.5)
+# plot(SH,add=TRUE,lwd=2,col="cyan")
+# plot(Roads_CropI,add=TRUE,col="darkgreen")
+# 
+# legend("topright", legend = c("Forest Roads",UNIT_Ns[[u]]), pch=c(15,15),col=c("darkgreen","cyan"),
+#        bty = "n", horiz = FALSE, inset = c(0.05, 0.05),cex=0.8)
+# 
+# dev.off()
 
 # ########## Trail Map
 # 
@@ -3522,6 +3535,8 @@ LM6R <- summary(LM6)$r.squared
 
 short.date_M = strftime(MRF100$Ndate, "%Y/%m")
 
+rm(mean)
+
 Mean_M_RF = aggregate(as.numeric(MRF100$RF) ~ short.date_M, FUN = mean)
 colnames(Mean_M_RF) <- c("Date","RF")
 short.date_Y = strftime(as.Date(MRF100$Ndate), "%Y")
@@ -4099,7 +4114,40 @@ colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
 xx
 
+
+
+
+
 write.csv(xx,          paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"SPI_12.csv"),row.names = F)
+
+# Calculate monthly climatology SPI-12 values (min, mean, max)
+spi12a<-xx
+head(spi12a, 20)
+
+min<-min(spi12a$SP, na.rm=T)
+mean<-mean(spi12a$SP, na.rm=T)
+max<-max(spi12a$SP, na.rm=T)
+
+### Make monthly min, mean, max SPI value dataset
+
+# get month and year columns
+spi12a$year<-substr(spi12a$DT,1,4)
+spi12a$month<-as.numeric(substr(spi12a$DT,6,7))
+
+# remove NA rows
+spi12a<-spi12a[which(!is.na(spi12a$SP)),]
+
+# aggregate over months
+spi12amean<-sapply(split(spi12a$SP,spi12a$month),mean)
+spi12amin<-sapply(split(spi12a$SP,spi12a$month),min)
+spi12amax<-sapply(split(spi12a$SP,spi12a$month),max)
+spi12amean
+
+spi12am<-rbind(spi12amean,spi12amin,spi12amax)
+rownames(spi12am)<-c("mean","min","max")
+spi12am
+
+write.csv(spi12am, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"SPI_12 monthly.csv"))
 
 # change positive SPI values to 0 and make drought figure
 SPIVEC<-SPI_ALL[which(SPI_ALL$m.scale == 12),]$SPI
@@ -5141,6 +5189,8 @@ table5<-left_join(table2, table4)
 head(table5)
 
 # aggregate over month to calculate total rainfall for each ENSO phase
+rm(mean)
+
 rain7<-aggregate(RF ~ x, table5, FUN=mean)
 rain7
 
@@ -5364,6 +5414,9 @@ dat$date<-as.Date(paste0(dat$year,"-",dat$month,"-01"))
 ### Annual air temp trend
 
 # aggregate monthly to annual air temp
+rm(min)
+rm(max)
+
 dat.y<-aggregate(mean ~ year, dat, mean)
 dat.y$mean<-round(dat.y$mean, digit=2)
 dat.y$meanmin<-round((aggregate(mean ~ year,dat, min))$mean, digits=2)
