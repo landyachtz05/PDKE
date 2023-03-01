@@ -273,7 +273,7 @@ ggplot(spi2, aes(x=date, y=spi_negs)) +
 # Calculate site's min, max, mean SPI over entire rainfall record (1920 - 2022)
 
 # ranch name
-ranch<-"Egami Ranch"
+ranch<-"Z Bar Ranch"
 setwd(paste0("E:/PDKE/CCVD/MINI_Phase2/",ranch,"/"))
 
 spi12<-read.csv(paste0(ranch,"SPI_12.csv"))
