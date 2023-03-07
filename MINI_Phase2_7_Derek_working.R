@@ -255,16 +255,23 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Molokai - Hawaii"
 # NM_s <- "Molokai"
 
-#Lanai (whole island)
-NP_ALL <- readOGR("E:/PDKE/CCVD/lanai_coastline.shp")
+# #Lanai (whole island)
+# NP_ALL <- readOGR("E:/PDKE/CCVD/lanai_coastline.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Lanai - Hawaii"
+# NM_s <- "Lanai"
+
+#Laupahoehoe NARS, Hawaii
+NP_ALL <- readOGR("E:/PDKE/CCVD/laupahoehoe_nars.shp")
 HALE <- NP_ALL
 HALE@data
-NM <- "Lanai - Hawaii"
-NM_s <- "Lanai"
+NM <- "Laupahoehoe Natural Area Reserve"
+NM_s <- "Laupahoehoe"
 
 # Set island
-ILE<-"Lanai"
-ILE_s<-"LA"
+ILE<-"Big Island"
+ILE_s<-"BI"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
 if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
