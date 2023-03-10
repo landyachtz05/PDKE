@@ -164,7 +164,7 @@ D_AGimgM <- external_img(src = D_AGfileM , height = 1, width = 1)
 ######
 RANL
 # LOOP 
-f<-18
+f<-9
 
 #for(f in 1:NF) {
 #for(f in 79:82) {

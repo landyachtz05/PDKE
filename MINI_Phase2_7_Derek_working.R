@@ -157,12 +157,12 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Huawai Watershed"
 # NM_s <- "Huawai"
 
-# #Umipaa Watershed, Molokai
-# NP_ALL <- readOGR("E:/PDKE/CCVD/umipaa_molokai.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Umipaa Watershed"
-# NM_s <- "Umipaa"
+#Umipaa Watershed, Molokai
+NP_ALL <- readOGR("E:/PDKE/CCVD/umipaa_molokai.shp")
+HALE <- NP_ALL
+HALE@data
+NM <- "Umipaa Watershed"
+NM_s <- "Umipaa"
 
 # #Umipaa Watershed, Molokai
 # NP_ALL <- readOGR("E:/PDKE/CCVD/kulanihakoi_maui.shp")
@@ -262,16 +262,30 @@ Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 # NM <- "Lanai - Hawaii"
 # NM_s <- "Lanai"
 
-#Laupahoehoe NARS, Hawaii
-NP_ALL <- readOGR("E:/PDKE/CCVD/laupahoehoe_nars.shp")
-HALE <- NP_ALL
-HALE@data
-NM <- "Laupahoehoe Natural Area Reserve"
-NM_s <- "Laupahoehoe"
+# #Laupahoehoe NARS, Hawaii
+# NP_ALL <- readOGR("E:/PDKE/CCVD/laupahoehoe_nars.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Laupahoehoe Natural Area Reserve"
+# NM_s <- "Laupahoehoe"
+
+# #Hono O Na Pali NAR, Kauai
+# NP_ALL <- readOGR("E:/PDKE/CCVD/hono_o_na_pali_nar.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Hono O Na Pali Natural Area Reserve"
+# NM_s <- "Hono O Na Pali"
+
+# # HAVO, Big Island
+# NP_ALL <- readOGR("E:/PDKE/CCVD/havo.shp")
+# HALE <- NP_ALL
+# HALE@data
+# NM <- "Hawaii Volcanoes National Park"
+# NM_s <- "HAVO"
 
 # Set island
-ILE<-"Big Island"
-ILE_s<-"BI"
+ILE<-"Molokai"
+ILE_s<-"MO"
 
 # Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
 if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
@@ -3352,7 +3366,7 @@ tail(Cell.ML_Maps)
 ###
 
 # ### If working with exported RF dataframes ###
-#     Cell.AF_Maps2<-read.csv("Haleakala National Park/MINI_Phase2 outputs 1/Cell.AF_Maps_9_6_2022.csv")
+#     Cell.AF_Maps2<-read.csv("Umipaa Watershed/MINI_Phase2 outputs 1/Cell.AF_Maps_9_6_2022.csv")
 #     Cell.AF_Maps2<-data.frame(Cell.AF_Maps2[2:ncol(Cell.AF_Maps2)])
 #     head(Cell.AF_Maps2)
 # 
@@ -3452,8 +3466,8 @@ if(RFUnit == " in") {MRF100$RF <-  as.numeric(MRF100$RF) * 0.0393701}
 write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv"),row.names = F)
 
 # ## Can read in the csv from above to start script here
-# setwd("E:/PDKE/CCVD/MINI_Phase2/Hakalau Forest National Wildlife Refuge - Kona Unit")
-# MRF100<-read.csv("Hakalau Forest National Wildlife Refuge - Kona Unit Monthly Rainfall_in.csv")
+# setwd("E:/PDKE/CCVD/MINI_Phase2/Umipaa Watershed")
+# MRF100<-read.csv("Umipaa Watershed Monthly Rainfall_in.csv")
 # # fix month values
 # MRF100$Month<-sub(".*/","",MRF100$Date)
 
