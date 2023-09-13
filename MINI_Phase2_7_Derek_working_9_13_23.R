@@ -18,6 +18,7 @@ library(rgeos)
 library(latticeExtra)
 library(rasterVis)
 library(plotrix)
+library(plyr)
 library(dplyr)
 library(xts)
 library(timeSeries)
@@ -29,22 +30,26 @@ library(hydroTSM)
 library(tiff)
 library(lmomco)
 library(parallel)
-library(plyr)
 library(SPEI)
 library(sf)
 library(ggpubr)
+library(terrainr)
+library(ggmap)
+library(rstudioapi)
+library(RgoogleMaps)
 
+register_google(key="AIzaSyAeNaG0b4Z5cSCAnzCoeniY8-Jl91C-ySI")
 
 ##########   This code will the generate the inputs for a CCVD portfolio
 ##########   Reuired Inputs: 1. Folder destinations 2. Measurementuints 3. Shpaefiles 4. List of files and output names
-##########   Searchable sections of the Code:
+##########   Searchable sections of the CodF:
 ##########   Maps - Elevation - Mean Climate - Downscaling - Rainfall Extract - SPI 1 - SPI 2 - MEI
 
 ##########################################################################################################################
 
-setwd("E:/PDKE/CCVD/MINI_Phase2/")               # WORKING DIRECTORY
-IFOLDER <- "E:/PDKE/CCVD/CCVD INPUTS/"       # INPUT FOLDER
-RFOLDER <- "E:/PDKE/CCVD/MINI_Phase2/"           # OUTPUT FOLDER 1
+setwd("F:/PDKE/CCVD/MINI_Phase2/")               # WORKING DIRECTORY
+IFOLDER <- "F:/PDKE/CCVD/CCVD INPUTS/"       # INPUT FOLDER
+RFOLDER <- "F:/PDKE/CCVD/MINI_Phase2/"           # OUTPUT FOLDER 1
 
 ###########################################################################################################################
 
@@ -70,13 +75,12 @@ ELUnit2 = "ft"
 
 ##########   Mean Climate Data and EXAMPLE RASTER To Set Spatial Extent
 
-Mean_CLIM = dir(paste0(IFOLDER,"Mean Climate/"), pattern="*x.adf", recursive=T, full.names=T)
+Mean_CLIM = dir(paste0(IFOLDER,"Mean Climate"), pattern="*x.adf", recursive=T, full.names=T)
 EXAMP <- raster(Mean_CLIM[71])
-
+Mean_CLIM[71]
 plot(EXAMP)
 
 ############################################################################################################################
-
 ##########   Coastal Shape Files 
 
 Coast <- readOGR(paste0(IFOLDER,"COAST/coast_2/coast_geo_shp.dbf"))
@@ -90,6 +94,7 @@ Coast_BI <- spTransform(Coast_Crop, crs(EXAMP))
 # MAUI
 Coast_Crop <- crop(Coast, extent(-156.75, -155.9257, 20.343, 21.1)) #Maui 
 Coast_MN <- spTransform(Coast_Crop, crs(EXAMP))  
+
 #Molokai
 Coast_Crop <- crop(Coast, extent(-157.58, -156.7, 21.031, 21.997)) #Molokai 
 Coast_MO <- spTransform(Coast_Crop, crs(EXAMP))   
@@ -106,188 +111,89 @@ Coast_KA <- spTransform(Coast_Crop, crs(EXAMP))
 extent(Coast)
 #Kahoolawe 
 Coast_Crop <- crop(Coast, extent(-156.75, -156.5, 20.343, 20.72)) #Maui 
-Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))  
+Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))                                                    
 
+############################################################
 
-# #National Park 
-# NP_ALL <- readOGR("E:/PDKE/CCVD/NPS_-_Land_Resources_Division_Boundary_and_Tract_Data_Service.shp")
-# NP_ALL <- spTransform(NP_ALL, crs(EXAMP))  # Set spatial extent to Example 
-# NPALL <- NP_ALL[NP_ALL@data$STATE == "HI",]
-# NPALL@data
-# NPALL@data$UNIT_CODE
-# HALE <- NPALL[NPALL@data$UNIT_CODE == "HALE",]  #"Haleakala National Park"
-
-# #Waimea Valley
-# NP_ALL <- readOGR("E:/PDKE/CCVD/waimeavalley_watershed.shp")
-# HALE <- NP_ALL
-# HALE@data
-
-# #Kahikinui HHL, Maui
-# NP_ALL <- readOGR("E:/PDKE/CCVD/HHL_kahikinui_maui_WGS.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Hawaiian Homelands - Kahikinui"
-# NM_s <- "Kahikinui"
-
-# #Parker Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/parker_ranch_polygon.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Parker Ranch"
-# NM_s <- "Parker Ranch"
-
-# #Hakalau Koolau Site, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_koolau.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Hakalau Forest National Wildlife Refuge - Koolau Unit"
-# NM_s <- "Hakalau Koolau Unit"
-
-# #Hakalau Kona Site, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/hakalau_kona.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Hakalau Forest National Wildlife Refuge - Kona Unit"
-# NM_s <- "Hakalau Kona Unit"
-
-# #Huawai Watershed, Lanai
-# NP_ALL <- readOGR("E:/PDKE/CCVD/huawai_lanai.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Huawai Watershed"
-# NM_s <- "Huawai"
-
-#Umipaa Watershed, Molokai
-NP_ALL <- readOGR("E:/PDKE/CCVD/umipaa_molokai.shp")
+NP_ALL <- readOGR("F:/PDKE/CCVD/sites/AJ_ranch_area.shp")
 HALE <- NP_ALL
-HALE@data
-NM <- "Umipaa Watershed"
-NM_s <- "Umipaa"
+NM <- "AJ Ranch Area"
+NM_s <- "AJ Ranch"
+ILE<-"Big Island"
+ILE_s<-"BI"
 
-# #Umipaa Watershed, Molokai
-# NP_ALL <- readOGR("E:/PDKE/CCVD/kulanihakoi_maui.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/kaiholena.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Kulanihakoi Watershed"
-# NM_s <- "Kulanihakoi"
+# NM <- "Kaiholena Unit"
+# NM_s <- "Kaiholena"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
 
-# #Egami Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Egami_Ranch/Egami Ranch.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/USA_HI_OhiLan_2021_01_project_boundary.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Egami Ranch"
-# NM_s <- "Egami Ranch"
+# NM <- "Ohia Lani Restoration Site"
+# NM_s <- "Ohia Lani"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
 
-# #Ernest Deluz Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Ernest_Deluz_Ranch/Ernest Deluz Ranch.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/district_11_manoa.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Ernest De Luz Ranch"
-# NM_s <- "Ernest De Luz Ranch"
+# NM <- "State Senate District 11"
+# NM_s <- "District 11"
+# ILE<-"Oahu"
+# ILE_s<-"OA"
 
-# #Gay and Robinson Ranch, Kauai
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Gay_Robinson_ranch/Gay and Robinson Ranch.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/lahaina_fire_handdrawn.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Gay and Robinson Ranch"
-# NM_s <- "Gay and Robinson Ranch"
+# NM <- "Lahaina Wildfire Area"
+# NM_s <- "Lahaina WF"
+# ILE<-"Maui"
+# ILE_s<-"MN"
 
-# #Hawaii Ranch, Kauai
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Hawaii_Ranch/Hawaii Ranch.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/waimea_middle_school.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Hawaii Ranch"
-# NM_s <- "Hawaii Ranch"
+# NM <- "Waimea Middle Public Conversion Charter School"
+# NM_s <- "Waimea Middle School"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
 
-# #Kaonoulu Ranch, Maui
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaonolulu Ranch/Kaonoulu Ranch.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/west_hawaii_explorations_academy2.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Kaonoulu Ranch"
-# NM_s <- "Kaonoulu Ranch"
+# NM <- "West Hawaii Explorations Academy Public Charter School"
+# NM_s <- "WHEA"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
 
-# #Kapapala Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kapapala Ranch/Kapapala Ranch.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/innovations_school.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Kapapala Ranch"
-# NM_s <- "Kapapala Ranch"
-# 
-# #Kaupo Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Kaupo Ranch/Kaupo Ranch.shp")
+# NM <- "Innovations Public Charter School"
+# NM_s <- "Innovations"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
+
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/kealakehe_highschool.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Kaupo Ranch"
-# NM_s <- "Kaupo Ranch"
+# NM <- "Kealakehe High School"
+# NM_s <- "Kealakehe High"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
 
-# #Parker Ranch, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Parker Ranch/Parker Ranch.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/kanu_o_kaaina_school.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Parker Ranch"
-# NM_s <- "Parker Ranch"
+# NM <- "Kanu o ka Aina New Century Public Charter School"
+# NM_s <- "Kanu o ka Aina"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
 
-# #Rocker G Livestock, Oahu
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/RockerG_Ranch/Rocker_G.shp")
+# NP_ALL <- readOGR("F:/PDKE/CCVD/sites/alo_kehau_oka_aina_mauna_school.shp")
 # HALE <- NP_ALL
-# HALE@data
-# NM <- "Rocker G Livestock"
-# NM_s <- "Rocker G Livestock"
+# NM <- "Alo Kehau o ka Aina Mauna"
+# NM_s <- "Alo Kehau"
+# ILE<-"Big Island"
+# ILE_s<-"BI"
 
-# #Z Bar Ranch, Hawaii
-# NP_ALL <- readOGR("E:/PDKE/CCVD/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Cattle_Ranch_Individual_11_Shapefiles_Climate_Jan2023/Zbar_Ranch/zbar_new_merge.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Z Bar Ranch"
-# NM_s <- "Z Bar Ranch"
+plot(HALE)
 
-# #Big Island (whole island)
-# NP_ALL <- readOGR("E:/PDKE/CCVD/big_island_coastline_fromDEM_LCclip2.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Big Island - Hawaii"
-# NM_s <- "Big Island"
-
-# #Molokai (whole island)
-# NP_ALL <- readOGR("E:/PDKE/CCVD/molokai_coastline.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Molokai - Hawaii"
-# NM_s <- "Molokai"
-
-# #Lanai (whole island)
-# NP_ALL <- readOGR("E:/PDKE/CCVD/lanai_coastline.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Lanai - Hawaii"
-# NM_s <- "Lanai"
-
-# #Laupahoehoe NARS, Hawaii
-# NP_ALL <- readOGR("E:/PDKE/CCVD/laupahoehoe_nars.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Laupahoehoe Natural Area Reserve"
-# NM_s <- "Laupahoehoe"
-
-# #Hono O Na Pali NAR, Kauai
-# NP_ALL <- readOGR("E:/PDKE/CCVD/hono_o_na_pali_nar.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Hono O Na Pali Natural Area Reserve"
-# NM_s <- "Hono O Na Pali"
-
-# # HAVO, Big Island
-# NP_ALL <- readOGR("E:/PDKE/CCVD/havo.shp")
-# HALE <- NP_ALL
-# HALE@data
-# NM <- "Hawaii Volcanoes National Park"
-# NM_s <- "HAVO"
-
-# Set island
-ILE<-"Molokai"
-ILE_s<-"MO"
-
-# Check map - NEED TO CHANGE MANUALLY BASED ON ISLAND
 if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
 if(ILE_s == "MN") {plot(Coast_MN, main = ILE) + plot(HALE ,add = T, col="red")}
 if(ILE_s == "MO") {plot(Coast_MO, main = ILE) + plot(HALE ,add = T, col="red")}
@@ -298,6 +204,9 @@ if(ILE_s == "KA") {plot(Coast_KA, main = ILE) + plot(HALE ,add = T, col="red")}
 
 ##################################################
 ##########   Define Units   
+
+##########   Assign AOI shapefile coordinates
+HALE <- spTransform(HALE, crs(EXAMP))
 
 ##########   SHAPE FILES FOR ANALYSIS
 UNIT_X <-   c(HALE,HALE)
@@ -312,7 +221,6 @@ UNIT_N <- as.vector(as.character(c(NM,NM)))
 ##########  Short Name (For Figure Titles)
 UNIT_Ns <- as.vector(as.character(c(NM_s, NM_s)))
 
-
 #20,24,-26 34
 
 
@@ -325,10 +233,10 @@ ShortNm <- sum(!is.na(UNIT_Ns))
 
 ##########   CONFIRM INPUTS ARE THE SAME
 
-UNIT_C
-ShortNm
-UNIT_Shape
-UNIT_Island
+# UNIT_C %>% 
+# ShortNm
+# UNIT_Shape
+# UNIT_Island
 
 ##########  Mean Rainfall DATA   
 
@@ -364,7 +272,7 @@ stateRFM<-calc(sm, mean, na.rm=T)
 # make dataframe from average monthly rainfall map
 stateRFMd<-as.data.frame(stateRFM, na.rm=T)
 stateRFMd<-data.frame(stateRFMd[1])
-stateRFMd
+
 ##########   FIRE OCCURRENCE
 #Fire Occurrence Shape 2019 (From Clay)
 u<-1
@@ -404,6 +312,22 @@ LC <- raster(LC2)
 crs(LC) <- "+proj=longlat +datum=WGS84 +no_defs"
 plot(LC)
 
+##########  Moku and Ahupuaa
+MOKU = readOGR(paste0(IFOLDER, "Moku.shp"))
+MOKU <- spTransform(MOKU, crs(EXAMP))
+plot(MOKU)
+
+AHU <- readOGR(paste0(IFOLDER, "Ahupuaa2.shp"))
+AHU <- spTransform(AHU, crs(EXAMP))
+plot(AHU)
+
+##########  Streams and Aquifers
+STRM = readOGR(paste0(IFOLDER, "NHD_H_Hawaii_State_Shape/NHD_Flowlines2.shp"))
+STRM <- spTransform(STRM, crs(EXAMP))
+
+AQU <- readOGR(paste0(IFOLDER,"Aquifers/DOH_Aquifers_type_status.shp"))
+AQU <- spTransform(AQU, crs(EXAMP))
+
 ##########  Downscaling
 
 # should be 132 DyDs_files. If TIF's were opened in arcgis, extra files may have been created
@@ -412,7 +336,7 @@ D2_files = dir(paste0(IFOLDER,"Lulin_Downscaling/"), recursive=T, full.names=T)
 
 ##########   Month Year Rainfall Maps (Frazier et al., 2016)
 
-RF_Map_Path_A <- ("E:/PDKE/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
+RF_Map_Path_A <- ("F:/PDKE/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
 
 ##########   Month-Year Rainfall Maps New Lucas et al., In Review
 
@@ -421,7 +345,7 @@ RF_Map_Path_A <- ("E:/PDKE/CCVD/data/production/rainfall/legacy/month/statewide/
 # Matty maps 1990-NRT
 # Put in INput folder 
 #For now Read this path in seperate as not in input folder 
-RF_Map_Path <- ("E:/PDKE/CCVD/NEW RF MAPS/statewide_rf_mm/rf_mm/")
+RF_Map_Path <- ("F:/PDKE/CCVD/NEW RF MAPS/statewide_rf_mm/rf_mm/")
 
 ##########  Multi-Variate ENSO Index
 
@@ -429,7 +353,11 @@ RF_Map_Path <- ("E:/PDKE/CCVD/NEW RF MAPS/statewide_rf_mm/rf_mm/")
 MEI <- read.csv(paste0(IFOLDER,"ONI_Season.csv"),sep=",")
 
 ########## Month Year Air Temperature Maps
-AT_Map_Path_A <- ("E:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map/")
+AT_Map_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/")
+
+########## Monthly Climatology Air Temperature Maps
+AT_CLIM_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/air_temp_climatology/")
+
 
 #################################################################################################################################
 
@@ -440,11 +368,11 @@ AT_Map_Path_A <- ("E:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map/")
 Cell.DataCL <-data.frame(matrix(ncol=15, nrow=UNIT_C))
 colnames(Cell.DataCL) <- c("Unit","Elev Min","Elev Mean", "Elev Max","RF","Tavg","Tmax","Tmin","RH","SM","KD","ET","CF","Island","Short Name")
 Cell.DataCL[1] <- UNIT_N
-Cell.DataCL[15] <- UNIT_Ns
+Cell.DataCL[16] <- UNIT_Ns
 
-#Cliamte For Individual Ranches
-Cell.DataCLR <-data.frame(matrix(ncol = 15, nrow = 3))
-colnames(Cell.DataCLR) <- c("Unit","Elev","RF","Tavg","Tmax","Tmin","RH","SM","KD","ET","CF","DryRF","WetRF","Island","Short Name")
+#Climate For Individual Ranches
+Cell.DataCLR <-data.frame(matrix(ncol = 16, nrow = 3))
+colnames(Cell.DataCLR) <- c("Unit","Elev","RF","Tavg","Tmax","Tmin","RH","SM","KD","ET","CF","WS","DryRF","WetRF","Island","Short Name")
 
 #Create a matrix For a site Comparision of rainfall 
 Cell.RF_Year <-data.frame(matrix(ncol = 15, nrow = UNIT_C))
@@ -477,7 +405,21 @@ if(IS == "KA") {CoastM <- Coast_KA; Iname <- "Kauai"}
 if(IS == "KO") {CoastM <- Coast_KO; Iname <- "Kahoolawe"}
 if(IS == "ALL") {CoastM <- Coast_KO; Iname <- "Hawaiian Islands"}
 
-##########   GET Central Lattitude and Longitude for shapefile
+##########   Get terrain basemap for each island and whole state
+# if(IS == "BI") {mapBound <- c(-156.673, 18.839, -154.339, 20.343)}
+# if(IS == "MN") {mapBound <- c(-156.867, 20.457, -155.851, 21.121)}
+# if(IS == "MO") {mapBound <- c(-157.367, 20.916, -156.666, 21.373)}
+# if(IS == "LA") {mapBound <- c(-157.146, 20.688, -156.713, 20.968)}
+# if(IS == "OA") {mapBound <- c(-158.387, 21.195, -157.525, 21.765)}
+# if(IS == "KA") {mapBound <- c(-159.938, 21.776, -159.077, 22.357)}
+# if(IS == "KO") {mapBound <- c(-156.792, 20.431, -156.423, 20.673)}
+# 
+# basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype="terrain")  
+
+mapBound_state <- c(-159.938, 18.839, -154.339, 22.357)
+basemap_state<-ggmap::get_stamenmap(bbox=mapBound_state, maptype = "terrain")
+
+##########   GET Central Latitude and Longitude for shapefile
 
 Xmin <- extent(SH)[1]
 Xmax <- extent(SH)[2]
@@ -517,34 +459,193 @@ width<-abs(extent(CoastM)[1])-abs(extent(CoastM)[2])
   
   sb2<-sb2*1.60934
 
-# plot
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Map.png"),width=5*dpi,height=5*dpi,res=dpi) 
+############# plot Mokupuni (island)
+ 
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Mokupuni.png"),width=5*dpi,height=4*dpi,res=dpi) 
 
 par(mfrow=c(1,1))
 
-plot(CoastM,lwd=1,lty = "solid",axes=TRUE,las=2)
-title(TIT , line = 0.5,cex.main = 1.5)
-plot(SH,add=TRUE,col='red')
-legend("topright", legend = c(paste0("Latitude = ", LAT), paste0("Longitude = ", LONG)), 
-bty = "n", horiz = FALSE, inset = c(0.05, 0.05),cex=0.8)
-scalebar(sb2, type="bar", divs=4, label=c(0,5,10), below="miles")
+print(ggmap(basemap_state, extent="device") + 
+        geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 0.25) +
+        geom_polygon(data = CoastM, aes(x=long,y=lat,group=group), col="brown", fill=NA, size = 0.5)
+)
 
+dev.off()  
 
+############# plot Moku
 
-dev.off()
+# find which moku the study area is in
+MI<-as.data.frame(gIntersects(MOKU,HALE,byid=T))
+MI
+MI2<-as.data.frame(colnames(MI[which(MI == TRUE)]))
+colnames(MI2)<-c("objectID")
 
-########## Map with all of the Islands 
+# add 1 to the objectID's because they're off by 1...
+MI2$objectID<-as.numeric(MI2$objectID) + 1
+MI2
 
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," ISMap.png"),width=5*dpi,height=5*dpi,res=dpi) 
+# iterate through moku objectID's to make a list of them
+r2<-c()
+for (i in 1:nrow(MI2)) {
+
+  m<-MI2$objectID[i]
+  r<-c(m)
+  r2<-c(r2,r)
+}
+r2
+
+# subset moku for study area
+MI3<-MOKU[r2,]
+
+# get subsetted moku as a dataframe for text labels
+MId<-as(MI3, "data.frame")
+write.csv(data.frame(MId), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Moku.csv"),row.names = F)
+
+# get basemap at moku extent
+mapBound <- c(xmin(MI3), ymin(MI3), xmax(MI3), ymax(MI3))
+basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype = "terrain")
+
+dpi=300
+
+# make map
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Moku.png"),width=5*dpi,height=4*dpi,res=dpi) 
+
 par(mfrow=c(1,1))
-plot(Coast_Crop_T,lwd=1,lty = "solid",axes=TRUE,las=2)
-title(TIT , line = 0.5,cex.main = 1.5)
-plot(SH,add=TRUE,col='red')
-#Legend
-legend("topright", legend = c(paste0("Latitude = ", LAT), paste0("Longitude = ", LONG)), 
-       bty = "n", horiz = FALSE, inset = c(0.05, 0.05))
 
-dev.off()
+print(ggmap(basemap, extent="device") + 
+        geom_polygon(data = MI3, aes(x=long,y=lat,group=group), col="brown", fill=NA, size = 1) +
+        geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
+        geom_text(data = MId, aes(label = moku, x=cent_long, y=cent_lat), size = 5, fontface = "bold")
+)
+
+dev.off()  
+
+########## Plot Ahupuaa
+
+# Clip ahupuaa polygons to HALE polygons (removes all attribute data, use objectid 
+# to re-assign attribute data afterwards)
+# AI<-gIntersection(AHU, HALE, byid=T, id = as.character(AHU$objectid))
+# plot(AI)
+
+AI<-as.data.frame(gIntersects(AHU, HALE, byid=T))
+AI2<-as.data.frame(colnames(AI[which(AI == TRUE)]))
+colnames(AI2)<-c("objectID")
+
+# add 1 to the objectID's because they're off by 1...
+AI2$objectID<-as.numeric(AI2$objectID) + 1
+AI2
+
+# iterate through ahupuaa objectID's to make a list of them
+r2<-c()
+for (i in 1:nrow(AI2)) {
+  
+  m<-AI2$objectID[i]
+  r<-c(m)
+  r2<-c(r2,r)
+}
+r2
+
+# subset ahupuaa for study area
+AI3<-AHU[r2,]
+
+AI3
+# get subsetted ahupuaa as a dataframe for text labels
+AId<-as(AI3, "data.frame")
+write.csv(data.frame(AId), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Ahupuaa.csv"),row.names = F)
+
+# get basemap at ahupuaa extent
+mapBound <- c(xmin(AI3), ymin(AI3), xmax(AI3), ymax(AI3))
+basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype = "terrain")
+
+# # if the AOI = ahupuaa may need to run this
+# AIcl<-as.character(AI@class)
+# if(AIcl != "SpatialPolygons") {AI<-AI@polyobj}
+# rownames(coordinates(AI))
+
+# ### Get attributes for ahupuaa within study area - have to match rownames
+# sp.df<-AHU@data
+# sp2<-sp.df[which(sp.df$objectid %in% rownames(coordinates(AI))),]
+# rownames(sp2)<-rownames(coordinates(AI))
+# 
+# # attach attributes to clipped ahupuaa
+# AIC<-SpatialPolygonsDataFrame(AI, data=sp2)
+# 
+# # make AIC into a dataframe
+# AID<-data.frame(AIC)
+# 
+# # calculate area of each clipped ahupuaa and format into a table with the objectid
+# AIA<-data.frame(gArea(AIC, byid=T))
+# colnames(AIA)<-c("area")
+# AIA$objectid<-as.numeric(row.names(AIA))
+# AIJ<-join(x=AIA, y=AID, by="objectid")
+# 
+# # sort by area and keep top 5 ahupuaa, write to table
+# AIS<-AIJ[order(AIJ$area, decreasing = T),]
+# AI5<-AIS[1:5,]
+# 
+# # AHU5<-AHU[which(AHU$objectid %in% AI5$objectid),]
+# write.csv(data.frame(AI5), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Ahupuaa5.csv"),row.names = F)
+# 
+# # make list of top 5 ahupuaa
+# r2<-as.list(AI5$ahupuaa2)
+# 
+# # # get subsetted ahupuaa as a dataframe for text labels
+# # AId<-as(AHU5, "data.frame")
+# # AId
+# 
+# AId3<-AI5[1:3,]
+# AId3
+# 
+# # Subset whole ahupuaa to study area and save table
+# AHUs<-AHU[which(AHU$objectid %in% AIC$objectid),]
+# write.csv(data.frame(AHUs), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Ahupuaa.csv"),row.names = F)
+
+# # get basemap at ahupuaa extent
+# mapBound_a <- c(xmin(AHUs), ymin(AHUs), xmax(AHUs), ymax(AHUs))
+# basemap_a<-ggmap::get_stamenmap(bbox=mapBound_a, maptype = "terrain")
+
+# png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Ahupuaa.png"),width=5*dpi,height=4*dpi,res=dpi)
+# 
+# par(mfrow=c(1,1))
+# 
+# print(ggmap(basemap_a, extent="device") + 
+#         geom_polygon(data = AHUs, aes(x=long,y=lat,group=group), col="brown", fill=NA, size = 1) +
+#         geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
+#         geom_text(data = AId3, aes(label = ahupuaa2, x=cent_long, y=cent_lat), size = 4, fontface="bold")
+# )
+# 
+# dev.off()  
+# 
+
+
+dpi=300
+
+# make map
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Ahupuaa.png"),width=5*dpi,height=4*dpi,res=dpi) 
+
+par(mfrow=c(1,1))
+
+print(ggmap(basemap, extent="device") + 
+        geom_polygon(data = AI3, aes(x=long,y=lat,group=group), col="brown", fill=NA, size = 1) +
+        geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
+        geom_text(data = AId, aes(label = ahupuaa2, x=cent_long, y=cent_lat), size = 5, fontface = "bold")
+)
+
+dev.off()  
+
+      
+# ########## Map with all of the Islands 
+# 
+# png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," ISMap.png"),width=5*dpi,height=5*dpi,res=dpi) 
+# par(mfrow=c(1,1))
+# plot(Coast_Crop_T,lwd=1,lty = "solid",axes=TRUE,las=2)
+# title(TIT , line = 0.5,cex.main = 1.5)
+# plot(SH,add=TRUE,col='red')
+# #Legend
+# legend("topright", legend = c(paste0("Latitude = ", LAT), paste0("Longitude = ", LONG)), 
+#        bty = "n", horiz = FALSE, inset = c(0.05, 0.05))
+# 
+# dev.off()
 
 ##########  Fire Map 
 
@@ -564,7 +665,7 @@ legend("topright", legend = c("Fire Occurrence",UNIT_Ns[[u]]), pch=c(15,15),col=
        bty = "n", horiz = FALSE, inset = c(0.05, 0.05),cex=0.8)
 
 dev.off()
-
+UNIT_N[u]
 # ########## Road Map
 # Roads_CropI <- crop(x = F_Roads, y = extent(CoastM))
 # 
@@ -622,8 +723,8 @@ Cell.DataCL[u,2:4] <- c(ELEV_Min,ELEV_Mean,ELEV_Max)
 Cell.DataCL[u,14] <- Iname
 Cell.DataCLR[1:3,1] <- c("Mean","Max","Min")
 Cell.DataCLR[1:3,2] <- c(ELEV_Mean,ELEV_Max,ELEV_Min)
-Cell.DataCLR[1,14] <- Iname
-Cell.DataCLR[1,15] <- UNIT_Ns[u]
+Cell.DataCLR[1,15] <- Iname
+Cell.DataCLR[1,16] <- UNIT_Ns[u]
 
 Cell.DataCL
 Cell.DataCLR
@@ -671,7 +772,7 @@ LC_ct<-as.data.frame(table(LC_Crop3$LCMAP_HI_2020_V10_LCPRI_crs))
 colnames(LC_ct)<-c("LC","count")
 LC_ct2<-LC_ct[order(-LC_ct$count),]
 
-#convert into area (1 pixel = 900 sqare meters = 0.222395 acres)
+#convert into area (1 pixel = 900 square meters = 0.222395 acres)
 LC_ct2$acres<-round(LC_ct2$count*0.222395, 1)
 
 #Calculate percentages
@@ -783,6 +884,248 @@ dev.off()
 # 
 # dev.off()
 
+################################################################################
+########## Water Sources
+
+print("Water Sources")
+
+### Aquifers
+AQ1<-as.data.frame(gIntersects(AQU, HALE, byid=T))
+AQ2<-as.data.frame(colnames(AQ1[which(AQ1 == TRUE)]))
+colnames(AQ2)<-c("objectID")
+head(AQ2)
+
+# add 1 to the objectID's because they're off by 1...
+AQ2$objectID<-as.numeric(AQ2$objectID) + 1
+AQ2
+
+# iterate through aquifer objectID's to make a list of them
+r2<-c()
+for (i in 1:nrow(AQ2)) {
+
+  m<-AQ2$objectID[i]
+  r<-c(m)
+  r2<-c(r2,r)
+}
+r2
+
+# subset aquifers for study area
+AQ3<-AQU[r2,]
+plot(AQ3)
+
+# subset for hydrology
+AQb<-AQ3[which(AQ3$typea1 == 1),]
+AQh<-AQ3[which(AQ3$typea1 == 2),]
+
+# make data frame and only keep relevant columns
+AQd<-as(AQ3, "data.frame")
+AQd<-subset(AQd, select = c("objectid","doh_aquife","typea1","typea3","stata1","strata3","cent_lat","cent_long"))
+
+# translate type and status codes to text
+AQd$Hydrology<-NA
+AQd$Geology<-NA
+AQd$Salinity<-NA
+AQd$Use<-NA
+
+
+for (i in 1:nrow(AQd)) {
+
+if(AQd[i,]$typea1 == 1) {AQd[i,]$Hydrology<-c("Basal")}
+if(AQd[i,]$typea1 == 2) {AQd[i,]$Hydrology<-c("High Level")}
+if(AQd[i,]$typea3 == 1) {AQd[i,]$Geology<-c("Flank")}
+if(AQd[i,]$typea3 == 2) {AQd[i,]$Geology<-c("Dike")}
+if(AQd[i,]$typea3 == 3) {AQd[i,]$Geology<-c("Flank/Dike")}
+if(AQd[i,]$typea3 == 4) {AQd[i,]$Geology<-c("Perched")}
+if(AQd[i,]$typea3 == 5) {AQd[i,]$Geology<-c("Dike/Perched")}
+if(AQd[i,]$typea3 == 6) {AQd[i,]$Geology<-c("Sedimentary")}
+if(AQd[i,]$stata1 == 1) {AQd[i,]$Use<-c("Currently used")}
+if(AQd[i,]$stata1 == 2) {AQd[i,]$Use<-c("Potential use")}
+if(AQd[i,]$stata1 == 3) {AQd[i,]$Use<-c("No potential use")}
+if(AQd[i,]$strata3 == 1) {AQd[i,]$Salinity<-c("Fresh")}
+if(AQd[i,]$strata3 == 2) {AQd[i,]$Salinity<-c("Low")}
+if(AQd[i,]$strata3 == 3) {AQd[i,]$Salinity<-c("Moderate")}
+if(AQd[i,]$strata3 == 4) {AQd[i,]$Salinity<-c("High")}
+if(AQd[i,]$strata3 == 5) {AQd[i,]$Salinity<-c("Seawater")}
+
+  }
+
+AQd
+
+# trim it down to the final table
+AQe<-subset(AQd, select = c("doh_aquife", "Hydrology", "Geology", "Salinity", "Use"))
+colnames(AQe)[1] = "DOH Aquifer"
+write.csv(data.frame(AQe), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Aquifer.csv"),row.names = F)
+AQe
+
+# get basemap at aquifer extent
+mapBound1 <- c((xmin(AQ3)*1.00001), (ymin(AQ3)*0.9999), (xmax(AQ3)*0.99999), (ymax(AQ3)*1.0001))
+basemap<-ggmap::get_stamenmap(bbox=mapBound1, maptype = "terrain")
+
+# # get center of map for google maps
+# cent<-gCentroid(AQ3)
+# lon<-xmin(cent)
+# lat<-ymin(cent)
+#
+# # get min/max lat and long and set bounding box for basemap
+# mymarkers<-cbind.data.frame(lat = c(ymin(AQ3),ymax(AQ3)),
+#                             lon = c(xmin(AQ3),xmax(AQ3)))
+#
+# bb <- qbbox(lat = mymarkers[,"lat"], lon = mymarkers[,"lon"],
+#             margin = list(m=c(1,1,1,1), TYPE = c("perc","abs")[1]))
+#
+# basemap<-GetMap.bbox(bb$lonR,bb$latR,maptype="satellite")
+# plot(basemap)
+
+# make map
+dpi=300
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Aquifers.png"),width=5*dpi,height=4*dpi,res=dpi)
+par(mfrow=c(1,1))
+
+# has conditionals based on which aquifer types are present
+if(nrow(data.frame(AQb))>0 && nrow(data.frame(AQh))>0) {
+  print(ggmap(basemap, extent="device") +
+    geom_polygon(data = AQb, aes(x=long,y=lat, group=group), fill="lightblue",col="black") +
+    geom_polygon(data = AQh, aes(x=long,y=lat, group=group), fill="grey",col="black") +
+    geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
+    geom_text(data = AQd, aes(label = doh_aquife, x=cent_long, y=cent_lat), size = 3, fontface = "bold")
+  )
+}
+
+if(nrow(data.frame(AQb))==0 && nrow(data.frame(AQh))>0) {
+  print(ggmap(basemap, extent="device") +
+    geom_polygon(data = AQh, aes(x=long,y=lat, group=group), fill="grey",col="black") +
+    geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
+    geom_text(data = AQd, aes(label = doh_aquife, x=cent_long, y=cent_lat), size = 3, fontface = "bold")
+  )
+}
+
+if(nrow(data.frame(AQb))>0 && nrow(data.frame(AQh))==0) {
+  print(ggmap(basemap, extent="device") +
+    geom_polygon(data = AQb, aes(x=long,y=lat, group=group), fill="lightblue",col="black") +
+    geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
+    geom_text(data = AQd, aes(label = doh_aquife, x=cent_long, y=cent_lat), size = 3, fontface = "bold")
+  )
+}
+
+dev.off()
+
+################################################################################
+### Streams, hydrologic features
+plot(STRM)
+
+# get basemap at buffered AOI extent
+mapBound1 <- c((xmin(HALE)*1.00001), (ymin(HALE)*0.9999), (xmax(HALE)*0.99999), (ymax(HALE)*1.0001))
+basemap<-ggmap::get_stamenmap(bbox=mapBound1, maptype = "terrain")
+
+# subset for feature types
+STRMi<-STRM[which(STRM$fcode == 46003),]
+STRMp<-STRM[which(STRM$fcode == 46006),]
+STRMa<-STRM[which(STRM$fcode == 55800),]
+STRMc<-STRM[which(STRM$Feature_Ty == "CANAL/DITCH"),]
+STRMpi<-STRM[which(STRM$Feature_Ty == "PIPELINE"),]
+STRMco<-STRM[which(STRM$Feature_Ty == "CONNECTOR"),]
+
+# make map
+dpi=300
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Streams.png"),width=5*dpi,height=4*dpi,res=dpi)
+
+par(mfrow=c(1,1))
+ggmap(basemap, extent="device") +
+  geom_path(data = STRMi, aes(x=long,y=lat, group=group),col="deepskyblue1",size=1.5) +
+  geom_path(data = STRMp, aes(x=long,y=lat,group=group),col="darkblue", size=1.5) +
+  geom_path(data = STRMa, aes(x=long,y=lat, group=group),col="green",size=1.5) +
+  geom_path(data = STRMc, aes(x=long,y=lat, group=group),col="orange",size=1.5) +
+  geom_path(data = STRMpi, aes(x=long,y=lat, group=group),col="lightgrey",size=1.5) +
+  geom_path(data = STRMco, aes(x=long,y=lat, group=group),col="yellow",size=1.5) +
+  geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1)
+
+dev.off()
+
+# clip features to study area
+ST<-crop(STRM, HALE)
+plot(ST)
+
+# make dataframe of features
+STdf<-as(ST,"data.frame")
+
+# get all hydrologic types present
+ht<-unique(STdf$Feature_Ty)
+for (i in 1:length(ht)){
+  if(ht[i] == "ARTIFICIAL PATH"){ht[i]<-"Managed Waterway"}
+  if(ht[i] == "CANAL/DITCH"){ht[i]<-"Canal/Ditch"}
+  if(ht[i] == "STREAM/RIVER"){ht[i]<-"Stream"}
+  if(ht[i] == "PIPELINE"){ht[i]<-"Pipeline"}
+  }
+
+write.csv(data.frame(ht), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Hydro_features.csv"),row.names = F)
+
+
+########## Rainfall Stations near AOI
+
+print("Rain Station Locations")
+
+# load csv of station networks and website links
+sn <- read.csv(paste0(IFOLDER, "rain_stations_links.csv"))
+
+# load stations point shapefile, tranform points and polygons to planar projection
+sl <- readOGR(paste0(IFOLDER, "rain_stations_2023.shp"))
+# sl <- spTransform(sl, crs(EXAMP))
+
+utmStr <- "+proj=utm +zone=%d +datum=NAD83 +units=m +no_defs +ellps=GRS80"
+crs <- CRS(sprintf(utmStr, 4))
+sl <- spTransform(sl, crs)
+HALE1 <- spTransform(HALE, crs)
+
+summary(sl)
+unique(sl$Network)
+
+# calculate distance from each point to the AOI polygon
+sd<-as.data.frame(apply(gDistance(sl, HALE1, byid=TRUE),2,min))
+sd<-cbind(rownames(sd), data.frame(sd, row.names=NULL))
+colnames(sd)<-c("ID2","distance")
+
+# subtract 1 from each FID because they're all off by one (started with 0)
+sd$ID2<-as.numeric(sd$ID2) - 1
+sd<-sd[order(sd$distance),]
+head(sd)
+
+# convert station points shp into dataframe
+summary(sl)
+sld<-as.data.frame(sl)
+head(sld)
+
+# make table of 3 closest stations and join network links
+s1<-sld[which(sld$ID2 == sd[1,]$ID2),]
+s2<-sld[which(sld$ID2 == sd[2,]$ID2),]
+s3<-sld[which(sld$ID2 == sd[3,]$ID2),]
+st2<-rbind(s1,s2,s3)
+st2
+st<-st2[c("Station_Na","Network")]
+st<-join(st,sn)
+colnames(st)<-c("Station Name","Network","Website")
+st
+
+# export table
+write.csv(st, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," rain_stations.csv"),row.names = F)
+
+### Make map of island with station and AOI
+# get basemap at island extent
+mapBound <- c(xmin(CoastM), ymin(CoastM), xmax(CoastM), ymax(CoastM))
+basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype = "terrain-background")
+
+# make map
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," rf_stations.png"),width=5*dpi,height=4*dpi,res=dpi) 
+
+par(mfrow=c(1,1))
+
+print(ggmap(basemap, extent="device") +
+        geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
+        geom_point(data = sld, aes(x=LON,y=LAT), col="black", size = 1.5) +
+        geom_point(data = st2, aes(x=LON,y=LAT), color="black", fill="orange", shape = 21, size = 2)
+)
+
+dev.off()  
 
 ########## Mean Climate Extract 
 
@@ -801,17 +1144,17 @@ Cell.CL_Year[6,1] <- "CF [%]"
 Cell.CL_Year[7,1] <- paste0("ET [",RFUnit2,"]")
 Cell.CL_Year[8,1] <- "SM [%]"
 Cell.CL_Year[9,1] <- "S [W m/2]"
-
 Cell.CL_Year
 
 ##########   Solar Radiation
-
 Jan <- raster(Mean_CLIM[58])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
 Jan_CropKD <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
 JanMKD   <- round(cellStats(Jan_CropKD, 'mean'),0)
 JanMKDx   <- round(cellStats(Jan_CropKD, 'max'),0)
 JanMKDn   <- round(cellStats(Jan_CropKD, 'min'),0)
+
+
 
 Feb <- raster(Mean_CLIM[57])
 Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
@@ -1702,6 +2045,7 @@ ANNMRHn   <- round(cellStats(ANN_CropRH  , 'min'),0)
 
 MEANRH2 <- c(JanMRH,FebMRH ,MarMRH ,AprMRH ,MayMRH ,JunMRH ,JulMRH ,AugMRH ,SepMRH ,OctMRH ,NovMRH ,DecMRH, ANNMRH  )
 Cell.CL_Year[5,2:14] <- MEANRH2 
+Cell.CL_Year
 
 ##########   Get thresholds for figures 
 
@@ -1795,6 +2139,17 @@ VPD_P_M   <- round(cellStats(VPD_P_Crop, 'mean'),0)
 VPD_PName <- names(VPD_P)
 VPDUP   <- round(cellStats(VPD_P_Crop  , 'max'),0)
 VPDLO   <- round(cellStats(VPD_P_Crop  , 'min'),0)
+
+WS_P <- raster(paste0(IFOLDER,"Mean Climate/Wind/wind_sd_avg.tif"))
+names(WS_P) = "Windspeed"
+WS_P_Mask <- mask(x = WS_P, mask = UNIT_X[[u]])
+WS_P_Crop <- crop(x = WS_P_Mask, y = extent(UNIT_X[[u]]))
+#convert from m/sec to mph
+WS_P_Crop <- WS_P_Crop * 2.237
+WS_P_M   <- round(cellStats(WS_P_Crop, 'mean'),0)
+WS_PName <- names(WS_P)
+WSUP   <- round(cellStats(WS_P_Crop  , 'max'),1)
+WSLO   <- round(cellStats(WS_P_Crop  , 'min'),1)
 
 ##########   MEAN RAINFALL Data
 
@@ -1921,6 +2276,7 @@ Cell.CL_Year
 #build data frame with temperature and precipitation data
 df <- as.data.frame(c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 colnames(df) <- c("month")
+Cell.CL_Year
 df$month <- factor(df$month, levels = month.abb)
 PREC <- as.numeric(as.vector(Cell.CL_Year[1,2:13]))
 TA <- as.numeric(as.vector(Cell.CL_Year[3,2:13]))
@@ -1929,23 +2285,24 @@ df$PREC <- PREC
 df$TA <- TA
 
 #Set X and Y Limits for Graph 20% higher than the max.
-
 XPR <- max(PREC) + (max(PREC)*0.2)
 XTA <- max(TA) +   (max(TA)*0.2)
 NTA <- min(TA) - min(TA)*0.2
 
 #Make Cliamo Graph and Save to ouptput folder
 
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climograph.png"),width=5*dpi,height=3*dpi,res=dpi) 
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climograph2.png"),width=5*dpi,height=3*dpi,res=dpi) 
 
 par(mar=c(4,4,4,4))
-my_bar <- barplot(df$PREC, border=F , names.arg=df$month , 
-                  las=2 , 
-                  col="darkblue" , 
+my_bar <- barplot(df$PREC, border=F , names.arg=df$month ,
+                  las=2 ,
+                  col="darkblue" ,
                   ylim=c(0,XPR) ,
                   ylab = paste0("Rainfall [",RFUnit2,"]"))#,
+
+XPR
 title(paste0("Monthly Climate: ",UNIT_Ns[u]), line = 0.8,cex.main = 1.5)
-# text(my_bar, df$PREC+13 ,df$PREC ,cex=1) 
+# text(my_bar, df$PREC+13 ,df$PREC ,cex=1)
 par(new = TRUE)
 plot(df$month,df$TA ,pch=15 , lty = 0, axes = FALSE, xlab = "", ylab = "",col="red",ylim=c(NTA,XTA ))
 lines(x = df$month, y = df$TA,lwd=2,col="red")
@@ -1953,10 +2310,10 @@ points(x = df$month, y = df$TA,col="red",pch=16,cex=2)
 mtext(paste0("Temperature [",TUnit,"]"), side=4, line=2.5,col="red")
 axis(4, ylim=c(NTA,XTA), col="red",col.axis="red",las=1)
 
-#Legend
-legend("topleft", legend = c("Rainfall", "Temperature"), 
-       col = c("darkblue" , "red") , 
-       bty = "n", pch=c(15,20) , pt.cex = 2, cex = 0.8, horiz = FALSE, inset = c(0.05, 0.05))
+# # Legend
+# legend("topleft", legend = c("Rainfall", "Temperature"),
+#        col = c("darkblue" , "red") ,
+#        bty = "n", pch=c(15,20) , pt.cex = 2, cex = 0.8, horiz = FALSE, inset = c(0.05, 0))
 
 dev.off()
 
@@ -2028,22 +2385,23 @@ if (RNGERF < 5 && RNGERF > 3.99 ){
   colfuncRF<-colorRampPalette(brewer.pal(5,"YlGnBu"))(50)
 }
 if (RNGERF < 4 && RNGERF > 2.99 ){
-  BI_brksRF<-round(seq(0, RFUP, length = 4),0);
+  BI_brksRF<-round(seq(0, RFUP, length = 4),1);
   colfuncRF<-colorRampPalette(brewer.pal(4,"YlGnBu"))(50)
 }
 if (RNGERF < 3 && RNGERF > 1.99 ){
-  BI_brksRF<-round(seq(0, RFUP, length = 3),0);
+  BI_brksRF<-round(seq(0, RFUP, length = 3),1);
   colfuncRF<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
 }
 if (RNGERF < 2 && RNGERF > 0.99 ){
-  BI_brksRF<-round(seq(0, RFUP, length = 3),0);
+  BI_brksRF<-round(seq(0, RFUP, length = 3),1);
   colfuncRF<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
 }
 if (RNGERF < 2 && RNGERF > 0 ){
-  BI_brksRF<-round(seq(0, 3, length = 3),0);
+  BI_brksRF<-round(seq(0, 3, length = 3),1);
   colfuncRF<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
 }
 
+RNGERF
 
 #Mean Rainfall
 # Decide on a Break for Rainfall 
@@ -2080,6 +2438,10 @@ if (RNGERFA < 4 && RNGERFA > 0.99 ){
   BI_brksRFA<-round(seq(0, ANNUP, length = 3),0);
   colfuncRFA<-colorRampPalette(brewer.pal(4,"YlGnBu"))(50)
 }
+if (RNGERFA < 4 && RNGERFA < 0.99 ){
+  BI_brksRFA<-round(seq(0, ANNUP, length = 3),0);
+  colfuncRFA<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
+}
 
 #if (RNGERFA < 3){
 #  BI_brksRFA<-round(seq(RFLO, RFUP, length = 3),0);
@@ -2105,6 +2467,14 @@ if (RNGERH < 8 && RNGERH > 6.99 ){
   BI_brksRH<-round(seq(RHLO, RHUP, length = 7),0)
   colfuncRH <-colorRampPalette(brewer.pal(7,"BuPu"))(50)
 }
+if (RNGERH < 7 && RNGERH > 5.99 ){
+  BI_brksRH<-round(seq(RHLO, RHUP, length = 6),0)
+  colfuncRH <-colorRampPalette(brewer.pal(6,"BuPu"))(50)
+}
+if (RNGERH < 6 && RNGERH > 4.99 ){
+  BI_brksRH<-round(seq(RHLO, RHUP, length = 5),0)
+  colfuncRH <-colorRampPalette(brewer.pal(5,"BuPu"))(50)
+}
 if (RNGERH < 5 && RNGERH > 3.99 ){
   BI_brksRH<-round(seq(RHLO, RHUP, length = 4),0)
   colfuncRH <-colorRampPalette(brewer.pal(4,"BuPu"))(50)
@@ -2125,7 +2495,11 @@ BI_brksCF<-c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
 colfuncCF <-colorRampPalette(brewer.pal(9,"PuRd"))(50)
 #For ET
 BI_brksET<-round(seq(ETLO, ETUP, length = 9),0)
+if(ETUP-ETLO<9) {BI_brksET<-round(seq(ETLO, ETUP, length = 9), 1)}
 colfuncET <-colorRampPalette(brewer.pal(9,"PuBu"))(50)
+#For WS
+BI_brksWS<-round(seq(WSLO, WSUP, length = 9),2)
+colfuncWS <-colorRampPalette(brewer.pal(9,"Purples"))(50)
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_RF.png"),width=5*dpi,height=5*dpi,res=dpi)    
   spplot(ANN_CropRF, col.regions = colfuncRF, equal=FALSE,
@@ -2175,7 +2549,13 @@ png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_ET.png"),width=5*dpi,h
        sp.layout = list(UNIT_X[u]))
   dev.off()
   
-
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_WS.png"),width=5*dpi,height=5*dpi,res=dpi)    
+  spplot(WS_P_Crop, col.regions = colfuncWS, equal=FALSE,
+         axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksWS,
+         main=list(label=paste0("Windspeed (",WS_P_M," mph)"),cex=2),
+         colorkey = list(space = "right", height = 1, labels=list(cex=2)),
+         sp.layout = list(UNIT_X[u]))
+  dev.off()
 
 ##########  Temperature Maps Figure 
 
@@ -2553,10 +2933,10 @@ WetLOMOm   <- round(WetLOm/6,1)
 
 SEAUPm <- max(DryUPm,WetUPm)
 SEALOm <-min(DryLOm,WetLOm)
-
 BI_brksSEAm <- round(seq(SEALOm, SEAUPm, length = 10),0)
-if((max(BI_brksSEAm) - min(BI_brksSEAm)) < 10) {BI_brksSEAm <- round(seq(SEALOm, SEAUPm, length = 10),1)}
+if((max(BI_brksSEAm) - min(BI_brksSEAm)) < 10) {BI_brksSEAm <- round(seq(SEALOm, SEAUPm, length = 5),1)}
 
+BI_brksSEAm
 # export plot below this next section
 
 #####
@@ -2616,12 +2996,13 @@ WetMEMO   <- as.character(round(WSeaMRF/6,1))
 WetUPMO   <- as.character(round(WetUP/6,1))
 WetLOMO   <- as.character(round(WetLO/6,1))
 
-Cell.DataCLR[1,12] <- DSeaMRF
-Cell.DataCLR[2,12] <- DryUP
-Cell.DataCLR[3,12] <- DryLO
-Cell.DataCLR[1,13] <- WSeaMRF
-Cell.DataCLR[2,13] <- WetUP
-Cell.DataCLR[3,13] <- WetLO
+Cell.DataCLR[1,13] <- DSeaMRF
+Cell.DataCLR[2,13] <- DryUP
+Cell.DataCLR[3,13] <- DryLO
+Cell.DataCLR[1,14] <- WSeaMRF
+Cell.DataCLR[2,14] <- WetUP
+Cell.DataCLR[3,14] <- WetLO
+Cell.DataCLR
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SeaRF.png"),width=5*dpi,height=5*dpi,res=dpi)  
 
@@ -2674,9 +3055,9 @@ write.csv(P, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"RF percentiles.csv"),row.na
 
 Cell.DataCL[u,5:13] <- c(ANNMRFM ,AnnMTA, AnnMTX,AnnMTN,ANNMRH, SM_P_M,KD_P_M,ET_P_M,CF_P_M)
 
-Cell.DataCLR[1,3:11] <- c(ANNMRFM ,AnnMTA, AnnMTX,AnnMTN,ANNMRH, SM_P_M,KD_P_M,ET_P_M,CF_P_M)
-Cell.DataCLR[2,3:11] <- c(ANNUP,AnnMTAx,AnnMTXx,AnnMTNx,ANNMRHx, SMUP, KDUP,ETUP,CFUP )
-Cell.DataCLR[3,3:11] <- c(ANNLO,AnnMTAn,AnnMTXn,AnnMTNn,ANNMRHn, SMLO, KDLO,ETLO,CFLO)
+Cell.DataCLR[1,3:12] <- c(ANNMRFM ,AnnMTA, AnnMTX,AnnMTN,ANNMRH, SM_P_M,KD_P_M,ET_P_M,CF_P_M,WS_P_M)
+Cell.DataCLR[2,3:12] <- c(ANNUP,AnnMTAx,AnnMTXx,AnnMTNx,ANNMRHx, SMUP, KDUP,ETUP,CFUP,WSUP)
+Cell.DataCLR[3,3:12] <- c(ANNLO,AnnMTAn,AnnMTXn,AnnMTNn,ANNMRHn, SMLO, KDLO,ETLO,CFLO,WSLO)
 
 Cell.RF_Year[u,3:15] <-  MEANRF2
 
@@ -3312,6 +3693,7 @@ print("Lucas")
 
 
 #Load Daily RF MAPS
+RF_Map_Path
 RF_Tif_files = dir(RF_Map_Path, pattern="*.tif", recursive=T, full.names=T)  #Monthly RF
 nfiles <- length(RF_Tif_files)
 
@@ -3355,7 +3737,7 @@ for (i in 1:nfiles) {
 head(Cell.ML_Maps)
 tail(Cell.ML_Maps)
 
-##########  Do a comparision with the 23-year overalap period and generate a figure
+##########  Do a comparison with the 23-year overlap period and generate a figure
 
 ##########  Compare Monthly Rainfall fromthe two map products          
 
@@ -3412,8 +3794,7 @@ MBE <- round(mean(MRF_A3 - MRF_N3),1)
 MAE <- round(mean(abs(MRF_A3 - MRF_N3)),1)
 
 D_Comp <- cbind(MRF_A3,MRF_N3)
-Mx <- max(D_Comp)
-
+Mx <- max(D_Comp, na.rm=T)
 
 FNAME <- paste0("RF_Compare_23_",UNIT_Ns[u],".csv")
 
@@ -3435,7 +3816,7 @@ dev.off()
 
 # ##########   Make the same figure in a different folder.
 # # Derek added "SFOLDER" (same location as RFOLDER)
-# SFOLDER<-paste0("E:/PDKE/CCVD/MINI_Phase2/", UNIT_N[u],"/RF_Compare/")
+# SFOLDER<-paste0("F:/PDKE/CCVD/MINI_Phase2/", UNIT_N[u],"/RF_Compare/")
 # 
 # png(paste0(SFOLDER, UNIT_N[u]," 23yr_RF_Compare.png"),width=5*dpi,height=5*dpi,res=dpi)
 # 
@@ -3448,14 +3829,17 @@ dev.off()
 
 ##########   Create a 100-Year timeseries and do analysis
 
-##########   Merge Datasets to create full time period (1920 - 2022)
+##########   Merge Datasets to create full time period (1920 - current)
+nrows<-nrow(Cell.ML_Maps)
+
+MRF_ND3 =  Cell.ML_Maps[c(1:nrows),]
+head(MRF_ND3)
+tail(MRF_ND3)
 
 MRF_AD3 =  Cell.AF_Maps[c(1:840),]
 head(MRF_AD3)
 tail(MRF_AD3)
-MRF_ND3 =  Cell.ML_Maps[c(1:396),]
-head(MRF_ND3)
-tail(MRF_ND3)
+
 
 colnames(MRF_AD3) <- c("Date","Year","Month","RF")
 colnames(MRF_ND3) <- c("Date","Year","Month","RF")
@@ -3466,13 +3850,21 @@ if(RFUnit == " in") {MRF100$RF <-  as.numeric(MRF100$RF) * 0.0393701}
 write.csv(MRF100,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv"),row.names = F)
 
 # ## Can read in the csv from above to start script here
-# setwd("E:/PDKE/CCVD/MINI_Phase2/Umipaa Watershed")
-# MRF100<-read.csv("Umipaa Watershed Monthly Rainfall_in.csv")
-# # fix month values
-# MRF100$Month<-sub(".*/","",MRF100$Date)
+# MRF100<-read.csv(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_in.csv"))
+
+# fix month values
+MRF100$Month<-sub(".*/","",MRF100$Date)
+
+# get end date
+ey<-as.numeric(MRF100[nrow(MRF100),]$Year)
+em<-as.numeric(MRF100[nrow(MRF100),]$Month)
+ed<-as.Date(MRF100[nrow(MRF100),]$Ndate)
 
 head(MRF100)
 tail(MRF100)
+
+ggplot(data = MRF100, aes(x = Year, y = RF)) +
+  geom_line()
 
 RF_IN <- as.numeric(MRF100[,4]) 
 summary(RF_IN)
@@ -3485,21 +3877,23 @@ MRF_Min <- round(min(RF_IN,na.rm=TRUE),1)
 MRF_MED <- round(median(RF_IN,na.rm=TRUE),1)
 MRF_MEAN <- round(mean(RF_IN,na.rm=TRUE),1)
 
-MoRF.ts <- ts(RF_IN, c(1920,1), end = c(2022,12), frequency = 12) 
+MoRF.ts <- ts(RF_IN, c(1920,1), end = c(ey,em), frequency = 12) 
 
-myts1 <- as.vector(window(MoRF.ts, start=c(1920, 1), end=c(2022, 12)))
-myts2 <- as.vector(window(MoRF.ts, start=c(1940, 1), end=c(2022, 12)))
-myts3 <- as.vector(window(MoRF.ts, start=c(1960, 1), end=c(2022, 12)))
-myts4 <- as.vector(window(MoRF.ts, start=c(1980, 1), end=c(2022, 12)))
-myts5 <- as.vector(window(MoRF.ts, start=c(2000, 1), end=c(2022, 12)))
-myts6 <- as.vector(window(MoRF.ts, start=c(2010, 1), end=c(2022, 12)))
+myts1 <- as.vector(window(MoRF.ts, start=c(1920, 1), end=c(ey, em)))
+myts2 <- as.vector(window(MoRF.ts, start=c(1940, 1), end=c(ey, em)))
+myts3 <- as.vector(window(MoRF.ts, start=c(1960, 1), end=c(ey, em)))
+myts4 <- as.vector(window(MoRF.ts, start=c(1980, 1), end=c(ey, em)))
+myts5 <- as.vector(window(MoRF.ts, start=c(2000, 1), end=c(ey, em)))
+myts6 <- as.vector(window(MoRF.ts, start=c(2010, 1), end=c(ey, em)))
 
-DateT1 <- seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="months")
-DateT2 <- seq(as.Date("1940-01-01"), as.Date("2022-12-31"), by="months")
-DateT3 <- seq(as.Date("1960-01-01"), as.Date("2022-12-31"), by="months")
-DateT4 <- seq(as.Date("1980-01-01"), as.Date("2022-12-31"), by="months")
-DateT5 <- seq(as.Date("2000-01-01"), as.Date("2022-12-31"), by="months")
-DateT6 <- seq(as.Date("2010-01-01"), as.Date("2022-12-31"), by="months")
+ed<-as.Date(MRF100[nrow(MRF100),]$Ndate)
+
+DateT1 <- seq(as.Date("1920-01-01"), as.Date(ed), by="months")
+DateT2 <- seq(as.Date("1940-01-01"), as.Date(ed), by="months")
+DateT3 <- seq(as.Date("1960-01-01"), as.Date(ed), by="months")
+DateT4 <- seq(as.Date("1980-01-01"), as.Date(ed), by="months")
+DateT5 <- seq(as.Date("2000-01-01"), as.Date(ed), by="months")
+DateT6 <- seq(as.Date("2010-01-01"), as.Date(ed), by="months")
 
 LM1 <- lm(myts1~DateT1)
 LM2 <- lm(myts2~DateT2)
@@ -3516,9 +3910,14 @@ if(coef(LM1)[[2]] < 0) {LM1s <- c("Decrease")}
 if(coef(LM4)[[2]] < 0) {LM4s <- c("Decrease")}
 if(coef(LM6)[[2]] < 0) {LM6s <- c("Decrease")}
 
-RFT<-data.frame(Period = c("1920 - 2022", "1980 - 2022", "2010 - 2022"))
-RFT$Trend <- c(LM1s, LM4s, LM6s)
+l<-paste0("1920 - ",ey)
+m<-paste0("1980 - ",ey)
+s<-paste0("2010 - ",ey)
 
+RFT<-data.frame(Period = c(l,m,s))
+RFT
+RFT$Trend <- c(LM1s, LM4s, LM6s)
+RFT
 write.csv(RFT,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," RF_trend_dirctions.csv"),row.names = F)
 ###
 
@@ -3552,35 +3951,41 @@ LM6R <- summary(LM6)$r.squared
 
 ##########   Aggregate Month to Year 
 
-##########   Aggregate From Daily to Daily Average  
-
-short.date_M = strftime(MRF100$Ndate, "%Y/%m")
+##########   Aggregate From Monthly to annual Average  
 
 rm(mean)
 
+# this does daily to monthly. Not needed but keeping here
+short.date_M = strftime(MRF100$Ndate, "%Y/%m")
 Mean_M_RF = aggregate(as.numeric(MRF100$RF) ~ short.date_M, FUN = mean)
 colnames(Mean_M_RF) <- c("Date","RF")
-short.date_Y = strftime(as.Date(MRF100$Ndate), "%Y")
+Mean_M_RF
 
+# monthly to annual mean rainfall
+short.date_Y = strftime(as.Date(MRF100$Ndate), "%Y")
 Mean_Y_RF = aggregate(as.numeric(MRF100$RF) ~ short.date_Y, FUN = mean)
 colnames(Mean_Y_RF) <- c("Date","RF")
+head(Mean_Y_RF,20)
+
+write.csv(Mean_Y_RF,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Annual_RF_in.csv"),row.names = F)
+
 
 ##########   Plot Annual RF  
 
-YrRF.ts <- ts(Mean_Y_RF$RF, c(1920), end = c(2022), frequency = 1) 
-myts1Y <- as.vector(window(YrRF.ts, start=c(1920), end=c(2022)))
-myts2Y <- as.vector(window(YrRF.ts, start=c(1940), end=c(2022)))
-myts3Y <- as.vector(window(YrRF.ts, start=c(1960), end=c(2022)))
-myts4Y <- as.vector(window(YrRF.ts, start=c(1980), end=c(2022)))
-myts5Y <- as.vector(window(YrRF.ts, start=c(2000), end=c(2022)))
-myts6Y <- as.vector(window(YrRF.ts, start=c(2010), end=c(2022)))
+YrRF.ts <- ts(Mean_Y_RF$RF, c(1920), end = c(ey), frequency = 1)
+myts1Y <- as.vector(window(YrRF.ts, start=c(1920), end=c(ey)))
+myts2Y <- as.vector(window(YrRF.ts, start=c(1940), end=c(ey)))
+myts3Y <- as.vector(window(YrRF.ts, start=c(1960), end=c(ey)))
+myts4Y <- as.vector(window(YrRF.ts, start=c(1980), end=c(ey)))
+myts5Y <- as.vector(window(YrRF.ts, start=c(2000), end=c(ey)))
+myts6Y <- as.vector(window(YrRF.ts, start=c(2010), end=c(ey)))
 
-YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="years")
-YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2022-12-31"), by="years")
-YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2022-12-31"), by="years")
-YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2022-12-31"), by="years")
-YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2022-12-31"), by="years")
-YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2022-12-31"), by="years")
+YDateT1 <- seq(as.Date("1920-01-01"), as.Date(ed), by="years")
+YDateT2 <- seq(as.Date("1940-01-01"), as.Date(ed), by="years")
+YDateT3 <- seq(as.Date("1960-01-01"), as.Date(ed), by="years")
+YDateT4 <- seq(as.Date("1980-01-01"), as.Date(ed), by="years")
+YDateT5 <- seq(as.Date("2000-01-01"), as.Date(ed), by="years")
+YDateT6 <- seq(as.Date("2010-01-01"), as.Date(ed), by="years")
 
 LM1Y <- lm(myts1Y~YDateT1)
 LM2Y <- lm(myts2Y~YDateT2)
@@ -3614,72 +4019,83 @@ LM6RY <- round(summary(LM6Y)$r.squared,2)
 ##########   Seasonal RF 
 
 # Wet Season
-WET_RF <- subset(MRF100, Month==c('01','02','03','04','11','12'))
+MRF100a<-MRF100
+MRF100a$Month<-as.numeric(MRF100a$Month)
+head(MRF100a)
+
+WET_RF <- subset(MRF100a, Month==c('1','2','3','4','11','12'))
 head(WET_RF)
-WET_RF2 <- rbind(c(NA,"12",NA,NA,NA), WET_RF)
-WET_RF3 <- rbind(c(NA,"11",NA,NA,NA), WET_RF2)
+
+# Add in two rows at beginning for beginning of 1920 wet season (Nov and Dec. 1919)
+WET_RF2 <- rbind(c(NA,NA,"12",NA,NA,NA), WET_RF)
+WET_RF3 <- rbind(c(NA,NA,"11",NA,NA,NA), WET_RF2)
+head(WET_RF3, 12)
 WET_RF4 <- as.numeric(WET_RF3$RF)
+
+#Get seasonal average 
+WET_RF5 <-  as.vector(tapply(WET_RF4, gl(length(WET_RF4)/6, 6), mean,na.rm=T))
 
 # WET_RF<-MRF100[MRF100$Month !="5" & MRF100$Month !="6" & MRF100$Month != "7" & 
 #                  MRF100$Month != "8" & MRF100$Month != "9" & MRF100$Month != "10",]
 # WET_RF5<-as.numeric(WET_RF$RF)
 
-#Get seasonal average 
-WET_RF5 <-  as.vector(tapply(WET_RF4, gl(length(WET_RF4)/6, 6), mean,na.rm=T))
-DRY_RF <-MRF100[MRF100$Month != "01" & MRF100$Month  != "02" & 
-                  MRF100$Month  != "03" & MRF100$Month  != "04" & 
-                  MRF100$Month  != 11 & MRF100$Month  != 12,]  
-
-########## Season Stats
-
+# Dry Season
+DRY_RF <-MRF100[MRF100a$Month != 1 & MRF100a$Month  != 02 & 
+                  MRF100a$Month  != 3 & MRF100a$Month  != 04 & 
+                  MRF100a$Month  != 11 & MRF100a$Month  != 12,] 
+head(DRY_RF,12)
 DRY_RF2 <- as.numeric(DRY_RF$RF)
 
+#Get seasonal average 
+DRY_RF3 <-  as.vector(tapply(DRY_RF2, gl(length(DRY_RF2)/6, 6), mean,na.rm=T))
+
+########## Season Stats
 ##########   Wet
 W_MRF_Max <- round(max(WET_RF5,na.rm=T),0)
 W_MRF_Min <- round(min(WET_RF5,na.rm=TRUE),0)
 W_MRF_MED <- round(median(WET_RF5,na.rm=TRUE),0)
 W_MRF_MEAN <- round(mean(WET_RF5,na.rm=TRUE),0)
 ##########   Dry
-D_MRF_Max <- round(max(DRY_RF2,na.rm=T),0)
-D_MRF_Min <- round(min(DRY_RF2,na.rm=TRUE),0)
-D_MRF_MED <- round(median(DRY_RF2,na.rm=TRUE),0)
-D_MRF_MEAN <- round(mean(DRY_RF2,na.rm=TRUE),0)
+D_MRF_Max <- round(max(DRY_RF3,na.rm=T),0)
+D_MRF_Min <- round(min(DRY_RF3,na.rm=TRUE),0)
+D_MRF_MED <- round(median(DRY_RF3,na.rm=TRUE),0)
+D_MRF_MEAN <- round(mean(DRY_RF3,na.rm=TRUE),0)
 
 
 
 
 short.date_Y = strftime(DRY_RF$Ndate, "%Y")
 
-Dry_RF = aggregate(as.numeric(DRY_RF$RF) ~ short.date_Y, FUN = mean)
-colnames(Dry_RF) <- c("Date","RF")
+# Dry_RF = aggregate(as.numeric(DRY_RF$RF) ~ short.date_Y, FUN = mean)
+# colnames(Dry_RF) <- c("Date","RF")
 
 ####### Seasonal Trends ########################
 
 #WET Season 
-YrRF.tsW <- ts(WET_RF5, c(1920), end = c(2022), frequency = 1) 
-myts1YW <- as.vector(window(YrRF.tsW, start=c(1920), end=c(2022)))
-myts2YW <- as.vector(window(YrRF.tsW, start=c(1940), end=c(2022)))
-myts3YW <- as.vector(window(YrRF.tsW, start=c(1960), end=c(2022)))
-myts4YW <- as.vector(window(YrRF.tsW, start=c(1980), end=c(2022)))
-myts5YW <- as.vector(window(YrRF.tsW, start=c(2000), end=c(2022)))
-myts6YW <- as.vector(window(YrRF.tsW, start=c(2010), end=c(2022)))
+YrRF.tsW <- ts(WET_RF5, c(1920), end = c(ey), frequency = 1) 
+myts1YW <- as.vector(window(YrRF.tsW, start=c(1920), end=c(ey)))
+myts2YW <- as.vector(window(YrRF.tsW, start=c(1940), end=c(ey)))
+myts3YW <- as.vector(window(YrRF.tsW, start=c(1960), end=c(ey)))
+myts4YW <- as.vector(window(YrRF.tsW, start=c(1980), end=c(ey)))
+myts5YW <- as.vector(window(YrRF.tsW, start=c(2000), end=c(ey)))
+myts6YW <- as.vector(window(YrRF.tsW, start=c(2010), end=c(ey)))
 
 #DRy Season 
-YrRF.tsD <- ts(DRY_RF2, c(1920), end = c(2022), frequency = 1) 
-myts1YD <- as.vector(window(YrRF.tsD, start=c(1920), end=c(2022)))
-myts2YD <- as.vector(window(YrRF.tsD, start=c(1940), end=c(2022)))
-myts3YD<- as.vector(window(YrRF.tsD, start=c(1960), end=c(2022)))
-myts4YD <- as.vector(window(YrRF.tsD, start=c(1980), end=c(2022)))
-myts5YD <- as.vector(window(YrRF.tsD, start=c(2000), end=c(2022)))
-myts6YD <- as.vector(window(YrRF.tsD, start=c(2010), end=c(2022)))
+YrRF.tsD <- ts(DRY_RF3, c(1920), end = c(ey), frequency = 1) 
+myts1YD <- as.vector(window(YrRF.tsD, start=c(1920), end=c(ey)))
+myts2YD <- as.vector(window(YrRF.tsD, start=c(1940), end=c(ey)))
+myts3YD<- as.vector(window(YrRF.tsD, start=c(1960), end=c(ey)))
+myts4YD <- as.vector(window(YrRF.tsD, start=c(1980), end=c(ey)))
+myts5YD <- as.vector(window(YrRF.tsD, start=c(2000), end=c(ey)))
+myts6YD <- as.vector(window(YrRF.tsD, start=c(2010), end=c(ey)))
 
 # WET and DRy # Annual 
-YDateT1 <- seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="years")
-YDateT2 <- seq(as.Date("1940-01-01"), as.Date("2022-12-31"), by="years")
-YDateT3 <- seq(as.Date("1960-01-01"), as.Date("2022-12-31"), by="years")
-YDateT4 <- seq(as.Date("1980-01-01"), as.Date("2022-12-31"), by="years")
-YDateT5 <- seq(as.Date("2000-01-01"), as.Date("2022-12-31"), by="years")
-YDateT6 <- seq(as.Date("2010-01-01"), as.Date("2022-12-31"), by="years")
+YDateT1 <- seq(as.Date("1920-01-01"), as.Date(ed), by="years")
+YDateT2 <- seq(as.Date("1940-01-01"), as.Date(ed), by="years")
+YDateT3 <- seq(as.Date("1960-01-01"), as.Date(ed), by="years")
+YDateT4 <- seq(as.Date("1980-01-01"), as.Date(ed), by="years")
+YDateT5 <- seq(as.Date("2000-01-01"), as.Date(ed), by="years")
+YDateT6 <- seq(as.Date("2010-01-01"), as.Date(ed), by="years")
 
 #WET Regression
 LM1YW <- lm(myts1YW~YDateT1)
@@ -3760,48 +4176,48 @@ MLIM <-  (MLIM1 + (MLIM1 *0.45))
 
 par(mai=c(0.3,0.6,0.2,0.2))
 plot(myts1Y~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",xaxt="n",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
-title(paste("Rainfall Trend 1920-2022:",UNIT_Ns[u]), line = 0.5,cex.main = 1.5)
+title(paste("Rainfall Trend 1920-",ey,":",UNIT_Ns[u]), line = 0.5,cex.main = 1.5)
 
-legend("topright", c(paste0("1920-2022 R2 = ",LM1RY, " p = ",LM1PY),
-                     #paste0("1940-2022 Trend =", T2Y,", R2 =",LM2RY, " p = ",LM2PY),
-                     #paste0("1960-2022 R2 = ",LM3RY, " p = ",LM3PY),
-                     paste0("1980-2022 R2 = ",LM4RY, " p = ",LM4PY),
-                     #paste0("2000-2022 R2 = ",LM5RY, " p = ",LM5PY)),
-                     paste0("2010-2022 R2 = ",LM6RY, " p = ",LM6PY)),
+legend("topright", c(paste0("1920-",ey," R2 = ",LM1RY, " p = ",LM1PY),
+                     #paste0("1940-",ey," Trend =", T2Y,", R2 =",LM2RY, " p = ",LM2PY),
+                     #paste0("1960-",ey," R2 = ",LM3RY, " p = ",LM3PY),
+                     paste0("1980-",ey," R2 = ",LM4RY, " p = ",LM4PY),
+                     #paste0("2000-",ey," R2 = ",LM5RY, " p = ",LM5PY)),
+                     paste0("2010-",ey," R2 = ",LM6RY, " p = ",LM6PY)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
        
 legend("topleft",c("Annual"),cex=1.5,text.font=2, bty = "n")
 
-ablineclip(lm(myts1Y~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
+ablineclip(lm(myts1Y~YDateT1),x1=-19000,x2=20000,col="grey70",lwd=3)
 #ablineclip(lm(myts2Y~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
 #ablineclip(lm(myts3Y~YDateT3),x1=-4500,x2=19000,col=alpha("grey30",0.7),lwd=3)
-ablineclip(lm(myts4Y~YDateT4),x1=3500,x2=19000,col="grey30",lwd=3)
+ablineclip(lm(myts4Y~YDateT4),x1=3500,x2=20000,col="grey30",lwd=3)
 #ablineclip(lm(myts5Y~YDateT5),x1=11000,x2=19000,col=alpha("grey1",0.7),lwd=3)
-ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=19000,col="grey1",lwd=3)
+ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 
 ####### Wet Season ###########
 par(mai=c(0.3,0.6,0.2,0.2))
 YLIM <-  min(myts1YW, na.rm=T) 
 plot(myts1YW~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",xaxt="n",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
 
-legend("topright", c(paste0("1920-2022 R2 = ",LM1RYW, " p = ",LM1PYW),
-                     #paste0("1940-2022 Trend =", T2YW,", R2 =",LM2RYW, " p = ",LM2PYW),
-                     #paste0("1960-2022 R2 = ",LM3RYW, " p = ",LM3PYW),
-                     paste0("1980-2022 R2 = ",LM4RYW, " p = ",LM4PYW),
-                     #paste0("2000-2022 R2 = ",LM5RYW, " p = ",LM5PYW)),
-                     paste0("2010-2022 R2 = ",LM6RYW, " p = ",LM6PYW)),
+legend("topright", c(paste0("1920-",ey," R2 = ",LM1RYW, " p = ",LM1PYW),
+                     #paste0("1940-",ey," Trend =", T2YW,", R2 =",LM2RYW, " p = ",LM2PYW),
+                     #paste0("1960-",ey," R2 = ",LM3RYW, " p = ",LM3PYW),
+                     paste0("1980-",ey," R2 = ",LM4RYW, " p = ",LM4PYW),
+                     #paste0("2000-",ey," R2 = ",LM5RYW, " p = ",LM5PYW)),
+                     paste0("2010-",ey," R2 = ",LM6RYW, " p = ",LM6PYW)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3,cex=1)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
 
 legend("topleft",c("Wet Season"),cex=1.5,text.font=2, bty = "n")
 
-ablineclip(lm(myts1YW~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
-#ablineclip(lm(myts2YW~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
-#ablineclip(lm(myts3YW~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
-ablineclip(lm(myts4YW~YDateT4),x1=3500,x2=19000,col="grey30",lwd=3)
-#ablineclip(lm(myts5YW~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
-ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=19000,col="grey1",lwd=3)
+ablineclip(lm(myts1YW~YDateT1),x1=-19000,x2=20000,col="grey70",lwd=3)
+#ablineclip(lm(myts2YW~YDateT2),x1=-11000,x2=20000,col="darkorange",lwd=3)
+#ablineclip(lm(myts3YW~YDateT3),x1=-4500,x2=20000,col="grey30",lwd=3)
+ablineclip(lm(myts4YW~YDateT4),x1=3500,x2=20000,col="grey30",lwd=3)
+#ablineclip(lm(myts5YW~YDateT5),x1=11000,x2=20000,col="grey1",lwd=3)
+ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 
 ########## Dry Season 
 
@@ -3810,25 +4226,28 @@ YLIM <-  min(myts1YD, na.rm=T)
 plot(myts1YD~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
 # axis(1, labels = T)
 # title(main = "Average Wet Season Rainfall Pu'u Wa'awa'a (1920-2021)", line = 1)
-legend("topright", c(paste0("1920-2022 R2 = ",LM1RYD, " p = ",LM1PYD),
-                     #paste0("1940-2022 Trend =", T2YD,", R2 =",LM2RYD, " p = ",LM2PYD),
-                     #paste0("1960-2022 R2 = ",LM3RYD, " p = ",LM3PYD),
-                     paste0("1980-2022 R2 = ",LM4RYD, " p = ",LM4PYD),
-                     #paste0("2000-2022 R2 = ",LM5RYD, " p = ",LM5PYD)),
-                     paste0("2010-2022 R2 = ",LM6RYD, " p = ",LM6PYD)),
+legend("topright", c(paste0("1920-",ey," R2 = ",LM1RYD, " p = ",LM1PYD),
+                     #paste0("1940-",ey," Trend =", T2YD,", R2 =",LM2RYD, " p = ",LM2PYD),
+                     #paste0("1960-",ey," R2 = ",LM3RYD, " p = ",LM3PYD),
+                     paste0("1980-",ey," R2 = ",LM4RYD, " p = ",LM4PYD),
+                     #paste0("2000-",ey," R2 = ",LM5RYD, " p = ",LM5PYD)),
+                     paste0("2010-",ey," R2 = ",LM6RYD, " p = ",LM6PYD)),
        #lty = 1, col = c("darkred","darkorange","darkgreen","darkblue","purple","darkcyan"), lwd = 3)
        lty = 1, col = c("grey70","grey30","grey1"), lwd = 3)
        
 legend("topleft",c("Dry Season"),cex=1.5,text.font=2, bty = "n")
 
-ablineclip(lm(myts1YD~YDateT1),x1=-19000,x2=19000,col="grey70",lwd=3)
-#ablineclip(lm(myts2YD~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
-#ablineclip(lm(myts3YD~YDateT3),x1=-4500,x2=19000,col="grey30",lwd=3)
-ablineclip(lm(myts4YD~YDateT4),x1=3500,x2=19000,col="grey30",lwd=3)
-#ablineclip(lm(myts5YD~YDateT5),x1=11000,x2=19000,col="grey1",lwd=3)
-ablineclip(lm(myts6YD~YDateT6),x1=14000,x2=19000,col="grey1",lwd=3)
+ablineclip(lm(myts1YD~YDateT1),x1=-20000,x2=20000,col="grey70",lwd=3)
+#ablineclip(lm(myts2YD~YDateT2),x1=-11000,x2=20000,col="darkorange",lwd=3)
+#ablineclip(lm(myts3YD~YDateT3),x1=-4500,x2=20000,col="grey30",lwd=3)
+ablineclip(lm(myts4YD~YDateT4),x1=3500,x2=20000,col="grey30",lwd=3)
+#ablineclip(lm(myts5YD~YDateT5),x1=11000,x2=20000,col="grey1",lwd=3)
+ablineclip(lm(myts6YD~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 
 dev.off() 
+
+
+### SPI/DROUGHT ###
 
 ############################################################################# 
 # Count All Drought Events Long-term 12 and Short term 12 and 3. 
@@ -3850,7 +4269,7 @@ SPI3 <- spi(RF, scale = 3, distribution = 'Gamma')
 #PlOT ALL SPI
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SPI.png"),width=6.5*dpi,height=4*dpi,res=dpi)
 
-plot(spi(ts(RF,freq=12,start=c(1920,1)),scale = 12,distribution = 'Gamma'),main = paste0("SPI-12 1920-2022: ",UNIT_Ns[u]))
+plot(spi(ts(RF,freq=12,start=c(1920,1)),scale = 12,distribution = 'Gamma'),main = paste0("SPI-12 1920-",ey,": ",UNIT_Ns[u]))
 
 dev.off()
 
@@ -3867,6 +4286,7 @@ Cell.DataSPI
     csv<-paste0(UNIT_N[u]," Monthly Rainfall_",RFUnit2,".csv")
     RF_Data <- read.csv(csv)
     head(RF_Data)
+    tail(RF_Data)
     
     # calculate SPI and SPEI
     library(SPEI)
@@ -3896,13 +4316,33 @@ Cell.DataSPI
     # combine dataframes
     SPI_ALL<-rbind(spi_val,spi3_val)
     head(SPI_ALL, 20)
+    tail(SPI_ALL, 20)
     
-    tail(SPI_ALL)
+    # determine if last year is complete, or how many months are missing 
+    # complete will be 24 months in 1 year because two time scales
+    ly<-nrow(SPI_ALL[which(SPI_ALL$date == max(SPI_ALL$date)),])
+    m<-24-ly
+    
+    # make extra rows so the last year is complete
+    extra<-data.frame(matrix(ncol = 3, nrow = m))
+    colnames(extra)<-c("Series.1","date","m.scale")
+    extra$date<-max(SPI_ALL$date)
+    extra[1:(m/2),]$m.scale <- 3
+    extra[((m/2)+1):nrow(extra),]$m.scale <- 12
+
+    # add extra rows to dataset
+    SPI_ALL<-rbind(SPI_ALL, extra)
+ 
+    # sort by year
+    SPI_ALL<-SPI_ALL[order(SPI_ALL$date, SPI_ALL$m.scale),]
 
     # fix date column
     library(zoo)
+    SPI_ALL$date2<-NA
     SPI_ALL$date2<-rep(c(1:12))
     SPI_ALL$date<-as.Date(paste0(SPI_ALL$date,"/",SPI_ALL$date2, "/01"), format = "%Y/%m/%d")
+    head(SPI_ALL,20)
+    tail(SPI_ALL,20)
     
     SPI_ALL<-SPI_ALL[1:3]
     colnames(SPI_ALL)<-c("SPI","date","m.scale")
@@ -3917,6 +4357,9 @@ Cell.DataSPI
     summary(SPI_ALL$spi_negs)
     head(SPI_ALL, 50)
 
+    # Save SPI_ALL drought intensity (inverted SPI) dataset
+    write.csv(SPI_ALL,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," SPI_NEGS_ALL.csv"),row.names = F)
+    
     ### Drought Event Count for SPI-12 ###
     
         spi2<-SPI_ALL[which(SPI_ALL$m.scale == 12),]
@@ -4069,11 +4512,9 @@ Cell.DataSPI
 
           # get row
           row<-spi6[y,]
-          row
 
           # get previous and next row
           prev<-spi6[y-1,]
-
           nex<-spi6[y+1,]
 
           # get event number
@@ -4125,9 +4566,9 @@ SPIVEC<-SPI_ALL[which(SPI_ALL$m.scale == 12),]$SPI
 # SPIVEC[SPIVEC > 0] <- 0
 # SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
-M_SPI.ts <- ts(SPIVEC, c(1920,1), end = c(2022,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(2022, 12)))
-DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC, c(1920,1), end = c(ey,em), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(ey, em)))
+DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date(ed), by="months"))
 #short.date_M = strftime(MonthlyRF$Ndate, "%Y-%m")
 
 xx <- data.frame(DateT1,myts66)
@@ -4175,9 +4616,9 @@ SPIVEC<-SPI_ALL[which(SPI_ALL$m.scale == 12),]$SPI
 SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
-M_SPI.ts <- ts(SPIVEC_Abs, c(1920,1), end = c(2022,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(2022, 12)))
-DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date("2022-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1920,1), end = c(ey,em), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1920, 1), end=c(ey, em)))
+DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date(ed), by="months"))
 #short.date_M = strftime(MonthlyRF$Ndate, "%Y-%m")
 
 xx <- data.frame(DateT1,myts66)
@@ -4192,7 +4633,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-12 Drought Events 1920 -2022: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-12 Drought Events 1920 -",ey,": ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4428,9 +4869,9 @@ SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
 # make dataframe of date and drought (absolute SPI) value
-M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2022,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2022, 12)))
-DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2022-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(ey,em), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(ey,em)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date(ed), by="months"))
 xx <- data.frame(DateT1,myts66)
 colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
@@ -4446,7 +4887,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-3 Drought Events 1990-2022: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-3 Drought Events 1990-",ey,": ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4678,9 +5119,9 @@ SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
 # make dataframe of date and drought (absolute SPI) value
-M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(2022,12), frequency = 12)
-myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(2022, 12)))
-DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date("2022-12-31"), by="months"))
+M_SPI.ts <- ts(SPIVEC_Abs, c(1990,1), end = c(ey,em), frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start=c(1990, 1), end=c(ey,em)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date(ed), by="months"))
 xx <- data.frame(DateT1,myts66)
 colnames(xx)<- c("DT","SP")
 xx$DT <- as.Date(xx$DT)
@@ -4694,7 +5135,7 @@ print(ggplot(xx, aes(x = DT, y = SP)) +
         geom_area(fill="darkorange", color="black") +
         xlab("") +
         
-        labs(title = paste0("SPI-12 Drought Events 1990-2022: ",UNIT_Ns[u]),
+        labs(title = paste0("SPI-12 Drought Events 1990-",ey,": ",UNIT_Ns[u]),
              x = "",
              y = "Drought Intensity") +
         geom_hline(yintercept=2, linetype="dashed", color = "darkred", size = 1) + 
@@ -4717,17 +5158,28 @@ dev.off()
 
 print("MEI")
 
-Cell.MEI <- data.frame(matrix(nrow = 5,ncol = 7))
-colnames(Cell.MEI) <- c("Phase","W-Mean","D-Mean","W-Max","D-Max","W-Min","D-Min")
+Cell.MEI <- data.frame(matrix(nrow = 5,ncol = 9))
+colnames(Cell.MEI) <- c("Phase","W-Mean","D-Mean","W-Max","D-Max","W-Min","D-Min","W-Count","D-Count")
 Cell.MEI[1:5,1] <- c("Strong EL","Weak EL", "Neutral","Weak LA","Strong LA")
 
 ##########   All MEI 
+head(MEI)
+tail(MEI)
+
+# get last year
+ly<-max(MRF100$Year)
+MEI$Year<-seq(1950,ly,1)
+
 #Cell.MEI_All[u:1] <- UNIT_N[u] 
 #Cell.MEI_All[u,8] <- W_MRF_MEAN
 #Cell.MEI_All[UNIT_C+u,8] <- D_MRF_MEAN
+# remove first row from wet season (1950 wet season not available because it starts in 1949)
+MEI_W <- subset(MEI, select = -c(MEI_D))
+MEI_W <- MEI_W[2:nrow(MEI_W),]
+MEI_D <- subset(MEI, select = -c(MEI_W))
 
-MEI_W <- MEI$MEI_W
-MEI_D <- MEI$MEI_D
+# ## Can read in the csv from above to start script here
+# MRF100<-read.csv(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_in.csv"))
 
 head(MRF100)
 tail(MRF100)
@@ -4738,105 +5190,160 @@ tail(MRF100)
 # # Using MEI and Abby's rainfall dataset
 # MRF  =  Cell.AF_Maps[c(1:1116),]
 
-# Using ONI and the combo dataset 1950 - 2021
-MRF = MRF100[c(361:nrow(MRF100)),]
+# Using ONI and the combo dataset 1950 (row 361) - current
+# MRF = MRF100[c(361:(nrow(MRF100)-12)),]
+MRF = MRF100[361:nrow(MRF100),]
 head(MRF)
 tail(MRF)
 
 ##########  Need to remove Rows to get seasons correct
+  # first row always starts on May 1950
+  MRF2 =  MRF[-c(1:4),]
+  head(MRF2)
+  
+  # last row changes depending on dataset end point
+    # get last row in dataset
+    lr<-MRF2[nrow(MRF2),]
 
-MRF2 =  MRF[-c((nrow(MRF)-1):nrow(MRF)),]
-tail(MRF2)
-MRF3 =  MRF2[-c(1:4),]
+        # get count of how many months in the last year
+    yc<-max(MRF2$Year)
+    yc<-nrow(MRF2[which(MRF2$Year == yc),])
+
+    # get row number of April or October of last year
+    mrn<-data.frame(which(MRF2$Year == lr$Year))
+
+    if(nrow(mrn>4)) {arn<-mrn[4,]}
+    if(nrow(mrn>10)) {orn<-mrn[10,]}
+    
+    # make dataset end at the end of the last complete season
+    if(yc<4){MRF2<-MRF2[which(MRF2$Year < lr),]} 
+    if(yc>4 && yc<10) {MRF2<-MRF2[1:arn,]}
+    if(yc>10) {MRF2<-MRF2[1:orn,]}
+    
+    tail(MRF2)
+    
+    MRF3<-MRF2
+    MRF3$Month<-as.numeric(MRF3$Month)
+
+#Aggregate every 6 months to get season averages (starts in May)
+# colnames(MRF3)[4] <- "RANCH_RF"
+# RF6 <- as.numeric(MRF3$RANCH_RF)
+# SixMo <-colMeans(matrix(RF6, nrow=6))  #Will Need to change This 
+# SixMo
+
+#
+#
+#
+#
+# 
+# # Don't do this if starting from monthly rainfall (inches) csv
+# if(RFUnit == " in") {SixMo <-  SixMo * 0.0393701}
+
+#
+#
+#
+#
+#
+
+### for each consecutive 6 months, aggregate ANOM by season and keep maximum
+# make list of values 6 values apart
+rows<-seq(from = 1, to = nrow(MRF3), by = 6)
+rows
+
+# create empty dataframe
+seasons<-setNames(data.frame(matrix(ncol = 3, nrow = 0)), 
+                  c("Year", "RF", "season"))
+head(seasons)
 head(MRF3)
 
-#Aggregate every 6 months
-colnames(MRF3)[4] <- "RANCH_RF"
-RF6 <- as.numeric(MRF3$RANCH_RF)
-SixMo <-colMeans(matrix(RF6, nrow=6))  #Will Need to change This 
-SixMo
+# loop through consecutive months and aggregate season oni2 values
 
-#
-#
-#
-#
+n<-1
 
-# Don't do this if starting from monthly rainfall (inches) csv
-if(RFUnit == " in") {SixMo <-  SixMo * 0.0393701} 
+for (y in rows) {
+  
+  b<-MRF3[c(y:(y+5)),]
+  b
+  # calculate average seasonal rainfall value and set season
+  seasons[n,]$RF<-mean(b$RF)
+  seasons[n,]$Year<-max(b$Year)
+  if(as.numeric(min(b$Month) == 5)) {seasons[n,]$season<-"dry"}
+  if(as.numeric(min(b$Month) == 1)) {seasons[n,]$season<-"wet"}
 
-#
-#
-#
-#
-#
+  n<-n+1
+}
 
-SixMo[seq(1,length(SixMo),2)]
+head(seasons, 10)
+tail(seasons)
+summary(seasons$RF)
 
-DryRF <- SixMo[c(TRUE, FALSE)]
-WetRF <- SixMo[c(FALSE, TRUE)]
+# # selects every other value since they alternate (dry, wet, dry, etc. Starts with dry (May))
+# DryRF <- SixMo[c(TRUE, FALSE)]
+# WetRF <- SixMo[c(FALSE, TRUE)]
+
+# DryRF<-seasons[which(seasons$season == "dry"),]$RF
+# WetRF<-seasons[which(seasons$season == "wet"),]$RF
+
 
 ##########   Bind MEI and Data
+DryRF<-seasons[which(seasons$season == "dry"),]
 
-L0_W <-cbind(WetRF,MEI_W)
-L0_D <-cbind(DryRF,MEI_D)
+DryRF
+L0_D<-cbind(DryRF,MEI_D[which(!is.na(MEI_D$MEI_D)),])
+L0_D
 
-##########   Seperate by ENSO Phase 
+WetRF<-seasons[which(seasons$season == "wet"),]
+L0_W<-cbind(WetRF,MEI_W[which(!is.na(MEI_W$MEI_W)),])
+L0_W
+
+##########   Wet Season
+##########   Separate by ENSO Phase 
 
 ELN_W  <- subset(L0_W, MEI_W > 0.5)
 LAN_W  <- subset(L0_W, MEI_W < -0.5)
 NUT_Wx <- subset(L0_W, MEI_W > -0.5)
-MEI_W2 <- NUT_Wx[,2]
-NUT_W  <- subset(NUT_Wx,MEI_W2 < 0.5)
+NUT_W  <- subset(NUT_Wx,MEI_W < 0.5)
 
 ##########   Strong and Weak EL Wet Season 
 
-W0_X_EL <- ELN_W[,2]
-ELN_W_Weak <- subset(ELN_W , W0_X_EL  <= 1.5)
-ELN_W_Strong <- subset(ELN_W , W0_X_EL  > 1.5)
+ELN_W_Weak <- subset(ELN_W , MEI_W  <= 1.5)
+ELN_W_Strong <- subset(ELN_W , MEI_W  > 1.5)
 
 ##########   Strong and Weak La Wet Season 
-W0_X_LA <- LAN_W[,2]
-# LAN_W_Weak <- subset(LAN_W , W0_X_LA  > -1)
-# LAN_W_Strong <- subset(LAN_W , W0_X_LA  < -1)
 
-LAN_W_Weak <- subset(LAN_W , W0_X_LA  >= -1.5)
-LAN_W_Strong <- subset(LAN_W , W0_X_LA  < -1.5)
+LAN_W_Weak <- subset(LAN_W , MEI_W  >= -1.5)
+LAN_W_Strong <- subset(LAN_W , MEI_W  < -1.5)
 
 ##########   DRY Season 
 ELN_D <- subset(L0_D, MEI_D > 0.5)
 LAN_D <- subset(L0_D, MEI_D < -0.5)
 NUT_Dx <- subset(L0_D, MEI_D > -0.5)
-MEI_D2 <- NUT_Dx[,2]
-NUT_D  <- subset(NUT_Dx,MEI_D2 < 0.5)
+NUT_D  <- subset(NUT_Dx, MEI_D < 0.5)
 
 ##########   Strong and Weak EL Dry Season 
-D0_X_EL <- ELN_D[,2]
-# ELN_D_Weak <- subset(ELN_D , D0_X_EL  < 1)
-# ELN_D_Strong <- subset(ELN_D , D0_X_EL  > 1)
 
-ELN_D_Weak <- subset(ELN_D , D0_X_EL  <= 1.5)
-ELN_D_Strong <- subset(ELN_D , D0_X_EL  > 1.5)
+ELN_D_Weak <- subset(ELN_D , MEI_D  <= 1.5)
+ELN_D_Weak
+ELN_D_Strong <- subset(ELN_D , MEI_D  > 1.5)
+ELN_D_Strong
 
 ##########   Strong and Weak La Dry Season 
-D0_X_LA <- LAN_D[,2]
-# LAN_D_Weak <- subset(LAN_D , D0_X_LA  > -1)
-# LAN_D_Strong <- subset(LAN_D , D0_X_LA  < -1)
 
-LAN_D_Weak <- subset(LAN_D , D0_X_LA  >= -1.5)
-LAN_D_Strong <- subset(LAN_D , D0_X_LA  < -1.5)
-D0_X_LA
-##########   SUBSET 
-EL_W_S <- ELN_W_Strong[,1]
-EL_W_W <- ELN_W_Weak[,1]
-LA_W_S <- LAN_W_Strong[,1]
-LA_W_W <- LAN_W_Weak[,1]
-NU_W <- NUT_W[,1]
+LAN_D_Weak <- subset(LAN_D , MEI_D  >= -1.5)
+LAN_D_Strong <- subset(LAN_D , MEI_D  < -1.5)
 
-EL_D_S <- ELN_D_Strong[,1]
-EL_D_W <- ELN_D_Weak[,1]
-LA_D_S <- LAN_D_Strong[,1]
-LA_D_W <- LAN_D_Weak[,1]
-NU_D <- NUT_D[,1]
+##########   Extract RF values
+EL_W_S <- ELN_W_Strong[,2]
+EL_W_W <- ELN_W_Weak[,2]
+LA_W_S <- LAN_W_Strong[,2]
+LA_W_W <- LAN_W_Weak[,2]
+NU_W <- NUT_W[,2]
+
+EL_D_S <- ELN_D_Strong[,2]
+EL_D_W <- ELN_D_Weak[,2]
+LA_D_S <- LAN_D_Strong[,2]
+LA_D_W <- LAN_D_Weak[,2]
+NU_D <- NUT_D[,2]
 
 ##########   Counting the number in each phase 
 C_EL_W_S <- sum(!is.na(EL_W_S)) 
@@ -4850,8 +5357,10 @@ C_LA_D_S <- sum(!is.na(LA_D_S))
 C_LA_D_W <- sum(!is.na(LA_D_W))
 C_NU_D <-   sum(!is.na(NU_D))
 
-##########   Mean
-
+Cell.MEI[1:5,8] <- c( C_EL_W_S, C_EL_W_W, C_NU_W, C_LA_W_W, C_LA_W_S)
+Cell.MEI[1:5,9] <- c( C_EL_D_S, C_EL_D_W, C_NU_D, C_LA_D_W, C_LA_D_S)
+Cell.MEI
+##########   Mean RF values for each season-phase
 Me_EL_W_S <- round(mean(EL_W_S,na.rm=T),1) 
 Me_EL_W_W <- round(mean(EL_W_W,na.rm=T),1) 
 Me_LA_W_S <- round(mean(LA_W_S,na.rm=T),1)
@@ -4864,7 +5373,7 @@ Me_LA_D_W <- round(mean(LA_D_W,na.rm=T),1)
 Me_NU_D <-   round(mean(NU_D,na.rm=T),1)
 
 Cell.MEI[1:5,2] <- c( Me_EL_W_S, Me_EL_W_W, Me_NU_W,Me_LA_W_W, Me_LA_W_S)
-Cell.MEI[1:5,3] <- c( Me_EL_D_S, Me_EL_D_S, Me_NU_D,Me_LA_D_W, Me_LA_D_S)
+Cell.MEI[1:5,3] <- c( Me_EL_D_S, Me_EL_D_W, Me_NU_D,Me_LA_D_W, Me_LA_D_S)
 
 ##########   MAX
 
@@ -4880,10 +5389,9 @@ Mx_LA_D_W <- round(max(LA_D_W,na.rm=T),1)
 Mx_NU_D <-   round(max(NU_D,na.rm=T),1)
 
 Cell.MEI[1:5,4] <- c( Mx_EL_W_S, Mx_EL_W_W, Mx_NU_W,Me_LA_W_W, Mx_LA_W_S)
-Cell.MEI[1:5,5] <- c( Mx_EL_D_S, Mx_EL_D_S, Mx_NU_D,Me_LA_D_W, Mx_LA_D_S)
+Cell.MEI[1:5,5] <- c( Mx_EL_D_S, Mx_EL_D_W, Mx_NU_D,Me_LA_D_W, Mx_LA_D_S)
 
 ##########   MIN
-Cell.MEI
 Mn_EL_W_S <- round(min(EL_W_S,na.rm=T),1) 
 Mn_EL_W_W <- round(min(EL_W_W,na.rm=T),1) 
 Mn_LA_W_S <- round(min(LA_W_S,na.rm=T),1)
@@ -4896,25 +5404,25 @@ Mn_LA_D_W <- round(min(LA_D_W,na.rm=T),1)
 Mn_NU_D <-   round(min(NU_D,na.rm=T),1)
 
 Cell.MEI[1:5,6] <- c( Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
-Cell.MEI[1:5,7] <- c( Mn_EL_D_S, Mn_EL_D_S, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
+Cell.MEI[1:5,7] <- c( Mn_EL_D_S, Mn_EL_D_W, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
 
-##########   SUM
-EL_W_S
-Su_EL_W_S <- round(sum(EL_W_S,na.rm=T),1) 
-Su_EL_W_W <- round(sum(EL_W_W,na.rm=T),1) 
-Su_LA_W_S <- round(sum(LA_W_S,na.rm=T),1)
-Su_LA_W_W <- round(sum(LA_W_W,na.rm=T),1)
-Su_NU_W <-   round(sum(NU_W,na.rm=T),1)
-Su_EL_D_S <- round(sum(EL_D_S,na.rm=T),1)
-Su_EL_D_W <- round(sum(EL_D_W,na.rm=T),1)
-Su_LA_D_S <- round(sum(LA_D_S,na.rm=T),1)
-Su_LA_D_W <- round(sum(LA_D_W,na.rm=T),1)
-Su_NU_D <-   round(sum(NU_D,na.rm=T),1)
-
-Cell.MEI[1:5,6] <- c( Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
-Cell.MEI[1:5,7] <- c( Mn_EL_D_S, Mn_EL_D_S, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
+# ##########   SUM
+# Su_EL_W_S <- round(sum(EL_W_S,na.rm=T),1) 
+# Su_EL_W_W <- round(sum(EL_W_W,na.rm=T),1) 
+# Su_LA_W_S <- round(sum(LA_W_S,na.rm=T),1)
+# Su_LA_W_W <- round(sum(LA_W_W,na.rm=T),1)
+# Su_NU_W <-   round(sum(NU_W,na.rm=T),1)
+# Su_EL_D_S <- round(sum(EL_D_S,na.rm=T),1)
+# Su_EL_D_W <- round(sum(EL_D_W,na.rm=T),1)
+# Su_LA_D_S <- round(sum(LA_D_S,na.rm=T),1)
+# Su_LA_D_W <- round(sum(LA_D_W,na.rm=T),1)
+# Su_NU_D <-   round(sum(NU_D,na.rm=T),1)
+# 
+# Cell.MEI[1:5,8] <- c( Su_EL_W_S, Su_EL_W_W, Su_NU_W, Su_LA_W_W, Su_LA_W_S)
+# Cell.MEI[1:5,9] <- c( Su_EL_D_S, Su_EL_D_S, Su_NU_D, Su_LA_D_W, Su_LA_D_S)
 
 Cell.MEI
+
 ##########   DRY SEASON   
 
 ##########   Scaler
@@ -4926,6 +5434,8 @@ MAXD <- (MAXC * 1.2) + MAXA
 MAXD2 <- MAXD - MAXB2
 MAXD22 <- MAXD - MAXB
 MAXD3 <- MAXD - MAXC 
+
+dpi=300
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"MEI_DRY.png"),width=5*dpi,height=5*dpi,res=dpi)
 
@@ -5011,6 +5521,7 @@ text(5,MAXD22, paste0("Min = ",Mn_LA_W_S),cex=0.7)
 
 dev.off()
 
+Cell.MEI
 # I don't think this is used...
 write.csv(Cell.MEI,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_A.csv"),row.names = F)
 
@@ -5019,339 +5530,64 @@ write.csv(Cell.MEI,paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_A.csv"),row.name
 #####################################################
 ##### ENSO rainfall barplots (Derek's addition)
 
-### Load MEI dataset
-enso<-MEI
-enso
-
-# Add date column
-enso$date<-c(1950:2021)
-enso$date<-as.Date(paste0(enso$date,"-01-01"))
-
-# add seasonal ENSO phase columns based on MEI values
-enso$phase.w<-NA
-enso$phase.d<-NA
-
-# assign 5 ENSO phase based on MEI_W
-enso$phase.w<-ifelse(enso$MEI_W>1.5,"SEL",0)
-enso$phase.w<-ifelse(enso$MEI_W>=0.5 & enso$MEI_W<=1.5, "WEL", enso$phase.w)
-enso$phase.w<-ifelse(enso$MEI_W>(-0.5) & enso$MEI_W<0.5, "NUT", enso$phase.w)
-enso$phase.w<-ifelse(enso$MEI_W<=(-0.5) & enso$MEI_W>=(-1.5), "WLA", enso$phase.w)
-enso$phase.w<-ifelse(enso$MEI_W<(-1.5), "SLA", enso$phase.w)
-
-# assign 5 ENSO phase based on MEI_D
-enso$phase.d<-ifelse(enso$MEI_D>1.5,"SEL",0)
-enso$phase.d<-ifelse(enso$MEI_D>=0.5 & enso$MEI_D<=1.5, "WEL", enso$phase.d)
-enso$phase.d<-ifelse(enso$MEI_D>(-0.5) & enso$MEI_D<0.5, "NUT", enso$phase.d)
-enso$phase.d<-ifelse(enso$MEI_D<=(-0.5) & enso$MEI_D>=(-1.5), "WLA", enso$phase.d)
-enso$phase.d<-ifelse(enso$MEI_D<(-1.5), "SLA", enso$phase.d)
-
-head(enso, 20)
-
-# load monthly rainfall
-table<-MRF100
-table<-table[c(2,3,4)]
-head(table)
-tail(table)
-
-# convert month values back to numbers
-table$Month<-as.numeric(table$Month)
-
-### make season column
-table$season<-NA
-
-for (i in 1:nrow(table)) {
-  
-  s<-table[i,]
-  
-  if(s$Month>4 && s$Month<11) {table[i,]$season<-"dry"}
-  if(s$Month<5 || s$Month>10) {table[i,]$season<-"wet"}
-}
-
-head(table)
-tail(table)
-# ### calculate season-year rainfall means
-# # subset for correct time period (1920 - 2012)
-# table2<-table[which(table$Year<2013),]
-
-# remove first and last months to start dataset at beginning of 1920 dry season
-table2 =  table[-c((nrow(table)-1):nrow(table)),]
-table2 =  table[-c(1:4),]
-head(table2)
-tail(table2)
-
-# add season count column
-table2$sc<-NA
-
-# make sequence of numbers by 6 (1,7,13,etc.) to select the first month
-# of each season
-r<-seq(from=1, to=nrow(table2), by=6)
-n<-1
-
-for (i in r) {
-  
-  # set the last row (last month of season)
-  l<-i+5
-  # select all season rows
-  s<-table2[i:l,]
-  # assign season count number
-  table2[i:l,]$sc<-n
-  # next number
-  n<-n+1
-}
-
-# aggregate rainfall over consecutive seasons = SEASONAL RAINFALL VALUES (SUM)
-t2<-aggregate(RF ~ sc, table2, sum)
-head(t2)
-
-### merge other columns back in and reduce to one row per season count
-head(table2)
-t1<-table2[c(1,2,4,5)]
-head(t1, 20)
-
-# make empty dataframe
-t<-data.frame("Year")
-t$Month<-NA
-t$Season<-NA
-t$sc<-NA
-
-# loop through rows and only write row to new table
-# if sc is greater than the previous sc
-for (i in 1:nrow(t1)) {
-  
-  # current sc
-  x<-t1[i,]$sc
-  # previous sc
-  n<-t1[i-1,]$sc
-  
-  # keep the first row (sc 1)
-  if(i==1) {t[i,]<-t1[i,]}
-  if(i==1) {n<-1}
-  if(i>1 && x>n) {t[x,]<-t1[i,]}
-}
-
-head(t)
-
-# join in the seasonal rainfall by SC
-library(dplyr)
-t3<-left_join(t,t2)
-
-# remove month column, fix year colname (Year, Season, SC, RF)
-# t3 should now contain total season-year rainfall values (sum of each season-year)
-t3<-t3[c(1,3,4,5)]
-colnames(t3)[which(names(t3) == "X.Year.")] <- "Year"
-head(t3)
-
-#################################################################################
-###### Assign ENSO phases to season-years (1990 dry, 1990 wet, 1991 dry, 1991 wet, etc.)
-
-# combine ENSO phase and rainfall tables
-head(t3)
-head(enso)
-
-# add year column to enso for join
-enso$Year<-substr(enso$date, 1, 4)
-
-dfs<-list(t3, enso)
-table3<-join_all(dfs, match="all")
-head(table3, 20)
-tail(table3,20)
-
-# remove rows with no data (pre-1950)
-table3<-table3[which(!is.na(table3$MEI_D)),]
-
-# make single MEI and s.phase columns with value based on season
-table3$MEI<-NA
-table3$x<-NA
-
-for (i in 1:nrow(table3)) {
-  
-  s<-table3[i,]
-  if(s$Season == "wet") {table3[i,]$MEI<-s$MEI_W}
-  if(s$Season == "dry") {table3[i,]$MEI<-s$MEI_D}
-  if(s$Season == "wet") {table3[i,]$x<-s$phase.w}
-  if(s$Season == "dry") {table3[i,]$x<-s$phase.d}
-}
-
-# remove unneeded MEI and phase columns (keep Year, Season, SC, RF, MEI, x)
-table3<-table3[c(1,2,3,4,10,11)]
-head(table3, 20)
-
-# unique(table3$x)
-# table3<-table3[which(!is.na(table3$x)),]
-
-# assign values to ENSO phases
-table3$pval5<-ifelse(table3$x=="SEL",1,0)
-table3$pval5<-ifelse(table3$x=="WEL",2,table3$pval5)
-table3$pval5<-ifelse(table3$x=="NUT",3,table3$pval5)
-table3$pval5<-ifelse(table3$x=="WLA",4,table3$pval5)
-table3$pval5<-ifelse(table3$x=="SLA",5,table3$pval5)
-summary(table3$pval5)
-
-head(table3)
-
-### Make dataframe with average monthly rainfall values for each ENSO phase
-# fix year values and remove RF column
-table3$Year<-as.numeric(table3$Year)
-table4<-table3[c(1,2,3,5,6,7)]
-head(table4)
-
-# bring in monthly rainfall values
-head(table2)
-table2$Year<-as.numeric(table2$Year)
-
-# fix column name and remove sc column
-colnames(table2)[which(names(table2) == "season")]<-"Season"
-table2<-table2[c(1:5)]
-
-# join by year and season
-head(table2)
-head(table4)
-table5<-left_join(table2, table4)
-head(table5)
-
-# aggregate over month to calculate total rainfall for each ENSO phase
-rm(mean)
-
-rain7<-aggregate(RF ~ x, table5, FUN=mean)
-rain7
-
+# Average Monthly Rainfall by ENSO Phase and Season barplot
 # spell out the ENSO phases
-rain7$x2<-NA
+Cell.MEI2<-Cell.MEI
+Cell.MEI2$Phase2<-NA
+Cell.MEI2
 
-for (i in 1:nrow(rain7)) {
-  y<-rain7[i,]
-  if(y$x == "SEL") {rain7[i,]$x2 <- "Strong El Nino"}
-  if(y$x == "WEL") {rain7[i,]$x2 <- "Weak El Nino"}
-  if(y$x == "NUT") {rain7[i,]$x2 <- "Neutral"}
-  if(y$x == "WLA") {rain7[i,]$x2 <- "Weak La Nina"}
-  if(y$x == "SLA") {rain7[i,]$x2 <- "Strong La Nina"}
+p<-as.list(unique(Cell.MEI2$Phase))
+p
+
+for (i in 1:nrow(Cell.MEI2)) {
+  y<-Cell.MEI2[i,]
+  if(y$Phase == p[[1]]) {Cell.MEI2[i,]$Phase2 <- "Strong El Nino"}
+  if(y$Phase == p[[2]]) {Cell.MEI2[i,]$Phase2 <- "Weak El Nino"}
+  if(y$Phase == p[[3]]) {Cell.MEI2[i,]$Phase2 <- "Neutral"}
+  if(y$Phase == p[[4]]) {Cell.MEI2[i,]$Phase2 <- "Weak La Nina"}
+  if(y$Phase == p[[5]]) {Cell.MEI2[i,]$Phase2 <- "Strong La Nina"}
 }
 
-### Plot
-# set order of ENSO phases for plotting
-library(ggplot2)
-rain7$x2<-factor(rain7$x2, levels=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina"))
+Cell.MEI2
 
-# set ylim
-ylim<-max(rain7$RF)*1.2
+# reformat table for barplots
 
-png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"ENSO_rf_barplot.png"),width=5.1*dpi,height=2.1*dpi,res=dpi)
+colnames(Cell.MEI2)
+cd<-subset(Cell.MEI2, select = c("D-Mean","D-Count","Phase2"))
+colnames(cd)<-c("Mean","Count","Phase")
+cd$Season<-"dry"
+cw<-subset(Cell.MEI2, select = c("W-Mean","W-Count","Phase2"))
+colnames(cw)<-c("Mean","Count","Phase")
+cw$Season<-"wet"
 
-ggplot(data=rain7, 
-       aes(x=x2, y=RF, group=x2)) +
-  geom_bar(aes(fill=x2), position = position_dodge(width=0.65), stat="identity", color="black", 
-           alpha=.7, width=.50) +
-  labs(title="Average Monthly Rainfall by ENSO Phase",
-       y = "Rainfall (inches)", x= "ENSO Phase") +
-  scale_fill_manual(values=c("darkred","red","grey","lightskyblue1","darkblue"),
-                    limits=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina")) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
-  guides(fill=guide_legend(title="ENSO Phase")) +
-  # geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
-  theme_bw() +
-  theme(axis.text.x=element_blank())
-
-dev.off()
-
-################################################################################
-### Seasonal rainfall by ENSO phase barplot
-
-rain4<-table3
-head(rain4)
-
-### count how many seasons are in each ENSO phase
-# make season.year column
-rain4$season.year<-paste0(rain4$Year,"_",rain4$Season)
-
-head(rain4)
-
-# make list of phases
-phase<-as.list(unique(rain4$x))
-
-# make list of seasons
-s<-as.list(unique(rain4$Season))
-
-dat_all<-data.frame()
-
-for (i in phase) {
-  
-  # subset for each phase
-  sub<-rain4[which(rain4$x == i),]
-  head(sub)
-  
-  for(x in s) {
-    
-    # subset for each season
-    sub2<-sub[which(sub$Season == x),]
-    head(sub2)
-    
-    # count unique season.years
-    sy<-data.frame(as.numeric(length(unique(sub2$season.year))))
-    sy$x<-i
-    sy$Season<-x
-    colnames(sy)<-c("sy.count","x","Season")
-    sy
-    
-    # add to dataframe
-    dat_all<-rbind(dat_all, sy)
-  }
-}
-
-dat_all
-# 
-# # set count values
-# sel.ct<-dat_all[4,1]
-# wel.ct<-dat_all[1,1]
-# nut.ct<-dat_all[5,1]
-# wla.ct<-dat_all[2,1]
-# sla.ct<-dat_all[3,1]
-
-
-# aggregate over each s.phase and season
-head(rain4)
-rain5<-aggregate(RF ~ x + Season, rain4, FUN=mean)
-rain5
-
-# add season.year count column
-rain6<-full_join(rain5, dat_all)
-rain6<-rain6[1:10,]
-rain6
-
-# spell out the ENSO phases
-rain6$x2<-NA
-
-for (i in 1:nrow(rain6)) {
-  y<-rain6[i,]
-  if((!is.na(y$x)) && y$x == "SEL") {rain6[i,]$x2 <- "Strong El Nino"}
-  if((!is.na(y$x)) && y$x == "WEL") {rain6[i,]$x2 <- "Weak El Nino"}
-  if((!is.na(y$x)) && y$x == "NUT") {rain6[i,]$x2 <- "Neutral"}
-  if((!is.na(y$x)) && y$x == "WLA") {rain6[i,]$x2 <- "Weak La Nina"}
-  if((!is.na(y$x)) && y$x == "SLA") {rain6[i,]$x2 <- "Strong La Nina"}
-}
+cc<-rbind(cd,cw)
+cc
 
 ### Plot
 # set order of seasons for plotting
-rain6$Season<-factor(rain6$Season, levels=c("wet","dry"))
+cc$Season<-factor(cc$Season, levels=c("wet","dry"))
 
 # set order of ENSO phases for plotting
-rain6$x2<-factor(rain6$x2, levels=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina"))
+cc$Phase<-factor(cc$Phase, levels=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina"))
+
+cc
 
 # set ylim
-ylim<-max(rain6$RF)*1.2
+ylim<-max(cc$Mean)*1.2
 
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"ENSO_season_barplot.png"),width=6*dpi,height=2.5*dpi,res=dpi)
 
-ggplot(data=rain6, 
-       aes(x=Season, y=RF, group=x2)) +
-  geom_bar(aes(fill=x2), position = position_dodge(width=0.7), stat="identity", color="black", 
+ggplot(data=cc, 
+       aes(x=Season, y=Mean, group=Phase)) +
+  geom_bar(aes(fill=Phase), position = position_dodge(width=0.7), stat="identity", color="black", 
            alpha=.7, width=.55) +
-  labs(title="Average Seasonal Rainfall by ENSO Phase",
+  labs(title="Average Monthly Rainfall by Season and ENSO Phase",
        y = "Rainfall (inches)", x= "Season") +
   scale_fill_manual(values=c("darkred","red","grey","lightskyblue1","darkblue"),
                     limits=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina")) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
   guides(fill=guide_legend(title="ENSO Phase")) +
-  geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
+  geom_text(aes(label=Count), position=position_dodge(width=0.7), vjust=-0.8) +
   theme_bw()+
   theme(axis.text.x=element_text(size=13),
         axis.text.y=element_text(size=13),
@@ -5360,8 +5596,404 @@ ggplot(data=rain6,
 
 dev.off()
 
+cc
+### Export table of average monthly rainfall by season and ENSO phase
+write.csv(cc, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_S.csv"))
+
+
+# ########## Derek's old code - I think it makes incorrect outputs #############
+# 
+# ### Load MEI dataset
+# enso<-MEI
+# enso
+# 
+# # Add date column
+# enso$date<-c(1950:2021)
+# enso$date<-as.Date(paste0(enso$date,"-01-01"))
+# 
+# # add seasonal ENSO phase columns based on MEI values
+# enso$phase.w<-NA
+# enso$phase.d<-NA
+# 
+# # assign 5 ENSO phase based on MEI_W
+# enso$phase.w<-ifelse(enso$MEI_W>1.5,"SEL",0)
+# enso$phase.w<-ifelse(enso$MEI_W>=0.5 & enso$MEI_W<=1.5, "WEL", enso$phase.w)
+# enso$phase.w<-ifelse(enso$MEI_W>(-0.5) & enso$MEI_W<0.5, "NUT", enso$phase.w)
+# enso$phase.w<-ifelse(enso$MEI_W<=(-0.5) & enso$MEI_W>=(-1.5), "WLA", enso$phase.w)
+# enso$phase.w<-ifelse(enso$MEI_W<(-1.5), "SLA", enso$phase.w)
+# 
+# # assign 5 ENSO phase based on MEI_D
+# enso$phase.d<-ifelse(enso$MEI_D>1.5,"SEL",0)
+# enso$phase.d<-ifelse(enso$MEI_D>=0.5 & enso$MEI_D<=1.5, "WEL", enso$phase.d)
+# enso$phase.d<-ifelse(enso$MEI_D>(-0.5) & enso$MEI_D<0.5, "NUT", enso$phase.d)
+# enso$phase.d<-ifelse(enso$MEI_D<=(-0.5) & enso$MEI_D>=(-1.5), "WLA", enso$phase.d)
+# enso$phase.d<-ifelse(enso$MEI_D<(-1.5), "SLA", enso$phase.d)
+# 
+# head(enso, 20)
+# 
+# # load monthly rainfall
+# table<-MRF100
+# table<-table[c(2,3,4)]
+# head(table)
+# tail(table)
+# 
+# # convert month values back to numbers
+# table$Month<-as.numeric(table$Month)
+# 
+# ### make season column
+# table$season<-NA
+# 
+# for (i in 1:nrow(table)) {
+#   
+#   s<-table[i,]
+#   
+#   if(s$Month>4 && s$Month<11) {table[i,]$season<-"dry"}
+#   if(s$Month<5 || s$Month>10) {table[i,]$season<-"wet"}
+# }
+# 
+# head(table)
+# tail(table)
+# # ### calculate season-year rainfall means
+# # # subset for correct time period (1920 - 2012)
+# # table2<-table[which(table$Year<2013),]
+# 
+# # remove months to match the ONI/Season dataset ranges (May 1950 - October 2021)
+# table2<-table[which(table$Year>1949),]
+# table2<-table2[5:nrow(table2),]
+# table2<-table2[which(table2$Year<2022),]
+# table2<-table2[1:(nrow(table2)-2),]
+# head(table2)
+# tail(table2)
+# 
+# # add season count column
+# table2$sc<-NA
+# 
+# # make sequence of numbers by 6 (1,7,13,etc.) to select the first month
+# # of each season
+# r<-seq(from=1, to=nrow(table2), by=6)
+# n<-1
+# 
+# for (i in r) {
+#   
+#   # set the last row (last month of season)
+#   l<-i+5
+#   # select all season rows
+#   s<-table2[i:l,]
+#   # assign season count number
+#   table2[i:l,]$sc<-n
+#   # next number
+#   n<-n+1
+# }
+# 
+# # aggregate rainfall over consecutive seasons = SEASONAL RAINFALL VALUES (SUM)
+# t2<-aggregate(RF ~ sc, table2, sum)
+# head(t2,20)
+# 
+# ### merge other columns back in and reduce to one row per season count
+# head(table2,20)
+# t1<-table2[c(1,2,4,5)]
+# head(t1, 20)
+# 
+# # make empty dataframe
+# t<-data.frame("Year")
+# t$Month<-NA
+# t$Season<-NA
+# t$sc<-NA
+# 
+# # loop through rows and only write row to new table
+# # if sc is greater than the previous sc
+# for (i in 1:nrow(t1)) {
+# 
+#   i=1
+#   # current sc
+#   x<-t1[i,]$sc
+#   x
+#   # previous sc
+#   n<-t1[i-1,]$sc
+#   n
+#   # keep the first row (sc 1)
+#   if(i==1) {t[i,]<-t1[i,]}
+#   if(i==1) {n<-1}
+#   if(i>1 && x>n) {t[x,]<-t1[i,]}
+#   y<-as.numeric(t1[x,]$X.Year.)
+#   if(t[x,]$Month == 11) {t[x,]$X.Year.<-(y+1)}
+#   t[x,]
+#   
+#   # # fix year value so it corresponds to the season-year
+#   # y<-as.numeric(t1[x,]$X.Year.)
+#   # t1[i,]
+#   # if(t1[i,]$Month == 11) {t[i,]$X.Year.<-(y+1)}
+# }
+# 
+# head(t)
+# 
+# # join in the seasonal rainfall by SC
+# library(dplyr)
+# t3<-left_join(t,t2)
+# t3
+# 
+# # remove month column, fix year colname (Year, Season, SC, RF)
+# # t3 should now contain total season-year rainfall values (sum of each season-year)
+# t3<-t3[c(1,3,4,5)]
+# colnames(t3)[which(names(t3) == "X.Year.")] <- "Year"
+# head(t3)
+# 
+# #################################################################################
+# ###### Assign ENSO phases to season-years (1990 dry, 1990 wet, 1991 dry, 1991 wet, etc.)
+# 
+# # combine ENSO phase and rainfall tables
+# head(t3)
+# head(enso)
+# 
+# # add year column to enso for join
+# enso$Year<-substr(enso$date, 1, 4)
+# 
+# dfs<-list(t3, enso)
+# table3<-join_all(dfs, match="all")
+# head(table3, 20)
+# tail(table3,20)
+# 
+# # remove rows with no data (pre-1950)
+# # table3<-table3[which(!is.na(table3$MEI_W)),]
+# 
+# # make single MEI and s.phase columns with value based on season
+# table3$MEI<-NA
+# table3$x<-NA
+# 
+# for (i in 1:nrow(table3)) {
+#   
+#   s<-table3[i,]
+#   if(s$Season == "wet") {table3[i,]$MEI<-s$MEI_W}
+#   if(s$Season == "dry") {table3[i,]$MEI<-s$MEI_D}
+#   if(s$Season == "wet") {table3[i,]$x<-s$phase.w}
+#   if(s$Season == "dry") {table3[i,]$x<-s$phase.d}
+# }
+# 
+# # remove unneeded MEI and phase columns (keep Year, Season, SC, RF, MEI, x)
+# table3<-table3[c(1,2,3,4,10,11)]
+# head(table3, 20)
+# 
+# # unique(table3$x)
+# # table3<-table3[which(!is.na(table3$x)),]
+# 
+# # assign values to ENSO phases
+# table3$pval5<-ifelse(table3$x=="SEL",1,0)
+# table3$pval5<-ifelse(table3$x=="WEL",2,table3$pval5)
+# table3$pval5<-ifelse(table3$x=="NUT",3,table3$pval5)
+# table3$pval5<-ifelse(table3$x=="WLA",4,table3$pval5)
+# table3$pval5<-ifelse(table3$x=="SLA",5,table3$pval5)
+# summary(table3$pval5)
+# 
+# head(table3)
+# 
+# ### Make dataframe with average monthly rainfall values for each ENSO phase
+# # fix year values and remove RF column
+# table3$Year<-as.numeric(table3$Year)
+# table4<-table3[c(1,2,3,5,6,7)]
+# head(table4)
+# 
+# # bring in monthly rainfall values
+# head(table2, 20)
+# table2$Year<-as.numeric(table2$Year)
+# 
+# # fix column name and remove sc column
+# colnames(table2)[which(names(table2) == "season")]<-"Season"
+# table2<-subset(table2, select = -c(sc))
+# 
+# # join by year and season
+# head(table2, 20)
+# head(table4)
+# table5<-left_join(table2, table4)
+# head(table5, 20)
+# 
+# table5[500:513,]
+# 
+# # aggregate over month to calculate total rainfall for each ENSO phase
+# rm(mean)
+# 
+# rain7<-aggregate(RF ~ x, table5, FUN=mean)
+# rain7
+# 
+# # spell out the ENSO phases
+# rain7$x2<-NA
+# 
+# for (i in 1:nrow(rain7)) {
+#   y<-rain7[i,]
+#   if(y$x == "SEL") {rain7[i,]$x2 <- "Strong El Nino"}
+#   if(y$x == "WEL") {rain7[i,]$x2 <- "Weak El Nino"}
+#   if(y$x == "NUT") {rain7[i,]$x2 <- "Neutral"}
+#   if(y$x == "WLA") {rain7[i,]$x2 <- "Weak La Nina"}
+#   if(y$x == "SLA") {rain7[i,]$x2 <- "Strong La Nina"}
+# }
+# 
+# ### Plot
+# # set order of ENSO phases for plotting
+# library(ggplot2)
+# rain7$x2<-factor(rain7$x2, levels=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina"))
+# 
+# # set ylim
+# ylim<-max(rain7$RF)*1.2
+# 
+# png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"ENSO_rf_barplot.png"),width=5.1*dpi,height=2.1*dpi,res=dpi)
+# 
+# ggplot(data=rain7, 
+#        aes(x=x2, y=RF, group=x2)) +
+#   geom_bar(aes(fill=x2), position = position_dodge(width=0.65), stat="identity", color="black", 
+#            alpha=.7, width=.50) +
+#   labs(title="Average Monthly Rainfall by ENSO Phase",
+#        y = "Rainfall (inches)", x= "ENSO Phase") +
+#   scale_fill_manual(values=c("darkred","red","grey","lightskyblue1","darkblue"),
+#                     limits=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina")) +
+#   scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
+#   guides(fill=guide_legend(title="ENSO Phase")) +
+#   # geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
+#   theme_bw() +
+#   theme(axis.text.x=element_blank())
+# 
+# dev.off()
+# 
+# ################################################################################
+# ### Seasonal rainfall by ENSO phase barplot
+# 
+# rain4<-table3
+# head(rain4)
+# 
+# ### count how many seasons are in each ENSO phase
+# # make season.year column
+# rain4$season.year<-paste0(rain4$Year,"_",rain4$Season)
+# 
+# head(rain4)
+# 
+# # make list of phases
+# phase<-as.list(unique(rain4$x))
+# 
+# # make list of seasons
+# s<-as.list(unique(rain4$Season))
+# 
+# dat_all<-data.frame()
+# 
+# for (i in phase) {
+#   
+#   # subset for each phase
+#   sub<-rain4[which(rain4$x == i),]
+#   head(sub)
+#   
+#   for(x in s) {
+#     
+#     # subset for each season
+#     sub2<-sub[which(sub$Season == x),]
+#     head(sub2)
+#     
+#     # count unique season.years
+#     sy<-data.frame(as.numeric(length(unique(sub2$season.year))))
+#     sy$x<-i
+#     sy$Season<-x
+#     colnames(sy)<-c("sy.count","x","Season")
+#     sy
+#     
+#     # add to dataframe
+#     dat_all<-rbind(dat_all, sy)
+#   }
+# }
+# 
+# dat_all
+# # 
+# # # set count values
+# # sel.ct<-dat_all[4,1]
+# # wel.ct<-dat_all[1,1]
+# # nut.ct<-dat_all[5,1]
+# # wla.ct<-dat_all[2,1]
+# # sla.ct<-dat_all[3,1]
+# 
+# 
+# # aggregate over each s.phase and season
+# head(rain4)
+# rain5<-aggregate(RF ~ x + Season, rain4, FUN=mean)
+# rain5
+# 
+# # add season.year count column
+# rain6<-full_join(rain5, dat_all)
+# rain6<-rain6[1:10,]
+# rain6
+# 
+# # spell out the ENSO phases
+# rain6$x2<-NA
+# 
+# for (i in 1:nrow(rain6)) {
+#   y<-rain6[i,]
+#   if((!is.na(y$x)) && y$x == "SEL") {rain6[i,]$x2 <- "Strong El Nino"}
+#   if((!is.na(y$x)) && y$x == "WEL") {rain6[i,]$x2 <- "Weak El Nino"}
+#   if((!is.na(y$x)) && y$x == "NUT") {rain6[i,]$x2 <- "Neutral"}
+#   if((!is.na(y$x)) && y$x == "WLA") {rain6[i,]$x2 <- "Weak La Nina"}
+#   if((!is.na(y$x)) && y$x == "SLA") {rain6[i,]$x2 <- "Strong La Nina"}
+# }
+# 
+# ### Plot
+# # set order of seasons for plotting
+# rain6$Season<-factor(rain6$Season, levels=c("wet","dry"))
+# 
+# # set order of ENSO phases for plotting
+# rain6$x2<-factor(rain6$x2, levels=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina"))
+# 
+# # set ylim
+# ylim<-max(rain6$RF)*1.2
+# 
+# png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"ENSO_season_barplot.png"),width=6*dpi,height=2.5*dpi,res=dpi)
+# 
+# ggplot(data=rain6, 
+#        aes(x=Season, y=RF, group=x2)) +
+#   geom_bar(aes(fill=x2), position = position_dodge(width=0.7), stat="identity", color="black", 
+#            alpha=.7, width=.55) +
+#   labs(title="Average Seasonal Rainfall by ENSO Phase",
+#        y = "Rainfall (inches)", x= "Season") +
+#   scale_fill_manual(values=c("darkred","red","grey","lightskyblue1","darkblue"),
+#                     limits=c("Strong El Nino","Weak El Nino","Neutral","Weak La Nina","Strong La Nina")) +
+#   scale_y_continuous(expand = c(0, 0), limits = c(0, ylim)) +
+#   guides(fill=guide_legend(title="ENSO Phase")) +
+#   geom_text(aes(label=sy.count), position=position_dodge(width=0.7), vjust=-0.8) +
+#   theme_bw()+
+#   theme(axis.text.x=element_text(size=13),
+#         axis.text.y=element_text(size=13),
+#         axis.title.x=element_text(size=13),
+#         axis.title.y=element_text(size=13))
+# 
+# dev.off()
+
 ### Export table of seasonal rainfall (sum of months) by ENSO phase
-write.csv(rain6, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_S.csv"))
+# write.csv(rain6, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," MEI_S.csv"))
+
+# #####################################################
+# ### ENSO phase line graph
+# 
+# head(table5)
+# table5[500:513,]
+# # subset for ENSO phase years
+# table6<-table5[which(!is.na(table5$MEI)),]
+# head(table6, 20)
+# table6[which(table6$Month == 1),]
+# 
+# # calculate average rainfall for each month and ENSO phase
+# rain8<-aggregate(RF ~ x + pval5 + Month, table6, mean)
+# rain8$Month<-as.factor(rain8$Month)
+# 
+# ### line plot ###
+# ggplot(data=rain8, 
+#        aes(x=Month, y=RF, group=reorder(x, pval5))) +
+#   geom_line(aes(color=x), stat="identity", size=1.2) +
+#   labs(title="Average Monthly Rainfall by ENSO Phase",
+#        y = "Rainfall (in.)", x= "Month") +
+#   scale_color_manual(values=c("darkred", "darkorange1", "darkgoldenrod1", "Dark Green", "blue3"),
+#                      limits=c("SEL","WEL","NUT","WLA","SLA")) +
+#   scale_y_continuous(expand = c(0, 0), limits = c(0, 10)) +
+#   guides(color=guide_legend(title="ENSO Phase")) +
+#   geom_vline(xintercept = 6.5, color="black") +
+#   # annotate(geom="text", x=3.5, y=520, label = "dry season", color="darkred") +
+#   # annotate(geom="text", x=9.5, y=520, label = "rainy season", color = "blue") +
+#   theme_bw()
+# 
+# 
+# 
+# 
 
 #####################################################
 ##### Air temperature graph
@@ -5382,28 +6014,21 @@ no<-1
 ### from within the study area
 
 for (i in years) {
-
   setwd(paste0(maps,i,"/"))
-  
   # make list of monthly files
   f<-as.list(list.files())
-  
   # loop through monthly files and fill in table
   for (x in f) {
- 
     # set year and month
     y<-substr(x, nchar(x) - 10,nchar(x))
     table[no,]$year<-substr(y,1,4)
     m<-substr(x, nchar(x) - 5,nchar(x))
     table[no,]$month<-substr(m,1,2)
-    
     # load raster
     map<-raster(x)
-    
     # crop to study area
     m2 <- crop(map, extent(HALE))
     m3 <- mask(m2, HALE)
-    
     # calculate min, max, mean air temp
     table[no,]$min<-round(cellStats(m3, stat="min"), digits=2)
     table[no,]$max<-round(cellStats(m3, stat="max"), digits=2)
@@ -5412,8 +6037,6 @@ for (i in years) {
     no<-no+1
   }
 }
-
-table
 
 ###### Monthly air temperature time series
 dat<-table
@@ -5431,12 +6054,27 @@ dat$mean<-(dat$mean * (9/5)) + 32
 # date column
 dat$date<-as.Date(paste0(dat$year,"-",dat$month,"-01"))
 
+# only keep complete years
+dat$full<-c("N")
+
+y<-as.list(unique(dat$year))
+
+for(i in y){
+  if(length(which(dat$year == i)) == 12) {dat[which(dat$year == i),]$full <- "Y"}
+}
+
+ic<-unique(dat[which(dat$full == "N"),]$year)
+
+# dat<-dat[which(dat$full == "Y"),]
+head(dat)
+tail(dat)
 #############################
 ### Annual air temp trend
 
 # aggregate monthly to annual air temp
 rm(min)
 rm(max)
+rm(mean)
 
 dat.y<-aggregate(mean ~ year, dat, mean)
 dat.y$mean<-round(dat.y$mean, digit=2)
@@ -5445,7 +6083,11 @@ dat.y$meanmax<-round((aggregate(mean ~ year,dat, max))$mean, digits=2)
 dat.y$min<-round((aggregate(min ~ year, dat, min))$min, digits=2)
 dat.y$max<-round((aggregate(max ~ year, dat, max))$max, digits=2)
 
-head(dat.y)
+dat.y
+
+# remove stats from incomplete year
+dat.y<-dat.y[which(dat.y$year < ic),]
+dat.y[(nrow(dat.y)+1),]$year<-ic
 
 # make date column
 dat.y$date<-as.Date(paste0(dat.y$year,"-01-01"))
@@ -5456,18 +6098,20 @@ write.csv(dat.y, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp.csv"))
 slope<-formatC((coef(lm(dat.y$mean~dat.y$date))[2]), format="e", digits=2)
 slope
 
+dpi=300
+
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_annual_airtemp.png"),width=6*dpi,height=3*dpi,res=dpi)
 
 ggplot(dat.y, aes(x=date, y=mean)) +
   geom_line(size=1.2, color="orange") +
   geom_smooth(method=lm, se=F, size=1, color="black") +
   stat_cor(method="pearson", label.x=as.Date("1991-01-01"), label.y=58) +
-  scale_x_date(date_breaks = "2 years", labels = date_format(format="%Y")) +
+  scale_x_date(date_breaks = "5 years", labels = date_format(format="%Y")) +
   labs(title="Annual Air Temperature and Extremes",
        y = "Temperature (F)", x = "Year") +
   geom_line(aes(x=date,y=min), size=1.2, color="blue") +
   geom_line(aes(x=date,y=max), size=1.2, color="red") +
-  annotate("text", x=as.Date("1994-07-01"), y=54, 
+  annotate("text", x=as.Date("1994-07-01"), y=54,
            label=paste0("Slope = ",slope)) +
   theme(panel.background=element_rect(fill=NA, color="black"),
         panel.grid.major=element_line(color="grey90"),
@@ -5478,20 +6122,21 @@ dev.off()
 ##### add annual mean values
 dat2<-merge(dat,dat.y[,c("year","mean","min","max")], by="year", all.x=T)
 head(dat2)
+tail(dat2)
 
 # write to csv table of monthly air temp values (min, max, mean)
 write.csv(dat2, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_daily_airtemp.csv"))
 
 # set y-axis limits
-ylow<-min(dat.y$min)*.95
-yhi<-max(dat.y$max)*1.0005
+ylow<-min(dat.y$min, na.rm=T)*.5
+yhi<-max(dat.y$max, na.rm=T)*1.0005
 
 # set slope
 slope<-formatC((coef(lm(dat2$mean.x~dat2$date))[2]), format="e", digits=2)
 slope
 
 # set location for linear trend values
-yl<-(((min(dat.y$max)-max(dat2$mean.x))/2) + max(dat2$mean.x))
+yl<-min(dat.y$min, na.rm=T)*.75
 
 dpi=300
 
@@ -5501,7 +6146,7 @@ ggplot(dat2, aes(x=date,y=mean.x)) +
   geom_line(color="grey60") +
   geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
   geom_smooth(method=lm, se=F, color="black") +
-  stat_cor(method="pearson", label.x=as.Date("1993-01-01"), label.y=yl-3) +
+  stat_cor(method="pearson", label.x=as.Date("1993-01-01"), label.y=yl-5) +
   scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
   ylim(ylow,yhi) +
   labs(title="Air Temperature Trends",
@@ -5517,11 +6162,186 @@ ggplot(dat2, aes(x=date,y=mean.x)) +
 
 dev.off()
 
+######## Air Temp Anomalies ########
+setwd("F:/PDKE/CCVD/MINI_Phase2/")
 
+# make list of climatology files
+list<-list.files(AT_CLIM_Path_A, pattern="\\.tif$")
 
-#END OF LOOP 
-# write.csv(Cell.DataCL,paste0(SFOLDER,UNIT_N[u],"_CL.csv"),row.names = F)
+### Make dataframe of average monthly climatology values within study area
+  # create empty table for mean AT values
+  clim<-data.frame(matrix(ncol=2,nrow=0, 
+                           dimnames=list(NULL, c("month", "mean"))))
+  # set row
+  no<-1
+  ### for each monthly climatology calculate mean value within study area
+  for (x in list) {
+      # set month
+      m<-substring(x, 15, nchar(x))
+      m<-as.numeric(sub(".tif.*","",m))
+      clim[no,]$month<-m
+      # load raster
+      map<-raster(paste0(AT_CLIM_Path_A, x))
+      # crop to study area
+      m2 <- crop(map, extent(HALE))
+      m3 <- mask(m2, HALE)
+      # calculate mean value
+      clim[no,]$mean<-round(cellStats(m3, stat="mean"), digits=2)
+      
+      no<-no+1
+  }
+clim<-clim[order(clim$month),]
+clim$mean<-(clim$mean*(9/5)) + 32
+clim
+
+### Make dataframe of difference between month-year average air temp and that month's climatology
+head(table)
+anom<-data.frame()
+
+# for each row (month-year) calculate the difference from climatology (month - climatology)
+for (i in 1:nrow(table)) {
+  r<-table[i,]
+  r$mean_f<-(r$mean*(9/5)) + 32
+  m<-as.numeric(r$month)
+  c<-clim[which(clim$month == m),]$mean
+  r$clim_f<-c
+  r$anom_f<-r$mean_f - c
+  anom<-rbind(anom,r)
+}
+
+head(anom)
+tail(anom)
+
+# make date column
+anom$date<-as.Date(paste0(anom$year,"/",anom$month,"/","01"), format = "%Y/%m/%d")
+
+# write to csv table of monthly air temp anomaly values
+write.csv(anom, paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_anomaly_airtemp.csv"))
+
+# set y-axis limits
+ylow<-min(anom$anom_f)*.95
+yhi<-max(anom$anom_f)*1.0005
+
+# set slope
+slope<-formatC((coef(lm(anom$mean_f~anom$date))[2]), format="e", digits=2)
+slope
+
+# set location for linear trend values
+yl<-(((min(anom$anom_f)-max(anom$anom_f))/2) + max(anom$anom_f))
+
+dpi=300
+
+png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_monthly_airtemp_anomaly.png"),width=6*dpi,height=3*dpi,res=dpi)
+
+ggplot(anom, aes(x=date,y=anom_f)) +
+  geom_line(color="grey60") +
+  geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
+  geom_smooth(method=lm, se=F, color="black") +
+  # stat_cor(method="pearson", label.x=as.Date("1993-01-01"), label.y=yl-3) +
+  scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
+  ylim(ylow,yhi) +
+  labs(title="Air Temperature Anomaly Trends",
+       y="Temperature (F)", x="") +
+  # geom_hline(yintercept=0) +
+  # annotate("text", x=as.Date("1996-07-01"), y=yl,
+  #          label=paste0("Slope = ",slope)) +
+  # geom_line(data = dat.y, aes(x=date, y=min), size=1.2, color="blue") +
+  # geom_line(data = dat.y, aes(x=date,y=max), size=1.2, color="red") +
+  theme(panel.background=element_rect(fill=NA, color="black"),
+        panel.grid.major=element_line(color="grey90"),
+        panel.grid.minor=element_blank())
+
+dev.off()
+
+                                  ### END! ###
+
+# ######
+# ###### Air Temperature Climatology (Only needed to run this to create the whole
+# ###### state monthly maps (saved to CCVD INPUTS/air_temp)
+# ######
 # 
+# library(stringr)
+# 
+# ### calculate 12 month mean maps from 1990 - 2019 monthly maps
+# setwd("F:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/")
+# 
+# # make list of files in folder
+# list<-list.files(pattern="\\.tif$", recursive=T)
+# 
+# # # remove the space before the file name if needed (probably already done)
+# # for (i in list) {
+# #
+# #   new<-sub(".* ","",i)
+# #
+# #   file.rename(i,new)
+# # }
+# 
+# 
+# # make dataframe of TIF file names and months
+# files<-data.frame(list.files(pattern = "\\.tif$", recursive=T))
+# colnames(files)<-c("file")
+# files$month<-substring(files$file, 53)
+# files$month<-as.numeric(sub(".tif.*","", files$month))
+# 
+# head(files)
+# tail(files)
+# 
+# # subset for 1990 through 2019
+# files1<-files[str_detect(files$file, "2019"),]
+# end<-as.numeric(max(rownames(files1)))
+# 
+# files<-files[1:end,]
+# 
+# # make list of months
+# list<-as.list(unique(files$month))
+# list
+# 
+# # make output climatology raster folder
+# path<-paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u],"_temp_climatology/")
+# dir.create(path, showWarnings = TRUE, recursive = FALSE)
+# 
+# ### for each month, find all TIF's for that month and calculate average map
+# stack.m<-data.frame()
+# 
+# # loop through month list
+# for (i in list) {
+#   # subset files dataframe for single month
+#   files.m<-files[which(files$month == i),]
+# 
+#   # make list of file names for single month
+#   list.m<-as.list(files.m$file)
+#   head(list.m)
+# 
+#   # loop through file list and stack files
+#   rm(stack.m)
+# 
+#   for (f in list.m) {
+#     ras<-raster(f)
+#     # stack files
+#     # Create the stack if it doesn't exist
+#     if (!exists("stack.m")){
+#       # create raster stack
+#       stack.m <- stack()
+#     }
+#     # if stack already exist, then add next layer
+#     if (exists("stack.m")){
+#       stack.m<-stack(stack.m, ras)
+#     }}
+# 
+#   # calculate mean map from stack
+#   mean.m<-calc(stack.m, fun=mean)
+# 
+#   # save month mean map
+#   name<-paste0("mean_AT_month_",i,".tif")
+# 
+#   writeRaster(mean.m, file=paste0(path, name))
+# 
+# }
+
+
+#END OF LOOP
+# write.csv(Cell.DataCL,paste0(SFOLDER,UNIT_N[u],"_CL.csv"),row.names = F)
+#
 # Cell.RF_Year[2] <- Cell.DataCL[3]
 # write.csv(Cell.RF_Year,paste0(SFOLDER,UNIT_N[u],"_RF.csv"),row.names = F)
 
