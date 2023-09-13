@@ -38,8 +38,6 @@ library(ggmap)
 library(rstudioapi)
 library(RgoogleMaps)
 
-register_google(key="AIzaSyAeNaG0b4Z5cSCAnzCoeniY8-Jl91C-ySI")
-
 ##########   This code will the generate the inputs for a CCVD portfolio
 ##########   Reuired Inputs: 1. Folder destinations 2. Measurementuints 3. Shpaefiles 4. List of files and output names
 ##########   Searchable sections of the CodF:
