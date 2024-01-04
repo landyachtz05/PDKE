@@ -1,0 +1,30 @@
+Documentation for Climate Change, Climate Variability, and Drought (CCVD) Portfolio production steps
+Author: Derek Ford
+Original date: 1/4/2024
+
+Step 1: Define area of interest
+Input for this should be a polygon shapefile. Only the .shp file is needed for input.
+
+Step 2: Check inputs of certain lines of CCVD_portfolio_content.R
+Line 45: output location
+Line 46: "CCVD INPUTS" folder
+Line 47: same as output location
+Line 111: AOI (polygon shapefile)
+Line 113: Full name of AOI
+Line 114: Short name of AOI
+Line 115: Island full name
+Line 116: Island abbreviation
+
+Step 3: Run CCVD_portfolio_content.R
+
+Step 4: Check inputs of certain lines of CCVD_portfolio_ppt.R
+Line 17: Step 2 output location (see above)
+Line 19: "IMAGE" folder contains static images (logos, etc.)
+Line 20: same as Line 17
+Line 21: output location
+Line 28: select correct AOI from folder
+Line 32: current version of CCVD portfolio
+
+Step 4: Check PPT slides (data tables may need to be adjusted)
+
+Step 5: Convert PPT to PDF if needed for sharing/file size
