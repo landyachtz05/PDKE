@@ -1,5 +1,3 @@
-# install.packages(c("tidyverse", "rvg", "magrittr", "knitr","xtable","flextable","officer","mschart",
-#                    "purrr","imager","pdftools","fontLiberation"))
 
 library(magrittr)
 library(tidyverse)
@@ -27,7 +25,7 @@ NF <- length(RANL)
 ### SET SITE FOLDER AND VERSION ###
 RANL
 # LOOP 
-f<-99
+f<-19
 RANL[f]
 
 # VERSION
@@ -336,10 +334,13 @@ This portfolio provides a brief description of ",SNameF," in context of traditio
   fp_HLD1 <- fpar(ftext(HLD1, fp_Tx))
   
   # Make moku label based on how many moku there are
+  MOKU
   MO<-MOKU[1,]$moku
   if(nrow(MOKU)==1) {MO1<-MO}
   if(nrow(MOKU)==2) {MO1<-paste0(MO, " and ",MOKU[2,]$moku)}
   if(nrow(MOKU)>2) {MO1<-paste0(MO,", ",MOKU[2,]$moku," and ",MOKU[3,]$moku)}
+  if(nrow(MOKU)>3) {MO1<-paste0(MO,", ",MOKU[2,]$moku,", ",MOKU[3,]$moku,", and ",MOKU[4,]$moku)}
+  if(nrow(MOKU)>4) {MO1<-paste0(MO,", ",MOKU[2,]$moku,", ",MOKU[3,]$moku,", ",MOKU[4,]$moku,", and ",MOKU[5,]$moku)}
   MO1
   
   # Ahupuaa count and names
@@ -357,12 +358,13 @@ This portfolio provides a brief description of ",SNameF," in context of traditio
   if(nrow(MOKU)==1){MO <- block_list(
     fpar(ftext(paste0("Within mokupuni are smaller divisions called moku. ",SNameF," is in the moku of ",MO1,"."), fp_Fig5)))}  
   if(nrow(MOKU)>1){MO <- block_list(
-    fpar(ftext(paste0("Within mokupuni are smaller divisions called moku. ",SNameF," is primarily in the moku of ",MO1,"."), fp_Fig5)))}
+    fpar(ftext(paste0("Within mokupuni are smaller divisions called moku. ",SNameF," includes the moku of ",MO1,"."), fp_Fig5)))}
   MO
   
   if(AHc<3) {AH <- block_list(
       fpar(ftext(paste0("Within each moku are several ahupuaa which commonly extend from uplands to the sea. ",SNameF,
                         " is situated within ",AHc," ahupuaa -  ",AHa), fp_Fig5)))}
+  
   if(AHc>2) {AH <- block_list(
     fpar(ftext(paste0("Within each moku are several ahupuaa which commonly extend from uplands to the sea. ",SNameF,
     " is situated within ",AHc," ahupuaa - primarily ",AHa), fp_Fig5)))}
