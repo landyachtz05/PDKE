@@ -14,18 +14,18 @@ library(purrr)
 library(imager)
 library(pdftools)
 
-setwd("F:/PDKE/CCVD/MINI_Phase2/")
+setwd("E:/PDKE/CCVD/MINI_Phase2/")
 #Path = "C:/Users/BUNNY1/Documents/Work From Home/PAPERS/Beef_Production/Specific Ranch/"
-I_FOLDER <- "F:/PDKE/CCVD/IMAGE/"        # Folder with images 
-R_FOLDER <- "F:/PDKE/CCVD/MINI_Phase2/"  # File with your site specific folders 
-P_FOLDER <- "F:/PDKE/CCVD/MINI_PPT/"     # Output folder 
+I_FOLDER <- "E:/PDKE/CCVD/IMAGE/"        # Folder with images 
+R_FOLDER <- "E:/PDKE/CCVD/MINI_Phase2/"  # File with your site specific folders 
+P_FOLDER <- "E:/PDKE/CCVD/MINI_PPT/"     # Output folder 
 RANL <- list.files(R_FOLDER)
 NF <- length(RANL)
 
 ### SET SITE FOLDER AND VERSION ###
 RANL
 # LOOP 
-f<-19
+f<-93
 RANL[f]
 
 # VERSION
@@ -511,7 +511,11 @@ S6.2_TIT<- block_list(
   fpar(ftext("Water Sources", FTXTT),fp_p = fp_par(text.align = "center")))
 
 #Hydrologic features spreadsheet
-HF <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Hydro_features.csv"),sep=",")
+HF <- try(read.csv(paste0(R_FOLDER,NameF,"/",NameF," Hydro_features.csv"),sep=","))
+if(HF[1] == "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : \n  first five rows are empty: giving up\n") {
+  HF<-data.frame()
+}
+
 HFc<-nrow(HF)
 
 # make text string naming all feature types within AOI
