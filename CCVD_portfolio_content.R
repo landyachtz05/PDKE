@@ -87,6 +87,10 @@ OUTPUTS_FOLDER <-
 print(paste("PDKE: 1,INPUTS_FOLDER: ", INPUTS))
 print(paste("PDKE: 1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
 
+COAST_PATH <- paste0(INPUTS_FOLDER, "COAST/Coast_2/coast_geo_shp.dbf") #Coastal Shape file
+NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
+NP_FILE <- paste0(NP_DIR, "waikiki_watershed.shp")
+
 
 
 ###########################################################################################################################
@@ -126,8 +130,7 @@ plot(EXAMP)
 ############################################################################################################################
 ##########   Coastal Shape Files
 
-COAST_PATH <-
-  paste0(INPUTS_FOLDER, "COAST/Coast_2/coast_geo_shp.dbf")
+
 Coast <- readOGR(COAST_PATH)
 print(paste("PDKE: 1,COAST_PATH", COAST_PATH))
 plot(Coast[which(Coast$COAST_GEO_ == 10), ])
@@ -161,19 +164,11 @@ Coast_KO <-
   spTransform(Coast_Crop, crs(EXAMP))
 
 ############################################################
-#NP_ALL <- readOGR("F:/PDKE/CCVD/sites/HAVO_boundary_2022_Pohue.shp")
-NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
-NP_FILE <- paste0(NP_DIR, "waikiki_watershed.shp")
 
 print(paste("PDKE: 1,NP_FILE", NP_FILE))
 print(file.exists(NP_FILE))
 # these all work, once I had all the files, not just the shp file
 NP_ALL <- readOGR(NP_FILE)
-#NP_ALL <- readOGR("/Users/jgeis/Work/PDKE/CCVD/CCVD_INPUTS/waikiki_watershed/waikiki_watershed.shp")
-#NP_ALL <- readOGR(dsn = NP_DIR, #Provide the directory of shp file
-#                  layer = "waikiki_watershed", #Provide the name of the shp file without extension (.shp)
-#                  verbose = TRUE)
-#NP_ALL <- readOGR(NP_FILE, layer="waikiki_watershed", verbose = TRUE)
 
 print("PDKE: 1")
 

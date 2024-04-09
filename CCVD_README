@@ -28,3 +28,78 @@ Line 32: current version of CCVD portfolio
 Step 4: Check PPT slides (data tables may need to be adjusted)
 
 Step 5: Convert PPT to PDF if needed for sharing/file size
+
+------------------------
+To use:
+1.) Edit CCVD_portfolio_content.R to use correct paths and files.
+2.) Run CCVD_portfolio_content.R to generate all the images and plots
+3.) Run CCVD_portfolio_ppt.R to generate the powerpoint
+
+------------------------
+TODO:
+1.) Get CCVD_portfolio_ppt.R to run
+2.) Make both files take all file names and paths as command line variables.
+3.) Make a file that contains all the input and output paths/files and runs the code, so only that needs to be edited going forward.
+4.) Start compartmentalizing the code so any one output can be generated independently of the others.
+5.) Develop a front end interface that allows user to select a Polygon from pre-existing areas
+6.) Develop a front end interface that allows user to hand-draw a polygon.  user also would need to provide: Site full name, Site short name, and maybe island full name and short name (or get that from where they select/island they made their polygon on).
+7.) Add mechanism to auto-update rainfall data from HCDP (see Cherryle's script)
+8.) Make file names not use years
+
+----
+Questions:
+- What output do you want it to do?  Is it displaying results from the portfolio_content script, or is it the downloadable PDF, or something else?
+- What are the inputs the user will need to define?  What can be pre-populated (like drop down menus) and what needs to be them typing it in or uploading?  When you are running this, what values possibly get edited?
+- Why are some values defined twice?  (ex: RFUnit = " in" & RFUnit2 = "in")
+
+
+----
+
+- Never change
+- periodically updated by us
+- provided/selected by user (waikiki_watershed/waikiki_watershed.shp - this is what user will either upload or draw)
+
+
+Monthly rainfall maps (get from HCDP)
+
+All file inputs:
+COAST/Coast_2/coast_geo_shp.dbf
+waikiki_watershed/waikiki_watershed.shp ****
+Mean Climate/*x.adf
+Mean_RF_Data/StateMaps/*x.adf
+Mean_RF_Data/StateMaps/stateRFMd_input.csv
+fires_1999_2022/fires_1999_2022.shp
+FireRisk/Avg_Landscape_Fire_Risk_Hawaii_2023/Avg_Landscape_Fire_Risk_Hawaii_fire_risk_categories_2023.tif
+FireRisk/Avg_Landscape_Fire_Risk_Hawaii_2023/fire_risk_polygons.shp
+Forestry Roads/Forestry_Roads.shp
+Inventory Trails/InventoryTrails.shp
+ned_dem/*x.adf
+hawaii_hillshade.tif
+Landcover/*LCMAP_HI_2020_V10_LCPRI_crs.tif
+Moku.shp
+Ahupuaa2.shp
+NHD_H_Hawaii_State_Shape/NHD_Flowlines2.shp
+Aquifers/DOH_Aquifers_type_status.shp
+HI_Downscaling_Final/*.tif
+Lulin_Downscaling/
+ONI_Season.csv
+/air_temp/air_temp_climatology/
+rain_stations_links.csv
+rain_stations_2023.shp
+Mean Climate/Wind/wind_sd_avg.tif
+/air_temp/data_map_newer/
+/CCVD/data/production/rainfall/legacy/month/statewide/data_map/*/*.tif (tons of folders)
+/CCVD/NEW_RF_MAPS/statewide_rf_mm/rf_mm/*/*.tif
+
+
+All value inputs:
+NM <- "Waikiki Watershed" (full name of area of interest)
+NM_s <- "Waikiki" (short name.  Used for text if name is long, can be same as long name)
+ILE <- "Oahu" (island of area of interest)
+ILE_s <- "OA" (short name of island, we can automate this)
+
+
+
+
+
+6550 RF_Map_Path_A
