@@ -55,9 +55,13 @@ Questions:
 
 ----
 
-- Never change
-- periodically updated by us
-- provided/selected by user (waikiki_watershed/waikiki_watershed.shp - this is what user will either upload or draw)
+
+Things user will need to input:
+1.) A shapefile of the area (ex: waikiki_watershed/waikiki_watershed.shp, hopefully this will be done by selecting an area on a map)
+2.) The full name of the area (ex: "Waikiki Watershed")
+3.) The short name of the area (ex: "Waikiki")
+4.) The name of the island (ex: "Oahu", we may be able to automate this) 
+5.) The short name of the island (ex: "OA", we can automate this so user won't need to input it)
 
 
 Monthly rainfall maps (get from HCDP)
@@ -90,7 +94,7 @@ Mean Climate/Wind/wind_sd_avg.tif
 /air_temp/data_map_newer/
 /CCVD/data/production/rainfall/legacy/month/statewide/data_map/*/*.tif (tons of folders)
 /CCVD/NEW_RF_MAPS/statewide_rf_mm/rf_mm/*/*.tif
-
+RF_Map_Path_A
 
 All value inputs:
 NM <- "Waikiki Watershed" (full name of area of interest)
@@ -98,8 +102,130 @@ NM_s <- "Waikiki" (short name.  Used for text if name is long, can be same as lo
 ILE <- "Oahu" (island of area of interest)
 ILE_s <- "OA" (short name of island, we can automate this)
 
+------------
 
+CCVD_Portfolio_ppt.R required folders & files 
+Folders:
+/Users/jgeis/Work/PDKE
+CCVD/MINI_Phase2
+CCVD/IMAGE
+CCVD/MINI_Phase2
+CCVD/MINI_PPT
+
+Files:
+PDKE_Logo_Color_Rounded_Type-03.jpg
+PDKE_Logo_Color_Horizontal_Type-05.png
+EWC No Boarder.png
+ewc_long.png
+PICASC_NoBoarder.jpg
+FS.png
+UH.png
+USGS.png
+PacificRISA.jpg.png
+NIDIS.png
+NOAA.png
+HAVO.png
+USGS.png
+DOFAW.png
+DLNR.jpg
+DPlan.png
+PIDP.png
+Clark.png
+PRISCC logo.png
+funder_logos.png
+WRRC-200x200.png
+SUN.jpg
+RF.jpg
+Rainbow.jpg
+climstation.jpg
+Mean Annual Rainfall.jpg
+modis.jpg
+LCMAP_legend.jpg
+therom.jpg
+RFAtlas.png
+CoH.png
+Drought.jpg
+Fire.jpg
+Down.png
+AG_D.png
+MET_D.png
+HYD_D.png
+SOC_D.png
+ECO_D.png
+types_of_drought2.png
+Media1_SPI.MP4
+ahupuaa_art.png
+HLD_fig.jpg
+*MEAN Climate.csv
+* Landcover.csv
+* Moku.csv
+* Ahupuaa.csv
+* Mokupuni.png
+* Moku.png
+* Ahupuaa.png
+* ELMap.png
+* LC_barchart.png
+* LCMap.png
+* Aquifer.csv
+* Aquifers.png
+* Hydro_features.csv
+* Streams.png
+water_features_leg.jpg
+* rain_stations.csv
+* rf_stations.png
+* Climate_less_RF.png
+* Climate_less_TA.png
+* Climate_less_RH.png
+* Climate_less_SR.png
+* Climate_less_SM.pn
+* Climate_less_ET.png
+* Climate_less_WS.png
+* Annual Climate.csv
+* Climograph_RF.png
+* RF_wm.png
+* RF_dm.png
+* Climograph_AT.png
+* TA_cm.png
+* TA_hm.png
+* TA12.png
+* RF12.png
+* RF percentiles.csv
+* SeaMRF.png
+* Annual Climate.csv
+ENSO_timeseries.png
+ENSO_New.png
+* MEI_S.csv
+* Annual_RF_in.csv
+*ENSO_season_barplot.png
+* RF_Trend.png
+* RF_trend_dirctions.csv
+*_monthly_airtemp.csv
+*_daily_airtemp.csv
+*_monthly_airtemp.png
+*airtemp_legend2.jpg
+* SPI.png
+* Drought History.csv
+*Drought_History.png
+* SPI_NEGS_ALL.csv
+* Drought Count.csv
+*Drought_HistoryS_3.png
+*Drought_HistoryS_12.png
+* Monthly Rainfall_in.csv
+*Drought History SPI_3.csv
+* Drought History.csv
+* Fire.png
+* Downscaling.csv
+* StDsRF2040.png
+* DS_RF_8.5_v2.png
+* StDs_Temp2040.png
+* DS_RF_8.5_v2.png
+* DS_Temp2100.png
+Works2.jpg
+* 23yr_RF_Compare.png
+
+Output: *_CCVD_Portfolio_v.pptx
 
 
 
 6550 RF_Map_Path_A
+

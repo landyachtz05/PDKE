@@ -1,31 +1,85 @@
+# library(magrittr)
+# library(tidyverse)
+# library(rvg)
+# library(dplyr)
+# library(ggplot2)
+# library(magrittr)
+# library(knitr)
+# library(xtable)
+# library(flextable)
+# library(officer)
+# library(mschart)
+# library(purrr)
+# library(imager)
+# library(pdftools)
 
-library(magrittr)
-library(tidyverse)
-library(rvg)
-library(dplyr)
-library(ggplot2)
-library(magrittr)
-library(knitr)
-library(xtable)
-library(flextable)
-library(officer)
-library(mschart)
-library(purrr)
-library(imager)
-library(pdftools)
 
-setwd("E:/PDKE/CCVD/MINI_Phase2/")
-#Path = "C:/Users/BUNNY1/Documents/Work From Home/PAPERS/Beef_Production/Specific Ranch/"
-I_FOLDER <- "E:/PDKE/CCVD/IMAGE/"        # Folder with images 
-R_FOLDER <- "E:/PDKE/CCVD/MINI_Phase2/"  # File with your site specific folders 
-P_FOLDER <- "E:/PDKE/CCVD/MINI_PPT/"     # Output folder 
+packages <-
+  c(
+    "magrittr",
+    "tidyverse",
+    "rvg",
+    "dplyr",
+    "ggplot2",
+    "magrittr",
+    "knitr",
+    "xtable",
+    "flextable",
+    "officer",
+    "mschart",
+    "purrr",
+    "imager",
+    "pdftools"
+  )
+for (package in packages) {
+  print(paste("pkgTest: ", package))
+  # require() returns TRUE if the packages is loaded, FALSE if it isn't.
+  if (!require(package, character.only = TRUE)) {
+    print(paste("  ", package, "1"))
+    install.packages(package, dep = TRUE, repos = 'http://cran.us.r-project.org')
+  }
+  else if (!require(package, character.only = TRUE)) {
+    print(paste("  ", package, "2"))
+    install.packages(package, dep = TRUE, repos = 'https://packagemanager.posit.co/cran/2023-10-13')
+  }
+  else if (!require(package, character.only = TRUE)) {
+    print(paste("  ", package, "3"))
+    install.packages(package, dep = TRUE, repos = 'http://cran.rstudio.com/')
+  }
+  else if (!require(package, character.only = TRUE)) {
+    print(paste("Package: ", package, " not found"))
+  }
+  if (require(package, character.only = TRUE)) {
+    print(paste("Package: ", package, " installed"))
+    library(package, character.only = TRUE, quietly = TRUE)
+    
+  }
+}
+
+
+BASE_DIR <- "/Users/jgeis/Work/PDKE"
+WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
+setwd(WORKING_DIR)               # WORKING DIRECTORY
+I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images 
+R_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")  # File with your site specific folders 
+P_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_PPT/")     # Output folder 
+
+print(paste("PDKE: 1,I_FOLDER: ", I_FOLDER))
+print(paste("PDKE: 1,R_FOLDER: ", R_FOLDER))
+print(paste("PDKE: 1,P_FOLDER: ", P_FOLDER))
 RANL <- list.files(R_FOLDER)
+print(paste("PDKE: 1,RANL: ", RANL))
+
 NF <- length(RANL)
 
 ### SET SITE FOLDER AND VERSION ###
 RANL
 # LOOP 
-f<-93
+#f<-93
+f<-2 # JEN: not sure what's going on here.  
+# They had 93, but I'm not sure why.  To match the other file, this needed to be the waikiki watershed, 
+# but it's clearly going to change with where the user selects.
+# TODO: change this so it makes sense and matches the selected shape area
 RANL[f]
 
 # VERSION
@@ -42,6 +96,7 @@ ELUnit2 = "ft"
 
 ############################ LOGOS 
 ## Read in images from the Image folder 
+print("PDKE: 1")
 
 PDKE_Short <- paste0(I_FOLDER,"PDKE_Logo_Color_Rounded_Type-03.jpg")
 PDKE_Short
@@ -183,20 +238,33 @@ D_HLDimg <- external_img(src = D_HLDfile , height = 1, width = 1)
 
 ######
 
+print("PDKE: 2")
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
 
+print(paste("PDKE: 3,RANL[f]: ", RANL[f]))
+
 #create path to folder 
 RAN_F <- paste0(R_FOLDER,RANL[f],"/")
+print(paste("PDKE: 3,RAN_F: ", RAN_F))
+
 # list the output from Code 1 
 RANL2 <- list.files(RAN_F)
+print(paste("PDKE: 3,RANL2: ", RANL2))
+
 #Unit Name
 NameF <- basename(RAN_F)
+print(paste("PDKE: 3,NameF: ", NameF))
+
 
 ##### Read in CSV Files 
 ## Read in Mean Climate File 
-CLIM <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"MEAN Climate.csv"),sep=",")
+CLIM_FILE <- paste0(R_FOLDER,NameF,"/",NameF,"MEAN Climate.csv")
+print(paste("PDKE: 3,CLIM_FILE: ", CLIM_FILE))
+CLIM <- read.csv(CLIM_FILE,sep=",")
+print("PDKE: 4,CLIM")
+
 CLIM
   #Short Name
   SNameF <- CLIM[1,16]
@@ -204,11 +272,19 @@ CLIM
 
 ## Read in landcover file
 LAND <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Landcover.csv"),sep=",")
+print(paste("PDKE, LAND: ", LAND))
 
 ## Hawaiian land division files
 MOKU <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Moku.csv"),sep=",")
+print(paste("PDKE, MOKU: ", MOKU))
+
+# TODO: JEN: Find out why AHU and AHU5 point to the same file and if one can go away
 AHU <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Ahupuaa.csv"),sep=",")
+print(paste("PDKE, AHU: ", AHU))
+
 AHU5 <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Ahupuaa.csv"),sep=",")
+print(paste("PDKE, AHU5: ", AHU5))
+
   
 #Font styles 
   #Suggetions Type_Color_Size  ex B_DR_40
@@ -247,13 +323,17 @@ AHU5 <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Ahupuaa.csv"),sep=",")
   
   ############# Slide 1 TITLE 
   ISL<- CLIM[1,15]
+  print(paste("PDKE, ISL: ", ISL))
   
   #Slide one Title 
   #Standardize S1_TIT
   TIT <- fpar(ftext("Climate Change, Climate Variability, & Drought Portfolio", fp_BR),fp_p = fp_par(text.align = "center") )
   SUB <- fpar(ftext(paste0(NameF,", ",ISL),fp_BR2),fp_p = fp_par(text.align = "center") )
+  print(paste("PDKE, SUB: ", SUB))
   
 ################ Slide 2 PDKE
+  print("PDKE SLIDE 2")
+  
   # start slide/page numbers 
   p<-1
   
@@ -303,6 +383,8 @@ The PDKE program was piloted in November of 2019 with funding from the Pacific I
 fp_HDKE <- fpar(ftext(HDKE, fp_TxBs))
 
 ################ Slide 3 PART 1
+  print("PDKE SLIDE 2 PART 1")
+
   p<-p+1
   p2<-p
   S3_TIT<- block_list(
@@ -321,6 +403,8 @@ This portfolio provides a brief description of ",SNameF," in context of traditio
   
 
 ################ Slide 4 Hawaiian Land Divisions
+  print("PDKE SLIDE 4 Hawaiian Land Divisions")
+  
   p<-p+1
   p3<-p
   
@@ -383,6 +467,8 @@ This portfolio provides a brief description of ",SNameF," in context of traditio
   ft1 <- block_list(fpar(ftext(paste0("https://planning.hawaii.gov/gis"), fp_ft)))
 
 ###############   Slide 5 Elevation
+  print("PDKE Slide 5 Elevation")
+  
   p<-p+1
   p4<-p
   
@@ -423,6 +509,8 @@ ft2 <- block_list(fpar(ftext(paste0("https://www.pacioos.hawaii.edu/"), fp_ft)))
     
 
 ############### Slide 6.1 (NEW) Landcover
+print("PDKE Slide 6.1 (NEW) Landcover")
+
 p<-p+1
 p5<-p
 
@@ -460,6 +548,8 @@ FIG_3.2 <- block_list(
 ft3 <- block_list(fpar(ftext(paste0("https://www.usgs.gov/special-topics/lcmap"), fp_ft)))
 
 ################ Slide 7.1 Water Sources - Aquifers
+print("PDKE Slide 7.1 Water Sources - Aquifers")
+
 p<-p+1
 p6<-p
 
@@ -504,6 +594,8 @@ TAB_0
 ft3.1 <- block_list(fpar(ftext(paste0("https://geoportal.hawaii.gov/datasets"), fp_ft)))
 
 ################ Slide 7.2 Water Sources - Streams
+print("PDKE Slide 7.2 Water Sources - Streams")
+
 p<-p+1
 p7<-p
 
@@ -511,10 +603,17 @@ S6.2_TIT<- block_list(
   fpar(ftext("Water Sources", FTXTT),fp_p = fp_par(text.align = "center")))
 
 #Hydrologic features spreadsheet
-HF <- try(read.csv(paste0(R_FOLDER,NameF,"/",NameF," Hydro_features.csv"),sep=","))
-if(HF[1] == "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : \n  first five rows are empty: giving up\n") {
-  HF<-data.frame()
-}
+HYDRO_FILE <- paste0(R_FOLDER,NameF,"/",NameF," Hydro_features.csv")
+print(paste("PDKE: HYDRO_FILE: ", HYDRO_FILE))
+HF <- try(read.csv(HYDRO_FILE,sep=","))
+print(paste("PDKE: HF: ", HF))
+print(paste("PDKE: HF[1]: ", HF[1]))
+
+# this was throwing errors as it fails when the df has data in it.  Removing for now until I can figure out why it's needed.
+#if (HF[1] == "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : \n  first five rows are empty: giving up\n") {
+#    print("PDKE: In loop")
+#    HF<-data.frame()
+#}
 
 HFc<-nrow(HF)
 
@@ -558,6 +657,8 @@ FIG_6.b <- block_list(
 
 
 ################ Slide 7 PART 1
+print("PDKE Slide 7 PART 1")
+
 p<-p+1
 p8<-p
 
@@ -577,6 +678,8 @@ fp_PART1 <- fpar(ftext(PART1, fp_Tx))
 #NameF_I <- fp_text(italic = TRUE, color = "darkblue", font.size = 20) 
 
 ###############   Rainfall Stations Slide 8a
+print("PDKE Slide 8a Rainfall Stations")
+
 p<-p+1
 p9<-p
 
@@ -584,7 +687,9 @@ S8.0_TIT<- block_list(
   fpar(ftext("Rainfall Station Locations", FTXTT),fp_p = fp_par(text.align = "center")))
 
 ### Bring in table of stations and network links
-RS<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," rain_stations.csv"),sep=",")
+RAIN_FILE <- paste0(R_FOLDER,"/",NameF,"/",NameF," rain_stations.csv")
+print(paste("PDKE: RAIN_FILE: ", RAIN_FILE))
+RS<-read.csv(RAIN_FILE,sep=",")
 RS_T <- flextable(RS)
 RS_T <- bold(RS_T, bold = TRUE, part = "header")
 RS_T <- fontsize(RS_T, size = 12)
@@ -622,9 +727,12 @@ FIG_6.a <- block_list(
 
 # get map of stations and AOI
 RSfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," rf_stations.png")
+print(paste("PDKE: RSfile: ", RSfile))
 RSimg <- external_img(src = RSfile) 
 
 ###############   Slide 6 Mean Climate
+print("PDKE Slide 6 Mean Climate")
+
 p<-p+1
 p10<-p
 
@@ -690,6 +798,8 @@ WSimg <- external_img(src = WSfile, height = 3,width = 3)
 
 si<-1.65
 ###############   Slide 8 Average monthly rainfall 
+print("PDKE Slide 8 Average monthly rainfall")
+
 p<-p+1
 p11<-p
 
@@ -737,6 +847,8 @@ RFDfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF_dm.png")
 RFDimg <- external_img(src = RFDfile, height = 3,width = 3) 
 
 ###############   Slide 9 Average monthly air temperature 
+print("PDKE Slide 9 Average monthly air temperature")
+
 p<-p+1
 p12<-p
 
@@ -789,6 +901,8 @@ TACimg <- external_img(src = TACfile, height = 3,width = 3)
 TAHfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," TA_hm.png")
 TAHimg <- external_img(src = TAHfile, height = 3,width = 3) 
 ###############   Slide 8 TA And RF
+print("PDKE Slide 8 TA And RF")
+
 p<-p+1
 p13<-p
 
@@ -810,6 +924,8 @@ FIG_6 <- block_list(
                     " with area average shown in heading of each plot."), fp_Fig)))
 
 ###############   Slide 9 Seasonal Rainfall 
+print("PDKE Slide 9 Seasonal Rainfall")
+
 p<-p+1
 p14<-p
 
@@ -873,6 +989,8 @@ SEAimg <- external_img(src = SEAfile, height = 3,width = 3)
 
 
 ###############   Slide 10  Average Climate Table
+print("PDKE Slide 10  Average Climate Table")
+
 p<-p+1
 p15<-p
 
@@ -897,6 +1015,8 @@ TAB1 <- block_list(
 
 
 ################ Slide 12
+print("PDKE Slide 12")
+
 p<-p+1
 p16<-p
 
@@ -926,6 +1046,8 @@ FIG_10.1 <- block_list(
 ft4 <- block_list(fpar(ftext(paste0("https://origin.cpc.ncep.noaa.gov/"), fp_ft)))
 
 ################ Slide 13 Seasonal Rainfall and ENSO
+print("PDKE Slide 13 Seasonal Rainfall and ENSO")
+
 p<-p+1
 p17<-p
 
@@ -979,6 +1101,8 @@ FIG_14.1 <- block_list(
   fpar(ftext(paste0("Figure 17. Barplot of average monthly rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1950 to ",yr," fell within each ENSO phase."), fp_Fig)))
 
 #################### Slide 14 ###############################
+print("PDKE Slide 14")
+
 p<-p+1
 p18<-p
 
@@ -1011,6 +1135,8 @@ FIG_9 <- block_list(
 
 
 #################### Slide 14 (NEW) Air Temperature Monthly and Annual #########################
+print("PDKE Slide 14 (NEW) Air Temperature Monthly and Annual")
+
 p<-p+1
 p19<-p
 
@@ -1018,7 +1144,11 @@ S14_TIT<- block_list(
   fpar(ftext("Trends in Air Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
 # use monthly air temperature data to figure out values for text
-AT<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"_monthly_airtemp.csv"),sep=",")
+AT_FILE <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_monthly_airtemp.csv")
+print(paste("PDKE: AT_FILE: ", AT_FILE))
+
+AT<-read.csv(AT_FILE,sep=",")
+print(paste("PDKE: AT: ", AT))
 
 # get average annual air temperature values
 AT2<-aggregate(mean ~ year, AT, mean)
@@ -1047,7 +1177,10 @@ AT$range<-AT$max - AT$min
 ra<-round(mean(AT$range), 1)
 
 # find month-year with hottest temp
-ATd<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"_daily_airtemp.csv"),sep=",")
+ATd_FILE <- paste0(R_FOLDER,NameF,"/",NameF,"_daily_airtemp.csv")
+print(paste("PDKE: ATd_FILE: ", ATd_FILE))
+
+ATd<-read.csv(ATd_FILE,sep=",")
 head(ATd)
 mt<-max(ATd$max.x)
 mt2<-round(mt, 1)
@@ -1080,10 +1213,13 @@ AirTrend2 <- paste0("At this site there is an average range of ",ra,"°F between
                     "within a single year. The highest monthly temperature of ",mt2,"°F was recorded in ",hot.m," ",hot.y,".") 
 fp_AirTrend2 <- fpar(ftext(AirTrend2, fp_Tx))
 
-Trendfile1 <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_monthly_airtemp.png")
+Trendfile1 <- paste0(R_FOLDER,NameF,"/",NameF,"_monthly_airtemp.png")
+print(paste("PDKE: Trendfile1: ", Trendfile1))
+
 Trendimg1 <- external_img(src = Trendfile1, height = 1,width = 2)
 
 Trendfile2 <- paste0(I_FOLDER,"airtemp_legend2.jpg")
+print(paste("PDKE: Trendfile2: ", Trendfile2))
 Trendimg2 <- external_img(src = Trendfile2, height = 1,width = 1)
 
 FIG_10_11 <- block_list(
@@ -1094,6 +1230,8 @@ FIG_10_11 <- block_list(
 ft5 <- block_list(fpar(ftext(paste0("https://www.hawaii.edu/climate-data-portal/"), fp_ft)))
 
 ################ Slide 15 PART 4 Drought and Fire Occurrence ###############
+print("PDKE Slide 15 PART 4 Drought and Fire Occurrence")
+
 #Today, 
 #increased wildland fire activity, 
 #and damage to terrestrial and aquatic habitats - all of which can contribute to substantial economic losses# 
@@ -1115,6 +1253,8 @@ fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 
 
 ####################  SLIDE 16 FIVE TYPES OF DROUght######################################
+print("PDKE Slide 16 FIVE TYPES OF DROUght")
+
 p<-p+1
 p21<-p
 
@@ -1128,6 +1268,8 @@ fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18)
 fp_D_t <- fpar(ftext(D_t, fp_Tx))
 
 #################### Slide 17 ###############################
+print("PDKE Slide 17")
+
 p<-p+1
 p22<-p
 
@@ -1155,6 +1297,8 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 
   
   #################### Slide 18 ###############################
+  print("PDKE Slide 18")
+  
   p<-p+1
   p23<-p
   
@@ -1227,6 +1371,8 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
   
   #################### Slide 20 ############################### 
+  print("PDKE Slide 20")
+  
   p<-p+1
   p24<-p
   
@@ -1340,6 +1486,8 @@ spi3CT
                        # "would prevent a misinterpretation that a drought might be over."), fp_Txa)))
 
   #################### Slide 21 ###############################
+  print("PDKE Slide 21")
+  
   p<-p+1
   p25<-p
   
@@ -1365,6 +1513,8 @@ spi3CT
   
   
   ################ Slide 22 PART 5 Downscaling ###############
+  print("PDKE Slide 22 PART 5 Downscaling")
+  
   p<-p+1
   p26<-p
   
@@ -1401,6 +1551,8 @@ spi3CT
    
   
   #################### Slide 23 ###############################
+  print("PDKE Slide 23")
+  
   p<-p+1
   p27<-p
   
@@ -1457,6 +1609,8 @@ spi3CT
   
   
   ##################### Slide 24 #################################################
+  print("PDKE Slide 24")
+  
   p<-p+1
   p28<-p
   
@@ -1564,6 +1718,8 @@ spi3CT
 
 
 #################### Slide 25 Temperature 2040
+  print("PDKE Slide 25 Temperature 2040")
+  
   p<-p+1
   p29<-p
   
@@ -1616,6 +1772,8 @@ spi3CT
                       "RCP 4.5 (left) and RCP 8.5 (right)."), fp_Fig)))
   
   #################### Slide 25 Temperature 2100
+  print("PDKE Slide 26")
+  
   p<-p+1
   p30<-p
   
@@ -1711,6 +1869,8 @@ spi3CT
   
   
   ################ Slide 27 Summary and Conclusions ###############
+  print("PDKE Slide 27 Summary and Conclusions")
+  
   p<-p+1
   p31<-p
   
@@ -1787,6 +1947,8 @@ spi3CT
                  #             ph_label = "Content Placeholder 2", href = "https://cran.r-project.org")
                  
   ################ Slide 29 Acknowledgements ###############
+                 print("PDKE Slide 29 Acknowledgements")
+                 
                  p<-p+1
                  p33<-p
                  
@@ -1818,6 +1980,8 @@ spi3CT
     fpar(ftext       ("For the most up-to-date version of this portfolio contact Derek Ford: fordd@eastwestcenter.org for more information.", fp_CITA3)))
 
    ############## Slide 30 Works Cited ###########
+  print("PDKE Slide 30 Works Cited")
+  
   p<-p+1
   p34<-p
   
@@ -1830,6 +1994,8 @@ spi3CT
   
   
   ############### Slide 31 ANNEX I ###############
+  print("PDKE Slide 31 ANNEX I")
+  
   p<-p+1
   p35<-p
   
@@ -1852,6 +2018,8 @@ spi3CT
 
   
     ################ Slide 32 ANNEX II #############
+  print("PDKE Slide 32 ANNEX II")
+  
   p<-p+1
   p36<-p
 
@@ -1870,7 +2038,8 @@ spi3CT
 
   
   #################### History of Drought Events table
-
+  print("PDKE History of Drought Events table")
+  
   p<-p+1
   p37<-p
   
@@ -1894,7 +2063,17 @@ spi3CT
 ###############
 ###############  SLIDE DECK 
 ###############
+  print("SLIDE DECK")
 
+  # Check if the MINI_PPT directory exists
+  if (!file.exists(P_FOLDER)) {
+    # If the directory does not exist, create it
+    dir.create(P_FOLDER)
+    cat("Directory created:", P_FOLDER, "\n")
+  } else {
+    cat("Directory already exists:", P_FOLDER, "\n")
+  }
+  
   #Look up office themes for R PPT 
   
 #Slide 1
