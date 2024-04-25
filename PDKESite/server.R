@@ -12,6 +12,16 @@ library(leaflet)
 library(leaflet.extras)
 library(sf)
 
+#install.packages("future")
+#install.packages("promises")
+library(future)
+library(promises) # Provides async promise functionality
+
+# Choose a plan based on your requirements
+plan(sequential) # Use sequential execution
+# Alternatively, you can use a plan for parallel execution
+# plan(multisession) # Use multiple workers for parallel execution
+
 # Define server logic
 server <- function(input, output, session) {
   # Initialize a reactive value to store the drawn feature
@@ -56,7 +66,6 @@ server <- function(input, output, session) {
     drawnFeature(input$map_draw_new_feature)
   })
   
-  # Observe event for the save button click
   observeEvent(input$save_button, {
     # Get the drawn feature's geometry from the reactive value
     feature <- drawnFeature()
@@ -113,9 +122,6 @@ server <- function(input, output, session) {
         }
         
         # Ensure CRS of the drawn feature and island boundaries match
-        #print(paste("sf::st_crs(sf_object): ", sf::st_crs(sf_object)))
-        #print(paste("sf::st_crs(island_boundaries): ", sf::st_crs(island_boundaries)))
-        
         if (sf::st_crs(sf_object) != sf::st_crs(island_boundaries)) {
           sf_object <- sf::st_transform(sf_object, sf::st_crs(island_boundaries))
         }
@@ -123,39 +129,37 @@ server <- function(input, output, session) {
         # Check for intersection with island boundaries
         intersected_islands <- sf::st_intersects(sf_object, island_boundaries)
         
-        # Print the intersection result for debugging
-        # print(paste("intersected_islands1: ", length(intersected_islands)))
-        # print(paste("intersected_islands2: ", intersected_islands))
-        # print(paste("intersected_islands names: ", names(attributes(intersected_islands))))
-        # print(paste("island_boundaries names: ", names(attributes(island_boundaries))))
-        # print(paste("intersected_islands[[1]]: ", intersected_islands[[1]]))
-        # print(paste("island_boundaries unclass: ", names(unclass(island_boundaries))))
-        # print(paste("intersected_islands unclass: ", names(unclass(intersected_islands))))
-        
         # Extract island names or identifiers
         intersected_island_names <- unique(island_boundaries$isle[intersected_islands[[1]]])
-        #print(paste("intersected_island_names: ", length(intersected_island_names)))
-        
+        island_names_string <- ""
         # Display intersected island names
         if (length(intersected_island_names) > 0) {
+          island_names_string <- paste(intersected_island_names, collapse = ", ")
           island_names_text <- paste("The selected area intersects with the following island(s):", paste(intersected_island_names, collapse = ", "))
           showNotification(island_names_text, type = "message")
-          # Generate the filename using the current date and time
-          datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-          filename <- paste0("selected_area_", datetime_str, ".shp")
-          
-          # Save the sf_object as a shapefile
-          sf::st_write(sf_object, filename)
-          
-          showNotification(paste("The selected area has been saved as:", filename), type = "message")
         } else {
           showNotification("The selected area does not intersect with any islands.", type = "warning")
         }
+        
+        # Generate the filename using the current date and time
+        datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
+        filename <- paste0("Shapefiles/selected_area_", datetime_str, ".shp")
+        
+        # Save the sf_object as a shapefile
+        sf::st_write(sf_object, filename)
+        
+        showNotification(paste("The selected area has been saved as:", filename), type = "message")
+
+        # call the other script asynchronously to do the processing
+        system(paste0(Sys.getenv("R_HOME"), "/Rscript /Users/jgeis/Work/PDKE/test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
+        
+        showNotification("Background R script has been initiated.", type = "message")
+        
       } else {
-        showNotification("You must select an area on one of the islands.", type = "warning")
+        showNotification("No area selected to save as shapefile.", type = "warning")
       }
     } else {
-      showNotification("You must select an area on one of the islands.", type = "warning")
+      showNotification("No area selected to save as shapefile.", type = "warning")
     }
   })
 }
