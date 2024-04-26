@@ -10,13 +10,36 @@
 library(shiny)
 library(leaflet)
 
-# Define the user interface
+# # Define the user interface
+# ui <- fluidPage(
+#   titlePanel("Leaflet Map in Shiny with Drawing Tools"),
+#   
+#   # Leaflet map with drawing tools
+#   leafletOutput("map", height = 600),
+#   
+#   # Add a button to save the selected area as a shapefile
+#   actionButton("save_button", "Save Selected Area as Shapefile")
+# )
+
 ui <- fluidPage(
-  titlePanel("Leaflet Map in Shiny with Drawing Tools"),
+  # Application title
+  titlePanel("Leaflet Map with Shapefile Selector"),
   
-  # Leaflet map with drawing tools
-  leafletOutput("map", height = 600),
-  
-  # Add a button to save the selected area as a shapefile
-  actionButton("save_button", "Save Selected Area as Shapefile")
+  # Sidebar layout with input and output definitions
+  sidebarLayout(
+    # Sidebar panel for inputs
+    sidebarPanel(
+      # Dropdown menu to select a shapefile
+      uiOutput("shapefile_select")
+    ),
+    
+    # Main panel for displaying outputs
+    mainPanel(
+      # Leaflet map
+      leafletOutput("map", height = 600),
+      
+      # Add a button to save the selected area as a shapefile
+      actionButton("save_button", "Save Selected Area as Shapefile")
+    )
+  )
 )
