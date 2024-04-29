@@ -31,12 +31,15 @@ server <- function(input, output, session) {
     selected_shapefile <- reactiveVal(NULL)
     ########## stuff for drop-down menu - end   ##########  
     
+    # Reactive value to track the state of drawing tools
+    drawing_enabled <- reactiveVal(TRUE)
+    
     # Initialize selected_shapefile with NULL
     selected_shapefile(NULL)
     
-    # Render a leaflet map with drawing tools
+    # Render a leaflet map with drawing tools, initialization, only runs once upon startup
     output$map <- renderLeaflet({
-        leaflet() %>%
+        leaf <- leaflet() %>%
             addTiles() %>%
             # Set initial map view to the Hawaiian Islands
             setView(lng = -157.4983, lat = 20.2927, zoom = 7) %>%
@@ -48,18 +51,22 @@ server <- function(input, output, session) {
                         weight = 1, # Set the line weight (thickness) to a low value
                         opacity = 0.5, # Set line opacity to a lower value
             ) %>%
-            # Enable drawing tools
-            addDrawToolbar(
-                targetGroup = "drawnFeatures",
-                editOptions = editToolbarOptions(
-                    selectedPathOptions = selectedPathOptions()
-                )
-            ) %>%
             # Enable layers control for toggling drawn shapes and island boundaries
             addLayersControl(
                 overlayGroups = c("drawnFeatures", "Islands"),
                 options = layersControlOptions(collapsed = FALSE)
             )
+            if (drawing_enabled())
+              leaf <- leaf %>% 
+              # Enable drawing tools if drawing is enabled
+              addDrawToolbar(
+                targetGroup = "drawnFeatures",
+                singleFeature = TRUE,
+                editOptions = editToolbarOptions(
+                  selectedPathOptions = selectedPathOptions()
+                )
+              )
+            leaf
     })
     
     ########## stuff for drop-down menu - start   ##########  
@@ -74,8 +81,12 @@ server <- function(input, output, session) {
         req(input$shapefile)
         if (input$shapefile != "Select a pre-defined shapefile") {
             selected_shapefile(sf::st_read(shapefile_paths[match(input$shapefile, shapefile_paths)]))
+            # Disable drawing when a shapefile is selected
+            drawing_enabled(FALSE)
         } else {
             selected_shapefile(NULL)
+            # Enable drawing when no shapefile is selected
+            drawing_enabled(TRUE)
         }
     })
     
