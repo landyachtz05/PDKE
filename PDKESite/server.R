@@ -14,12 +14,12 @@ library(leaflet.extras)
 library(sf)
 
 # dev
-rscript_path = "/Rscript"
-myscript_path = "/Users/jgeis/Work/PDKE/test.R"
+#rscript_path = "/Rscript"
+#myscript_path = "/Users/jgeis/Work/PDKE/test.R"
 
 # prod
-#rscript_path = "/usr/lib/R/bin/Rscript" 
-#myscript_path = "/srv/shiny-server/sample-apps/PDKESite/test.R"
+rscript_path = "/bin/Rscript" 
+myscript_path = "/srv/shiny-server/sample-apps/PDKESite/test.R"
 run_string = paste(rscript_path, myscript_path)
 
 # Define server logic
@@ -243,9 +243,8 @@ server <- function(input, output, session) {
                 #showNotification(paste("The selected area has been saved as:", filename), type = "message")
                 
                 # call the other script asynchronously to do the processing
-                system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
-                #system(paste0(Sys.getenv("R_HOME"), "Rscript test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
-                
+                system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE)
+
                 showNotification("Background R script has been initiated.", type = "message")
                 
             } else {
@@ -253,9 +252,10 @@ server <- function(input, output, session) {
             }
         } else if (!is.null(selected_shapefile())) {
           shape<-selected_shapefile()
-          #cat("isle: ", shape$isle, "\n")
-          system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE, invisible = FALSE)
-          #cat("selected_shapefile2: ", selected_shapefile_path())
+          #cat(file=stderr(), "isle: ", shape$isle, "\n")
+          system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE)
+          showNotification("Background R script has been initiated.", type = "message")
+          #cat(file=stderr(), "selected_shapefile2: ", selected_shapefile_path(), "\n")
         }
     })
 }
