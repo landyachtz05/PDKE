@@ -25,10 +25,11 @@ server <- function(input, output, session) {
     
     ########## stuff for drop-down menu - start   ##########  
     # Get a list of shapefiles in the "shapefiles" directory
-    shapefile_paths <- list.files("shapefiles", pattern = "\\.shp$", full.names = TRUE)
+    shapefile_paths <- list.files("Shapefiles", pattern = "\\.shp$", full.names = TRUE)
     
     # Create a reactive value to store the selected shapefile
     selected_shapefile <- reactiveVal(NULL)
+    selected_shapefile_path <- reactiveVal(NULL)
     ########## stuff for drop-down menu - end   ##########  
     
     # Reactive value to track the state of drawing tools
@@ -80,7 +81,13 @@ server <- function(input, output, session) {
     observe({
         req(input$shapefile)
         if (input$shapefile != "Select a pre-defined shapefile") {
+            selected_shapefile_path(normalizePath(shapefile_paths[match(input$shapefile, shapefile_paths)]))
             selected_shapefile(sf::st_read(shapefile_paths[match(input$shapefile, shapefile_paths)]))
+            #cat("Selected Shapefile1:", selected_shapefile_path(), "\n")
+            #shape<-selected_shapefile()
+            #cat("Selected info: ", names(shape), "\n")
+            #cat("isle: ", shape$isle, "\n")
+
             # Disable drawing when a shapefile is selected
             drawing_enabled(FALSE)
         } else {
@@ -112,9 +119,17 @@ server <- function(input, output, session) {
     
     # Observe event for the save button click
     observeEvent(input$save_button, {
+
+        if (!is.null(selected_shapefile())) {
+          shape<-selected_shapefile()
+          #cat("isle: ", shape$isle, "\n")
+          system(paste0(Sys.getenv("R_HOME"), "/Rscript test.R", " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE, invisible = FALSE)
+          #system(paste0(Sys.getenv("R_HOME"), "/usr/lib/R/bin/Rscript test.R", " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE, invisible = FALSE)
+          #cat("selected_shapefile2: ", selected_shapefile_path())
+        }
+      
         # Get the drawn feature's geometry from the reactive value
         feature <- drawnFeature()
-        
         # Check if a feature was drawn
         if (!is.null(feature)) {
             # Verify the feature is of type "Feature" and has geometry
@@ -180,6 +195,8 @@ server <- function(input, output, session) {
                 # Display intersected island names
                 if (length(intersected_island_names) > 0) {
                     island_names_string <- paste(intersected_island_names, collapse = ", ")
+                    cat("\nisland_names_string: ", island_names_string, "\n")
+                    #sf_object$island <- island_names_string # this runs, but the program crashes when it tries to write out the shapefile
                     island_names_text <- paste("The selected area intersects with the following island(s):", paste(intersected_island_names, collapse = ", "))
                     showNotification(island_names_text, type = "message")
                 } else {
@@ -191,12 +208,37 @@ server <- function(input, output, session) {
                 filename <- paste0("Shapefiles/selected_area_", datetime_str, ".shp")
                 
                 # Save the sf_object as a shapefile
-                sf::st_write(sf_object, filename)
+                #sf::st_write(sf_object, filename)
+                #showNotification(paste("The selected area has been saved as:", filename), type = "message")
                 
+                # Create a data frame with island name and geometry
+                shapefile_data <- data.frame(isle = island_names_string, geometry = sf_object)
+                
+                # Convert the data frame to an sf object
+                sf_object <- sf::st_as_sf(shapefile_data)
+                
+                # Write the sf object to a shapefile
+                sf::st_write(sf_object, filename)
                 showNotification(paste("The selected area has been saved as:", filename), type = "message")
+                
+                # Check if sf_object is not NULL and has geometry
+                #cat("is.null: ", !is.null(sf_object), "\n")
+                #cat("geometry: ", !is.null(sf_object$geometry), "\n")
+                #print(paste("sf_object: ", sf_object))
+                
+                #print(sf_object)
+                #print(paste("filename: ", filename))
+                #print(str(sf_object))
+                #print(str(sf_object[[1]]))
+                #print(paste("postcall"))
+                
+                #sf::st_write(do.call(sf::st_sfc, sf_object), filename)
+                #showNotification(paste("The selected area has been saved as:", filename), type = "message")
                 
                 # call the other script asynchronously to do the processing
                 system(paste0(Sys.getenv("R_HOME"), "/Rscript /Users/jgeis/Work/PDKE/test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
+                #system(paste0(Sys.getenv("R_HOME"), "/usr/lib/R/bin/Rscript /srv/shiny-server/sample-apps/PDKESite/test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
+                #system(paste0(Sys.getenv("R_HOME"), "Rscript test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
                 
                 showNotification("Background R script has been initiated.", type = "message")
                 
