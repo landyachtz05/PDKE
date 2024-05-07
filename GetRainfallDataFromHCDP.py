@@ -54,7 +54,11 @@ def get_month_from_filename(filename):
   #print("File month:", file_month)  
   return file_month
 
-def download_data(filename, directory, is_rain):
+# downlad either temperature or rainfall data to the given directory
+# directory = the location of the existing rainfall or temperature data.
+# filename = the name of the last file in the given directory
+# is_rain = boolean, true if supposed to get rainfall data, false if getting temperature data.
+def download_data(directory, filename, is_rain):
   file_year = get_year_from_filename(filename)
   file_month = get_month_from_filename(filename)
   #print("File year:", file_year)
@@ -131,8 +135,8 @@ last_temp_file = list_files_sorted(temp_dir)
 #print("Last file in the directory:", last_temp_file)
 
 # download any missing rainfall files
-download_data(last_rain_file, rainfall_directory_path, True)
+download_data(rainfall_directory_path, last_rain_file, True)
 # download any missing temperature files
-download_data(last_temp_file, temp_dir, False)
+download_data(temp_dir, last_temp_file, False)
 
 
