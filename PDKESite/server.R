@@ -13,6 +13,15 @@ library(leaflet)
 library(leaflet.extras)
 library(sf)
 
+# dev
+rscript_path = "/Rscript"
+myscript_path = "/Users/jgeis/Work/PDKE/test.R"
+
+# prod
+#rscript_path = "/usr/lib/R/bin/Rscript" 
+#myscript_path = "/srv/shiny-server/sample-apps/PDKESite/test.R"
+run_string = paste(rscript_path, myscript_path)
+
 # Define server logic
 server <- function(input, output, session) {
     # Initialize a reactive value to store the drawn feature
@@ -126,14 +135,6 @@ server <- function(input, output, session) {
     # Observe event for the save button click
     observeEvent(input$save_button, {
 
-        if (!is.null(selected_shapefile())) {
-          shape<-selected_shapefile()
-          #cat("isle: ", shape$isle, "\n")
-          system(paste0(Sys.getenv("R_HOME"), "/Rscript test.R", " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE, invisible = FALSE)
-          #system(paste0(Sys.getenv("R_HOME"), "/usr/lib/R/bin/Rscript test.R", " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE, invisible = FALSE)
-          #cat("selected_shapefile2: ", selected_shapefile_path())
-        }
-      
         # Get the drawn feature's geometry from the reactive value
         feature <- drawnFeature()
         # Check if a feature was drawn
@@ -242,8 +243,7 @@ server <- function(input, output, session) {
                 #showNotification(paste("The selected area has been saved as:", filename), type = "message")
                 
                 # call the other script asynchronously to do the processing
-                system(paste0(Sys.getenv("R_HOME"), "/Rscript /Users/jgeis/Work/PDKE/test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
-                #system(paste0(Sys.getenv("R_HOME"), "/usr/lib/R/bin/Rscript /srv/shiny-server/sample-apps/PDKESite/test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
+                system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
                 #system(paste0(Sys.getenv("R_HOME"), "Rscript test.R", " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE, invisible = FALSE)
                 
                 showNotification("Background R script has been initiated.", type = "message")
@@ -251,8 +251,11 @@ server <- function(input, output, session) {
             } else {
                 showNotification("No area selected to save as shapefile.", type = "warning")
             }
-        } else {
-            showNotification("No area selected to save as shapefile.", type = "warning")
+        } else if (!is.null(selected_shapefile())) {
+          shape<-selected_shapefile()
+          #cat("isle: ", shape$isle, "\n")
+          system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE, invisible = FALSE)
+          #cat("selected_shapefile2: ", selected_shapefile_path())
         }
     })
 }
