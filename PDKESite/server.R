@@ -83,6 +83,10 @@ server <- function(input, output, session) {
         if (input$shapefile != "Select a pre-defined shapefile") {
             selected_shapefile_path(normalizePath(shapefile_paths[match(input$shapefile, shapefile_paths)]))
             selected_shapefile(sf::st_read(shapefile_paths[match(input$shapefile, shapefile_paths)]))
+            
+            # Update button label
+            updateActionButton(session, "save_button", label = "Generate data using selected shapefile")
+            
             #cat("Selected Shapefile1:", selected_shapefile_path(), "\n")
             #shape<-selected_shapefile()
             #cat("Selected info: ", names(shape), "\n")
@@ -92,6 +96,8 @@ server <- function(input, output, session) {
             drawing_enabled(FALSE)
         } else {
             selected_shapefile(NULL)
+            # Update button label
+            updateActionButton(session, "save_button", label = "Generate data using selected area")
             # Enable drawing when no shapefile is selected
             drawing_enabled(TRUE)
         }
