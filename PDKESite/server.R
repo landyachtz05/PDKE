@@ -15,17 +15,48 @@ library(leaflet)
 library(leaflet.extras)
 library(sf)
 
-# TODO: don't enable the submit button until a valid polygon has been selected on the map
+# TODO: 
+# - get island for selected polygon
+# - clear out selected shapefile/polygon vars upon save/submit
+# - don't enable the submit button until a valid polygon has been selected on the map
+# - for polygon selection, make the line start/end markers less obnoxious
+# - test selected polygon and created polygon on the PDKE stuff
+# - add highlighting of selected polygon
+# - when loading existing shapefile, make shape highlighting more obvious
 
-# dev
-#rscript_path = "/Rscript"
-#myscript_path = "/Users/jgeis/Work/PDKE/test.R"
-
-# prod
+environ <- "dev"
+#environ <- "prod"
+# prod, default if environ is not dev
 rscript_path = "/bin/Rscript" 
 myscript_path = "/srv/shiny-server/sample-apps/PDKESite/test.R"
-
+if (environ == "dev") {
+  rscript_path = "/Rscript"
+  myscript_path = "/Users/jgeis/Work/PDKE/test.R"
+}
 run_string = paste(rscript_path, myscript_path)
+
+get_intersected_islands <- function(sf_object, island_boundaries) {
+  # Check for intersection with island boundaries
+  intersected_islands <- sf::st_intersects(sf_object, island_boundaries)
+  
+  # Extract island names or identifiers
+  intersected_island_names <- unique(island_boundaries$isle[intersected_islands[[1]]])
+  display_intersected_islands(intersected_island_names)
+  return(intersected_island_names)
+}
+
+display_intersected_islands <- function(intersected_island_names) {
+  island_names_string <- ""
+  # Display intersected island names
+  if (length(intersected_island_names) > 0) {
+    island_names_string <- paste(intersected_island_names, collapse = ", ")
+    cat("\nisland_names_string: ", island_names_string, "\n")
+    island_names_text <- paste("The selected area intersects with the following island(s):", paste(intersected_island_names, collapse = ", "))
+    showNotification(island_names_text, type = "message")
+  } else {
+    showNotification("The selected area does not intersect with any islands.", type = "warning")
+  }
+}
 
 # Define server logic
 server <- function(input, output, session) {
@@ -59,6 +90,8 @@ server <- function(input, output, session) {
   # Render a leaflet map with drawing tools, initialization, only runs once upon startup
   output$map <- renderLeaflet({
     cat("renderLeaflet\n")
+    
+    # made this not use pipes so I could add debugging statements between actions
     leaf <- leaflet()
     leaf <- addTiles(leaf)
     
@@ -118,11 +151,6 @@ server <- function(input, output, session) {
       # Update button label
       updateActionButton(session, "save_button", label = "Generate data using selected shapefile")
       
-      #cat("Selected Shapefile1:", selected_shapefile_path(), "\n")
-      #shape<-selected_shapefile()
-      #cat("Selected info: ", names(shape), "\n")
-      #cat("isle: ", shape$isle, "\n")
-      
       # Disable drawing when a shapefile is selected
       drawing_enabled(FALSE)
     } else {
@@ -155,28 +183,6 @@ server <- function(input, output, session) {
       proxy <- leafletProxy("map")
       proxy <- clearShapes(proxy)
     }
-    
-    # shapefile <- selected_shapefile()
-    # if (!is.null(shapefile)) {
-    #   #print(attributes(shapefile))
-    #   #cat("row.names: ", row.names(shapefile), "\n")
-    #   #cat("wuname: ", shapefile$wuname, "\n")
-    #   #cat("??", shapefile$wuname)
-    #   
-    #   leafletProxy("map") %>%
-    #     clearShapes() %>%
-    #     addPolygons(data = shapefile, 
-    #                 group = "Selected Shapefile",
-    #                 fillColor = "transparent",
-    #                 color = "#B0C4DE", # Choose a light color for the boundaries
-    #                 weight = 1, # Set the line weight (thickness) to a low value
-    #                 opacity = 0.5, # Set line opacity to a lower value
-    #                 layerId = ~objectid
-    #     )
-    # } else {
-    #   leafletProxy("map") %>%
-    #     clearShapes()
-    # }
   })
   ########## stuff for drop-down menu - end   ##########  
   
@@ -199,36 +205,17 @@ server <- function(input, output, session) {
     # Find the corresponding polygon from the selected shapefile
     shapefile <- selected_shapefile()
     if (!is.null(shapefile)) {
-      #cat("  shapefile not null\n")
       # Get the name of the first attribute
       first_attribute <- colnames(shapefile)[1]
-      #cat("First attribute: ", first_attribute, "\n")
       selected_polygon(shapefile[shapefile[[first_attribute]] == polygon_id, "geometry"]$geometry)
       selected_poly <- selected_polygon()
-      
-      #cat("selected_polygon click, is_null? : ", is.null(selected_poly), "\n")
-      #cat("Class of selected_polygon: ", class(selected_poly), "\n")
-      # Ensure selected_polygon is not NULL and has valid geometry
-      #if (!is.null(selected_polygon) && !is.na(selected_polygon)) {
-      # Print the class to verify it's a geometry object
-      #cat("Class of selected_polygon: ", class(selected_polygon), "\n")
-      # Do further processing if needed
-      #}
     }
   })
   
   # Observe event for the save button click
   observeEvent(input$save_button, {
     cat("observeEvent: save_button\n")
-    
-    #print(isTruthy(selected_polygon))
-    #print(is.null(names(selected_polygon)))
-    #print(is.null(selected_polygon))
-    #print(selected_polygon)
-    #print(selected_polygon())
-    #print(selected_polygon$type) # crash
-    #print(!is.null(selected_polygon$geometry)) #crash
-    
+
     # Get the drawn feature's geometry from the reactive value
     feature <- drawnFeature()
     # Check if a feature was drawn
@@ -267,54 +254,15 @@ server <- function(input, output, session) {
         if (sf::st_crs(sf_object) != sf::st_crs(island_boundaries)) {
           sf_object <- sf::st_transform(sf_object, sf::st_crs(island_boundaries))
         }
-        
-        # Check for intersection with island boundaries
-        intersected_islands <- sf::st_intersects(sf_object, island_boundaries)
-        
-        # Extract island names or identifiers
-        intersected_island_names <- unique(island_boundaries$isle[intersected_islands[[1]]])
-        island_names_string <- ""
-        # Display intersected island names
-        if (length(intersected_island_names) > 0) {
-          island_names_string <- paste(intersected_island_names, collapse = ", ")
-          cat("\nisland_names_string: ", island_names_string, "\n")
-          island_names_text <- paste("The selected area intersects with the following island(s):", paste(intersected_island_names, collapse = ", "))
-          showNotification(island_names_text, type = "message")
-        } else {
-          showNotification("The selected area does not intersect with any islands.", type = "warning")
-        }
-        
+        intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
+
         # Generate the filename using the current date and time
         datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
         filename <- paste0("Shapefiles/selected_area_", datetime_str, ".shp")
         
-        # Save the sf_object as a shapefile
-        #sf::st_write(sf_object, filename)
-        #showNotification(paste("The selected area has been saved as:", filename), type = "message")
-        
-        # Create a data frame with island name and geometry
-        shapefile_data <- data.frame(isle = island_names_string, geometry = sf_object)
-        
-        # Convert the data frame to an sf object
-        sf_object <- sf::st_as_sf(shapefile_data)
-        
         # Write the sf object to a shapefile
         sf::st_write(sf_object, filename)
         showNotification(paste("The selected area has been saved as:", filename), type = "message")
-        
-        # Check if sf_object is not NULL and has geometry
-        #cat("is.null: ", !is.null(sf_object), "\n")
-        #cat("geometry: ", !is.null(sf_object$geometry), "\n")
-        #print(paste("sf_object: ", sf_object))
-        
-        #print(sf_object)
-        #print(paste("filename: ", filename))
-        #print(str(sf_object))
-        #print(str(sf_object[[1]]))
-        #print(paste("postcall"))
-        
-        #sf::st_write(do.call(sf::st_sfc, sf_object), filename)
-        #showNotification(paste("The selected area has been saved as:", filename), type = "message")
         
         # call the other script asynchronously to do the processing
         system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE)
@@ -324,6 +272,7 @@ server <- function(input, output, session) {
       } else {
         showNotification("No area selected to save as shapefile.", type = "warning")
       }
+    # user selected a specific polygon from a pre-defined shapefile
     } else if (!is.null(selected_polygon())) {
       print("selected_polygon save")
       # Generate the filename using the current date and time
@@ -331,26 +280,36 @@ server <- function(input, output, session) {
       filename <- paste0("Shapefiles/selected_polygon_", datetime_str, ".shp")
       tryCatch({
         # Extract the geometry object from the reactive value
-        polygon_geometry <- selected_polygon()
-        print(selected_polygon)
-        print(selected_polygon())
+        sf_object <- selected_polygon()
+
         # Save the selected polygon as a shapefile
-        sf::st_write(polygon_geometry, filename)
+        sf::st_write(sf_object, filename)
         showNotification(paste("The selected polygon has been saved as:", filename), type = "message")
-        # TODO: add isle to this
-        #system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shape$isle), wait = FALSE)
+        
+        intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
+        system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE)
         
       }, error = function(e) {
         print(paste("Error:", e))
         showNotification("An error occurred while saving the selected polygon.", type = "error")
       })
+    # user selected a pre-defined shapefile
     } else if (!is.null(selected_shapefile())) {
+      # TODO: get isle from it's location, not the attribute as not all shapes will have isle attached
       print("selected_shapefile")
-      shape<-selected_shapefile()
-      #cat(file=stderr(), "isle: ", shape$isle, "\n")
-      system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(selected_shapefile_path()), " ", shape$isle), wait = FALSE)
+      sf_object<-selected_shapefile()
+      intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
+      system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(selected_shapefile_path()), " ", shQuote(intersected_island_names)), wait = FALSE)
       showNotification("Background R script has been initiated.", type = "message")
       #cat(file=stderr(), "selected_shapefile2: ", selected_shapefile_path(), "\n")
     } 
+    # reset all values so user starts from scratch
+    drawnFeature(NULL)
+    selected_shapefile <- reactiveVal(NULL)
+    selected_shapefile_path <- reactiveVal(NULL)
+    selected_shapefile(NULL)
+    selected_polygon <- reactiveVal(NULL)
+    selected_polygon(NULL)
   }, ignoreInit = TRUE)
+  
 }
