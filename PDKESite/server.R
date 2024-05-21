@@ -16,13 +16,12 @@ library(leaflet.extras)
 library(sf)
 
 # TODO: 
-# - get island for selected polygon
-# - clear out selected shapefile/polygon vars upon save/submit
 # - don't enable the submit button until a valid polygon has been selected on the map
 # - for polygon selection, make the line start/end markers less obnoxious
 # - test selected polygon and created polygon on the PDKE stuff
 # - add highlighting of selected polygon
-# - when loading existing shapefile, make shape highlighting more obvious
+# - when loading existing shapefile, make shape highlighting more obvious 
+#   (actually, don't think I should do this as single-polygon shapefiles are unlikely to ever actually be used)
 
 environ <- "dev"
 #environ <- "prod"
@@ -207,8 +206,29 @@ server <- function(input, output, session) {
     if (!is.null(shapefile)) {
       # Get the name of the first attribute
       first_attribute <- colnames(shapefile)[1]
-      selected_polygon(shapefile[shapefile[[first_attribute]] == polygon_id, "geometry"]$geometry)
+      
+      # Extract the selected polygon
+      selected_polygon_data <- shapefile[shapefile[[first_attribute]] == polygon_id, ]
+      selected_polygon(selected_polygon_data$geometry)
       selected_poly <- selected_polygon()
+      
+      # Update the map to highlight the selected polygon
+      proxy <- leafletProxy("map")
+      
+      # Remove any previous highlights
+      proxy <- clearGroup(proxy, "highlightedPolygon")
+      
+      # Add the selected polygon with blue fill color
+      proxy <- addPolygons(proxy, 
+                           data = selected_polygon_data, 
+                           group = "highlightedPolygon",
+                           fillColor = "blue",
+                           color = "#B0C4DE", # Choose a light color for the boundaries
+                           weight = 2, # Set the line weight (thickness) to a low value
+                           opacity = 0.5, # Set line opacity to a lower value
+                           fillOpacity = 0.5, # Set fill opacity to make the fill color visible
+                           layerId = ~get(first_attribute)
+      )
     }
   })
   
