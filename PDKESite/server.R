@@ -16,12 +16,8 @@ library(leaflet.extras)
 library(sf)
 
 # TODO: 
-# - don't enable the submit button until a valid polygon has been selected on the map
 # - for polygon selection, make the line start/end markers less obnoxious
 # - test selected polygon and created polygon on the PDKE stuff
-# - add highlighting of selected polygon
-# - when loading existing shapefile, make shape highlighting more obvious 
-#   (actually, don't think I should do this as single-polygon shapefiles are unlikely to ever actually be used)
 
 environ <- "dev"
 #environ <- "prod"
@@ -112,7 +108,7 @@ server <- function(input, output, session) {
                              overlayGroups = c("drawnFeatures", "Islands"),
                              options = layersControlOptions(collapsed = FALSE)
     )
-    
+
     # Check if drawing is enabled and add drawing tools if it is
     if (drawing_enabled()) {
       leaf <- addDrawToolbar(
@@ -127,10 +123,11 @@ server <- function(input, output, session) {
         )
       )
     }
-    
+    # Disable the save button
+    updateActionButton(session, "save_button", disabled = TRUE)
     leaf
   })
-  
+
   ########## stuff for drop-down menu - start   ##########  
   # Create a dropdown menu of shapefile names
   output$shapefile_select <- renderUI({
@@ -144,20 +141,36 @@ server <- function(input, output, session) {
     cat("observe 1\n")
     req(input$shapefile)
     if (input$shapefile != "Select a pre-defined shapefile") {
+      cat(" shapefile selected from menu\n")
+      
       selected_shapefile_path(normalizePath(shapefile_paths[match(input$shapefile, shapefile_paths)]))
       selected_shapefile(sf::st_read(shapefile_paths[match(input$shapefile, shapefile_paths)]))
       
       # Update button label
-      updateActionButton(session, "save_button", label = "Generate data using selected shapefile")
+      updateActionButton(session, "save_button", label = "Generate data using selected shapefile", disabled = TRUE)
       
       # Disable drawing when a shapefile is selected
       drawing_enabled(FALSE)
+      
+      # reset all values so user starts from scratch
+      drawnFeature(NULL)
+
     } else {
+      cat(" no menu selection made\n")
+      
       selected_shapefile(NULL)
       # Update button label
-      updateActionButton(session, "save_button", label = "Generate data using selected area")
+      updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
       # Enable drawing when no shapefile is selected
       drawing_enabled(TRUE)
+      
+      # reset all values so user starts from scratch
+      drawnFeature(NULL)
+      selected_shapefile <- reactiveVal(NULL)
+      selected_shapefile_path <- reactiveVal(NULL)
+      selected_shapefile(NULL)
+      selected_polygon <- reactiveVal(NULL)
+      selected_polygon(NULL)
     }
   })
   
@@ -191,12 +204,25 @@ server <- function(input, output, session) {
     
     # Update the reactive value with the drawn feature
     drawnFeature(input$map_draw_new_feature)
+    
+    # enable the submit button
+    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = FALSE)
+    
+    # reset all values so user starts from scratch
+    selected_shapefile <- reactiveVal(NULL)
+    selected_shapefile_path <- reactiveVal(NULL)
+    selected_shapefile(NULL)
+    selected_polygon <- reactiveVal(NULL)
+    selected_polygon(NULL)
   })
   
   
   # Observe click event on polygons
   observeEvent(input$map_shape_click, {
     cat("observeEvent: map_shape_click\n")
+    
+    # reset anything that was drawn on the map
+    drawnFeature(NULL)
     
     # Get the ID of the clicked polygon
     polygon_id <- input$map_shape_click$id
@@ -230,6 +256,7 @@ server <- function(input, output, session) {
                            layerId = ~get(first_attribute)
       )
     }
+    updateActionButton(session, "save_button", label = "Generate data", disabled = FALSE)
   })
   
   # Observe event for the save button click
@@ -315,7 +342,6 @@ server <- function(input, output, session) {
       })
     # user selected a pre-defined shapefile
     } else if (!is.null(selected_shapefile())) {
-      # TODO: get isle from it's location, not the attribute as not all shapes will have isle attached
       print("selected_shapefile")
       sf_object<-selected_shapefile()
       intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
