@@ -1,6 +1,8 @@
+# for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
+start_time <- Sys.time()
 
-
-Sys.setenv(PROJ_LIB = "/Users/jgeis/opt/anaconda3/lib/python3.8/site-packages/fiona/proj_data")
+#Sys.setenv(PROJ_LIB = "/Users/jgeis/opt/anaconda3/lib/python3.8/site-packages/fiona/proj_data")
+Sys.setenv(PROJ_LIB = "/opt/anaconda3/share/proj/")
 PROJ_DEBUG = 3
 #install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 #install.packages("rgdal", repos = "https://packagemanager.posit.co/cran/2023-10-13")
@@ -77,21 +79,50 @@ for (package in packages) {
 
 ##########################################################################################################################
 
+# would normally do a print or cat w/o using stderr, but it's the only thing
+# that gets the shiny server on prod to actually print something.
+cat(file=stderr(), "In CCVD_portfolio_content.R", "\n")
+
+# non-user provided values
 BASE_DIR <- "/Users/jgeis/Work/PDKE"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
-INPUTS_FOLDER <-
-  paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")       # INPUT FOLDER
-OUTPUTS_FOLDER <-
-  paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/")       # OUTPUT FOLDER
-print(paste("PDKE: 1,INPUTS_FOLDER: ", INPUTS))
+INPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")       # INPUT FOLDER
+OUTPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/")       # OUTPUT FOLDER
+rscript_path = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript
+myscript_path = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
+#phase2_dir = paste0(BASE_DIR,"/CCVD/MINI_Phase2/")
+print(paste("PDKE: 1,INPUTS_FOLDER: ", INPUTS_FOLDER))
 print(paste("PDKE: 1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
 
+# Get the command-line arguments passed from the main script
+args <- commandArgs(trailingOnly = TRUE)
+cat(file=stderr(), "args:", length(args), "\n")
+
+NP_FILE <- args[1];
+NM <- args[2];
+NM_s <- args[3];
+ILE <- args[4];
+ILE_s <- args[5];
+
+# user provided values
+#NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
+#NP_FILE <- paste0(NP_DIR, "waikiki_watershed.shp")
+#NM <- "Waikiki Watershed"
+#NM_s <- "Waikiki"
+#ILE <- "Oahu"
+#ILE_s <- "OA"
+
+cat(file=stderr(), "NP_FILE: ", NP_FILE, "\n")
+cat(file=stderr(), "NM: ", NM, "\n")
+cat(file=stderr(), "NM_s: ", NM_s, "\n")
+cat(file=stderr(), "ILE: ", ILE, "\n")
+cat(file=stderr(), "ILE_s: ", ILE_s, "\n")
+
+#ISLAND_FULL_NAMES <- c("Hawaiʻi", "Maui", "Kahoʻolawe", "Lānaʻi", "Molokaʻi", "Oʻahu", "Kauaʻi", "Niʻihau")
+#ISLAND_SHORT_NAMES <- c("BI", "MN", "KO", "LA","MO","OA","KA")
+
 COAST_PATH <- paste0(INPUTS_FOLDER, "COAST/Coast_2/coast_geo_shp.dbf") #Coastal Shape file
-NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
-NP_FILE <- paste0(NP_DIR, "waikiki_watershed.shp")
-
-
 
 ###########################################################################################################################
 
@@ -173,10 +204,6 @@ NP_ALL <- readOGR(NP_FILE)
 print("PDKE: 1")
 
 HALE <- NP_ALL
-NM <- "Waikiki Watershed"
-NM_s <- "Waikiki"
-ILE <- "Oahu"
-ILE_s <- "OA"
 
 plot(HALE)
 print("PDKE: 2")
@@ -6548,6 +6575,7 @@ dev.off()
 
 
 ##########  Create A Monthly Rainfall Time Series
+print("PDKE: 73, Rainfall Extract ")
 
 print("Rainfall Extract")
 print("Frazier et al 2016")
@@ -6616,6 +6644,7 @@ head(Cell.AF_Maps)
 tail(Cell.AF_Maps)
 
 ##########   Matty's Maps
+print("PDKE: 74, Matty's Maps")
 
 print("Lucas")
 
@@ -6719,6 +6748,7 @@ Mx <- max(D_Comp, na.rm = T)
 FNAME <- paste0("RF_Compare_23_", UNIT_Ns[u], ".csv")
 
 ##########   Comparison Figures For the two datasets
+print("PDKE: 75, Comparison Figures For the two datasets")
 
 LM1 <- lm(MRF_A3 ~ MRF_N3)
 LM1P <- round(coefficients(summary(LM1))[2, 4], 4)
@@ -6748,6 +6778,8 @@ legend("topleft", c(paste("R2 = ", LM1R), paste("MBE = ", MBE), paste("MAE = ", 
 dev.off()
 
 ##########   Merge Datasets to create full time period (1920 - current)
+print("PDKE: 76, Merge Datasets to create full time period (1920 - current)")
+
 nrows <- nrow(Cell.ML_Maps)
 
 MRF_ND3 =  Cell.ML_Maps[c(1:nrows), ]
@@ -6907,6 +6939,7 @@ LM6R <- summary(LM6)$r.squared
 ##########   Aggregate Month to Year
 
 ##########   Aggregate From Monthly to annual Average
+print("PDKE: 77, Aggregate From Monthly to annual Average")
 
 rm(mean)
 
@@ -6930,6 +6963,7 @@ write.csv(
 
 
 ##########   Plot Annual RF
+print("PDKE: 78, Plot Annual RF")
 
 YrRF.ts <- ts(Mean_Y_RF$RF,
               c(1920),
@@ -6979,6 +7013,7 @@ LM5RY <- round(summary(LM5Y)$r.squared, 2)
 LM6RY <- round(summary(LM6Y)$r.squared, 2)
 
 ##########   Seasonal RF
+print("PDKE: 79, Seasonal RF")
 
 # Wet Season
 MRF100a <- MRF100
@@ -7034,6 +7069,7 @@ short.date_Y = strftime(DRY_RF$Ndate, "%Y")
 # colnames(Dry_RF) <- c("Date","RF")
 
 ####### Seasonal Trends ########################
+print("PDKE: 80, Seasonal Trends")
 
 #WET Season
 YrRF.tsW <- ts(WET_RF5, c(1920), end = c(ey), frequency = 1)
@@ -7135,6 +7171,7 @@ png(
 )
 
 ##########   Annual and Seasonal Plot
+print("PDKE: 81, Annual and Seasonal Plot")
 
 par(mfrow = c(3, 1))
 par(mar = c(4, 4, 4, 2))
@@ -7211,6 +7248,8 @@ ablineclip(
 )
 
 ####### Wet Season ###########
+print("PDKE: 82, Wet Season")
+
 par(mai = c(0.3, 0.6, 0.2, 0.2))
 YLIM <-  min(myts1YW, na.rm = T)
 plot(
@@ -7275,6 +7314,7 @@ ablineclip(
 )
 
 ########## Dry Season
+print("PDKE: 83, Dry Season")
 
 par(mai = c(0.3, 0.6, 0.2, 0.2))
 YLIM <-  min(myts1YD, na.rm = T)
@@ -7346,6 +7386,9 @@ dev.off()
 
 #############################################################################
 # Count All Drought Events Long-term 12 and Short term 12 and 3.
+print("PDKE: 84, SPI/DROUGHT")
+
+
 Cell.SPICNT <- data.frame(matrix(ncol = 4, nrow = 4))
 colnames(Cell.SPICNT) <-
   c("Total", "SPI_12_Long", "SPI_3_Short", "SPI_12_Short")
@@ -7379,6 +7422,7 @@ main = paste0("SPI-12 1920-", ey, ": ", UNIT_Ns[u]))
 
 dev.off()
 ##########   Table Metrics SPI 12
+print("PDKE: 85, Table Metrics SPI 12")
 
 Cell.DataSPI <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI) <-
@@ -7391,6 +7435,8 @@ colnames(Cell.DataSPI) <-
 Cell.DataSPI
 
 ##### Derek's Drought Code from Guam
+print("PDKE: 86, Derek's Drought Code from Guam")
+
 # load rainfall dataset created around line 2828 above
 wd <- paste0(OUTPUTS_FOLDER, UNIT_N, "/")
 setwd(wd)
@@ -7655,6 +7701,7 @@ summary(spi6$peak)
 summary(spi6$months)
 
 ### make table of start and end dates for each drought intensity event
+print("PDKE: 87, make table of start and end dates for each drought intensity event")
 
 Cell.DataSPI <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI) <-
@@ -7723,6 +7770,8 @@ write.csv(
 )
 
 ##########   Count Droughts For Figure - Derek's edits
+print("PDKE: 88, Count Droughts For Figure")
+
 Cell.DataSPI$`P Intensity` <- as.numeric(Cell.DataSPI$`P Intensity`)
 
 EX_Cnt <- sum(Cell.DataSPI[5] > 2)
@@ -7744,6 +7793,8 @@ Cell.SPICNT[1:4, 2] <- c(D_Cnt, MO_Cnt2, SV_Cnt2, EX_Cnt)
 Cell.SPICNT
 
 ##########   Remove Postive SPI and make absloute values
+print("PDKE: 89, Remove Postive SPI and make absloute values")
+
 ### Derek's code
 SPIVEC <- SPI_ALL[which(SPI_ALL$m.scale == 12), ]$SPI
 # SPIVEC[SPIVEC > 0] <- 0
@@ -7894,7 +7945,6 @@ print
     )
 )
 
-
 dev.off()
 
 
@@ -7902,6 +7952,7 @@ dev.off()
 
 
 ##########################################################################################################################################
+print("PDKE: 90, Short (_S) timescales")
 
 #Short (_S) timescales - Derek's version
 
@@ -8083,6 +8134,7 @@ summary(spi6$peak)
 summary(spi6$months)
 
 ### make table of start and end dates for each drought intensity event
+print("PDKE: 91, make table of start and end dates for each drought intensity event")
 
 Cell.DataSPI3_S <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI3_S) <-
@@ -8158,6 +8210,8 @@ write.csv(
 )
 
 ##########   Count Droughts For Figure - Derek's edits
+print("PDKE: 92, Count Droughts For Figure")
+
 Cell.DataSPI3_S$`P Intensity` <-
   as.numeric(Cell.DataSPI3_S$`P Intensity`)
 
@@ -8172,7 +8226,9 @@ MO_Cnt2 <- D_Cnt -  SV_Cnt2 - EX_Cnt
 Cell.SPICNT[1:4, 3] <- c(D_Cnt, MO_Cnt2, SV_Cnt2, EX_Cnt)
 Cell.SPICNT
 
-##########   Remove Postive SPI and make absloute values
+##########   Remove Postive SPI and make absolute values
+print("PDKE: 93, Remove Postive SPI and make absolute values")
+
 ### Derek's Version ###
 
 # use full SPI (3 and 12) dataframe
@@ -8303,6 +8359,7 @@ dev.off()
 
 
 
+print("PDKE: 94, SPI-12 short")
 
 #### SPI-12 short
 
@@ -8478,6 +8535,7 @@ summary(spi6$peak)
 summary(spi6$months)
 
 ### make table of start and end dates for each drought intensity event
+print("PDKE: 95, make table of start and end dates for each drought intensity event")
 
 Cell.DataSPI12_S <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI12_S) <-
@@ -8543,6 +8601,8 @@ Cell.DataSPI12_S[which(Cell.DataSPI12_S$`P Intensity` > 1.5), ]
 
 
 ##########   Count Droughts For Figure - Derek's edits
+print("PDKE: 96, Count Droughts For Figure")
+
 Cell.DataSPI12_S$`P Intensity` <-
   as.numeric(Cell.DataSPI12_S$`P Intensity`)
 
@@ -8563,7 +8623,9 @@ write.csv(
   row.names = F
 )
 
-##########   Remove Postive SPI and make absloute values
+##########   Remove Positive SPI and make absolute values
+print("PDKE: 97, Remove Positive SPI and make absolute values")
+
 ### Derek's Version ###
 
 # use full SPI (3 and 12) dataframe
@@ -8691,8 +8753,7 @@ dev.off()
 ##########  MEI
 
 ##########   UNIT
-
-print("MEI")
+print("PDKE: 98, MEI")
 
 Cell.MEI <- data.frame(matrix(nrow = 5, ncol = 9))
 colnames(Cell.MEI) <-
@@ -8708,13 +8769,30 @@ colnames(Cell.MEI) <-
 Cell.MEI[1:5, 1] <-
   c("Strong EL", "Weak EL", "Neutral", "Weak LA", "Strong LA")
 
+print("PDKE: 98.1, MEI")
+
 ##########   All MEI
 head(MEI)
 tail(MEI)
 
+print("PDKE: 98.2, MEI")
+#print(MRF100$Year)
 # get last year
-ly <- max(MRF100$Year)
+ly <- 1949 + nrow(MEI)
+
+print("PDKE: 98.2.1, MEI")
+print(ly)
+#print(MEI$Year)
+
+# failing here
 MEI$Year <- seq(1950, ly, 1)
+
+# # options
+# # Truncate the sequence to match the number of rows:
+#MEI$Year <- seq(1950, 1950 + nrow(MEI) - 1)
+
+print("PDKE: 98.3, MEI")
+
 
 #Cell.MEI_All[u:1] <- UNIT_N[u]
 #Cell.MEI_All[u,8] <- W_MRF_MEAN
@@ -8724,11 +8802,15 @@ MEI_W <- subset(MEI, select = -c(MEI_D))
 MEI_W <- MEI_W[2:nrow(MEI_W), ]
 MEI_D <- subset(MEI, select = -c(MEI_W))
 
+print("PDKE: 98.4, MEI")
+
 # ## Can read in the csv from above to start script here
 # MRF100<-read.csv(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_in.csv"))
 
 head(MRF100)
 tail(MRF100)
+
+print("PDKE: 98.5, MEI")
 
 # # If starting this section from monthly rainfall csv and only want up to 2012
 # Cell.AF_Maps<-MRF100[which(MRF100$Year<2013),]
@@ -8742,10 +8824,14 @@ MRF = MRF100[361:nrow(MRF100), ]
 head(MRF)
 tail(MRF)
 
+print("PDKE: 98.6, MEI")
+
 ##########  Need to remove Rows to get seasons correct
 # first row always starts on May 1950
 MRF2 =  MRF[-c(1:4), ]
 head(MRF2)
+
+print("PDKE: 98.7, MEI")
 
 # last row changes depending on dataset end point
 # get last row in dataset
@@ -8757,6 +8843,7 @@ yc <- nrow(MRF2[which(MRF2$Year == yc), ])
 
 # get row number of April or October of last year
 mrn <- data.frame(which(MRF2$Year == lr$Year))
+print("PDKE: 98.8, MEI")
 
 if (nrow(mrn > 4)) {
   arn <- mrn[4, ]
@@ -8780,6 +8867,7 @@ tail(MRF2)
 
 MRF3 <- MRF2
 MRF3$Month <- as.numeric(MRF3$Month)
+print("PDKE: 98.9, MEI")
 
 ### for each consecutive 6 months, aggregate ANOM by season and keep maximum
 # make list of values 6 values apart
@@ -8793,11 +8881,12 @@ seasons <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
                     c("Year", "RF", "season"))
 head(seasons)
 head(MRF3)
+print("PDKE: 98.10, MEI")
 
 # loop through consecutive months and aggregate season oni2 values
 
 n <- 1
-
+print(rows)
 for (y in rows) {
   b <- MRF3[c(y:(y + 5)), ]
   b
@@ -8813,6 +8902,7 @@ for (y in rows) {
   
   n <- n + 1
 }
+print("PDKE: 98.11, MEI")
 
 head(seasons, 10)
 tail(seasons)
@@ -8827,18 +8917,45 @@ summary(seasons$RF)
 
 
 ##########   Bind MEI and Data
-DryRF <- seasons[which(seasons$season == "dry"), ]
+print("PDKE: 98.12, Bind MEI and Data")
 
+DryRF <- seasons[which(seasons$season == "dry"), ]
+print(nrow(DryRF))
+print("PDKE: 98.12.1, Bind MEI and Data")
 DryRF
+print("PDKE: 98.12.2, Bind MEI and Data")
+
 L0_D <- cbind(DryRF, MEI_D[which(!is.na(MEI_D$MEI_D)), ])
+print("PDKE: 98.12.3, Bind MEI and Data")
+
 L0_D
+print("PDKE: 98.12.4, Bind MEI and Data")
 
 WetRF <- seasons[which(seasons$season == "wet"), ]
+
+# Filter both data frames to keep only the common years
+# Extract the years from both dataframes
+WetRF_years <- unique(WetRF$Year)  # Assuming 'Year' is the column name for years
+MEI_W_years <- unique(MEI_W$Year)  # Assuming 'Year' is the column name for years
+
+# Find the common years in both dataframes
+common_years <- intersect(WetRF_years, MEI_W_years)
+
+# Filter the dataframes to only include the common years
+WetRF <- WetRF[WetRF$Year %in% common_years, ]
+MEI_W <- MEI_W[MEI_W$Year %in% common_years, ]
+
+print("PDKE: 98.12.5, Bind MEI and Data")
+
 L0_W <- cbind(WetRF, MEI_W[which(!is.na(MEI_W$MEI_W)), ])
+
+print("PDKE: 98.12.6, Bind MEI and Data")
+
 L0_W
 
 ##########   Wet Season
 ##########   Separate by ENSO Phase
+print("PDKE: 98.13, Wet Season")
 
 ELN_W  <- subset(L0_W, MEI_W > 0.5)
 LAN_W  <- subset(L0_W, MEI_W < -0.5)
@@ -8846,22 +8963,27 @@ NUT_Wx <- subset(L0_W, MEI_W > -0.5)
 NUT_W  <- subset(NUT_Wx, MEI_W < 0.5)
 
 ##########   Strong and Weak EL Wet Season
+print("PDKE: 98.14, Strong and Weak EL Wet Season")
 
 ELN_W_Weak <- subset(ELN_W , MEI_W  <= 1.5)
 ELN_W_Strong <- subset(ELN_W , MEI_W  > 1.5)
 
 ##########   Strong and Weak La Wet Season
+print("PDKE: 98.15, Strong and Weak La Wet Season")
 
 LAN_W_Weak <- subset(LAN_W , MEI_W  >= -1.5)
 LAN_W_Strong <- subset(LAN_W , MEI_W  < -1.5)
 
 ##########   DRY Season
+print("PDKE: 98.16, Dry Season")
+
 ELN_D <- subset(L0_D, MEI_D > 0.5)
 LAN_D <- subset(L0_D, MEI_D < -0.5)
 NUT_Dx <- subset(L0_D, MEI_D > -0.5)
 NUT_D  <- subset(NUT_Dx, MEI_D < 0.5)
 
 ##########   Strong and Weak EL Dry Season
+print("PDKE: 98.17, Strong and Weak EL Dry Season")
 
 ELN_D_Weak <- subset(ELN_D , MEI_D  <= 1.5)
 ELN_D_Weak
@@ -8869,11 +8991,14 @@ ELN_D_Strong <- subset(ELN_D , MEI_D  > 1.5)
 ELN_D_Strong
 
 ##########   Strong and Weak La Dry Season
+print("PDKE: 98.18, Strong and Weak La Dry Season")
 
 LAN_D_Weak <- subset(LAN_D , MEI_D  >= -1.5)
 LAN_D_Strong <- subset(LAN_D , MEI_D  < -1.5)
 
 ##########   Extract RF values
+print("PDKE: 98.19, Extract RF values")
+
 EL_W_S <- ELN_W_Strong[, 2]
 EL_W_W <- ELN_W_Weak[, 2]
 LA_W_S <- LAN_W_Strong[, 2]
@@ -8887,6 +9012,8 @@ LA_D_W <- LAN_D_Weak[, 2]
 NU_D <- NUT_D[, 2]
 
 ##########   Counting the number in each phase
+print("PDKE: 98.20, Counting the number in each phase")
+
 C_EL_W_S <- sum(!is.na(EL_W_S))
 C_EL_W_W <- sum(!is.na(EL_W_W))
 C_LA_W_S <- sum(!is.na(LA_W_S))
@@ -8904,6 +9031,8 @@ Cell.MEI[1:5, 9] <-
   c(C_EL_D_S, C_EL_D_W, C_NU_D, C_LA_D_W, C_LA_D_S)
 Cell.MEI
 ##########   Mean RF values for each season-phase
+print("PDKE: 98.21, Mean RF values for each season-phase")
+
 Me_EL_W_S <- round(mean(EL_W_S, na.rm = T), 1)
 Me_EL_W_W <- round(mean(EL_W_W, na.rm = T), 1)
 Me_LA_W_S <- round(mean(LA_W_S, na.rm = T), 1)
@@ -8921,6 +9050,7 @@ Cell.MEI[1:5, 3] <-
   c(Me_EL_D_S, Me_EL_D_W, Me_NU_D, Me_LA_D_W, Me_LA_D_S)
 
 ##########   MAX
+print("PDKE: 98.22, MAX")
 
 Mx_EL_W_S <- round(max(EL_W_S, na.rm = T), 1)
 Mx_EL_W_W <- round(max(EL_W_W, na.rm = T), 1)
@@ -8939,6 +9069,8 @@ Cell.MEI[1:5, 5] <-
   c(Mx_EL_D_S, Mx_EL_D_W, Mx_NU_D, Me_LA_D_W, Mx_LA_D_S)
 
 ##########   MIN
+print("PDKE: 98.23, MIN")
+
 Mn_EL_W_S <- round(min(EL_W_S, na.rm = T), 1)
 Mn_EL_W_W <- round(min(EL_W_W, na.rm = T), 1)
 Mn_LA_W_S <- round(min(LA_W_S, na.rm = T), 1)
@@ -8973,6 +9105,7 @@ Cell.MEI[1:5, 7] <-
 Cell.MEI
 
 ##########   DRY SEASON
+print("PDKE: 99, MEI, DRY SEASON")
 
 ##########   Scaler
 MAXA <- max(c(Mx_EL_D_S, Mx_EL_D_W, Mx_LA_D_S, Mx_LA_D_W, Mx_NU_D))
@@ -9044,6 +9177,7 @@ dev.off()
 
 ##########   Wet Season
 ##########   Scaler
+print("PDKE: 100, MEI, Wet SEASON")
 
 MAXA <- max(c(Mx_EL_W_S, Mx_EL_W_W, Mx_LA_W_S, Mx_LA_W_W, Mx_NU_W))
 MAXB <- MAXA * 0.05
@@ -9116,6 +9250,8 @@ write.csv(Cell.MEI,
 
 #####################################################
 ##### ENSO rainfall barplots (Derek's addition)
+print("PDKE: 101, ENSO rainfall barplots")
+
 
 # Average Monthly Rainfall by ENSO Phase and Season barplot
 # spell out the ENSO phases
@@ -9238,6 +9374,8 @@ write.csv(cc, paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " MEI_S.csv"))
 
 #####################################################
 ##### Air temperature graph
+print("PDKE: 102, Air temperature graph")
+
 ########## Month Year Air Temperature Maps
 #AT_Map_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/")
 AT_Map_Path_A <- paste0(INPUTS_FOLDER, "/air_temp/data_map_newer/")
@@ -9293,6 +9431,8 @@ head(table)
 summary(table$min)
 
 ###### Monthly air temperature time series
+print("PDKE: 103, Monthly air temperature time series")
+
 dat <- table
 
 head(dat)
@@ -9326,6 +9466,8 @@ head(dat)
 tail(dat)
 #############################
 ### Annual air temp trend
+print("PDKE: 104, Annual air temp trend")
+
 
 # aggregate monthly to annual air temp
 rm(min)
@@ -9484,6 +9626,8 @@ dev.off()
 
 ######## Air Temp Anomalies ########
 #setwd("F:/PDKE/CCVD/MINI_Phase2/")
+print("PDKE: 105, Air Temp Anomalies")
+
 setwd(WORKING_DIR)
 
 # make list of climatology files
@@ -9601,5 +9745,15 @@ ggplot(anom, aes(x = date, y = anom_f)) +
   )
 
 dev.off()
+end_time <- Sys.time()
+print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
+print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
+print(paste0("Execution time: ", end_time - start_time))
+
+#system(paste0(rscript_path, " ", myscript_path, " ", shQuote(path)), wait = FALSE)
+run_string <- paste0(rscript_path, " ", myscript_path, " ", shQuote(path))
+cat("runString: ", run_string, "\n")
+system(run_string, wait = FALSE)
 
 ### END! ###
+
