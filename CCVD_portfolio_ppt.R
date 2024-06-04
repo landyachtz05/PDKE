@@ -12,7 +12,8 @@
 # library(purrr)
 # library(imager)
 # library(pdftools)
-
+start_time <- Sys.time()
+PROJ_DEBUG = 3
 
 packages <-
   c(
@@ -21,7 +22,6 @@ packages <-
     "rvg",
     "dplyr",
     "ggplot2",
-    "magrittr",
     "knitr",
     "xtable",
     "flextable",
@@ -57,30 +57,45 @@ for (package in packages) {
 }
 
 
+print("1")
 BASE_DIR <- "/Users/jgeis/Work/PDKE"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images 
-R_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")  # File with your site specific folders 
+#R_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")  # Folder with your site specific folders 
+PROJECT_NAME <- "selected_polygon_2024-06-04_10-53-13"
+R_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/", PROJECT_NAME, "/")  # Folder with your site specific files 
 P_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_PPT/")     # Output folder 
+print("2")
+
+# Get the command-line arguments passed from the main script
+args <- commandArgs(trailingOnly = TRUE)
+cat(file = stderr(), "args:", length(args), "\n")
+if (length(args) > 0) {
+  R_FOLDER <- args[1];
+  PROJECT_NAME <- basename(R_FOLDER)
+}
+print("3")
+
+cat(file = stderr(), "R_FOLDER: ", R_FOLDER, "\n")
+PROJECT_FILE_BASE <- paste0(R_FOLDER, PROJECT_NAME)
+#Unit Name (should be PROJECT_NAME, but kept because it's a pain to change everywhere due to SNameF)
+NameF <- PROJECT_NAME
+print(paste("PDKE: 3,NameF: ", NameF))
 
 print(paste("PDKE: 1,I_FOLDER: ", I_FOLDER))
 print(paste("PDKE: 1,R_FOLDER: ", R_FOLDER))
 print(paste("PDKE: 1,P_FOLDER: ", P_FOLDER))
-RANL <- list.files(R_FOLDER)
-print(paste("PDKE: 1,RANL: ", RANL))
-
-NF <- length(RANL)
 
 ### SET SITE FOLDER AND VERSION ###
-RANL
+#RANL
 # LOOP 
 #f<-93
-f<-2 # JEN: not sure what's going on here.  
+#f<-2 # JEN: not sure what's going on here.  
 # They had 93, but I'm not sure why.  To match the other file, this needed to be the waikiki watershed, 
 # but it's clearly going to change with where the user selects.
 # TODO: change this so it makes sense and matches the selected shape area
-RANL[f]
+#RANL[f]
 
 # VERSION
 ver<-5.1
@@ -243,24 +258,23 @@ print("PDKE: 2")
 #for(f in 1:NF) {
 #for(f in 79:82) {
 
-print(paste("PDKE: 3,RANL[f]: ", RANL[f]))
+#print(paste("PDKE: 3,RANL[f]: ", RANL[f]))
 
 #create path to folder 
-RAN_F <- paste0(R_FOLDER,RANL[f],"/")
-print(paste("PDKE: 3,RAN_F: ", RAN_F))
+#RAN_F <- paste0(R_FOLDER,RANL[f],"/")
+#print(paste("PDKE: 3,RAN_F: ", RAN_F))
 
 # list the output from Code 1 
-RANL2 <- list.files(RAN_F)
-print(paste("PDKE: 3,RANL2: ", RANL2))
+#RANL2 <- list.files(RAN_F)
+#RANL2 <- list.files(R_FOLDER)
+#print(paste("PDKE: 3,RANL2: ", RANL2))
 
-#Unit Name
-NameF <- basename(RAN_F)
-print(paste("PDKE: 3,NameF: ", NameF))
+
 
 
 ##### Read in CSV Files 
 ## Read in Mean Climate File 
-CLIM_FILE <- paste0(R_FOLDER,NameF,"/",NameF,"MEAN Climate.csv")
+CLIM_FILE <- paste0(PROJECT_FILE_BASE,"MEAN Climate.csv")
 print(paste("PDKE: 3,CLIM_FILE: ", CLIM_FILE))
 CLIM <- read.csv(CLIM_FILE,sep=",")
 print("PDKE: 4,CLIM")
@@ -271,18 +285,18 @@ CLIM
   SNameF
 
 ## Read in landcover file
-LAND <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Landcover.csv"),sep=",")
+LAND <- read.csv(paste0(PROJECT_FILE_BASE," Landcover.csv"),sep=",")
 print(paste("PDKE, LAND: ", LAND))
 
 ## Hawaiian land division files
-MOKU <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Moku.csv"),sep=",")
+MOKU <- read.csv(paste0(PROJECT_FILE_BASE," Moku.csv"),sep=",")
 print(paste("PDKE, MOKU: ", MOKU))
 
 # TODO: JEN: Find out why AHU and AHU5 point to the same file and if one can go away
-AHU <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Ahupuaa.csv"),sep=",")
+AHU <- read.csv(paste0(PROJECT_FILE_BASE," Ahupuaa.csv"),sep=",")
 print(paste("PDKE, AHU: ", AHU))
 
-AHU5 <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Ahupuaa.csv"),sep=",")
+AHU5 <- read.csv(paste0(PROJECT_FILE_BASE," Ahupuaa.csv"),sep=",")
 print(paste("PDKE, AHU5: ", AHU5))
 
   
@@ -455,13 +469,14 @@ This portfolio provides a brief description of ",SNameF," in context of traditio
   AH
   
   # Load land division maps
-  MPmfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Mokupuni.png") 
+  MPmfile <- paste0(PROJECT_FILE_BASE," Mokupuni.png") 
+  print(MPmfile)
   MPmimg <- external_img(src = MPmfile)
   
-  MOmfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Moku.png") 
+  MOmfile <- paste0(PROJECT_FILE_BASE," Moku.png") 
   MOmimg <- external_img(src = MOmfile)
   
-  AHmfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Ahupuaa.png") 
+  AHmfile <- paste0(PROJECT_FILE_BASE," Ahupuaa.png") 
   AHmimg <- external_img(src = AHmfile)
   
   ft1 <- block_list(fpar(ftext(paste0("https://planning.hawaii.gov/gis"), fp_ft)))
@@ -502,7 +517,7 @@ FIG_2 <- block_list(
   fpar(ftext(paste0("Figure 2. Elevation for the Island of ",ISL," with ",SNameF," outlined in black."), fp_Fig)))
 
 #Read in elevation figure 
-    Elevfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," ELMap.png")
+    Elevfile <- paste0(PROJECT_FILE_BASE," ELMap.png")
     Elevimg <- external_img(src = Elevfile) 
     
 ft2 <- block_list(fpar(ftext(paste0("https://www.pacioos.hawaii.edu/"), fp_ft)))
@@ -530,10 +545,10 @@ M_LAND <-  block_list(
   fpar(ftext(LAND_T, fp_Tx)))
 
 #Read in landcover figures 
-LCbarfile <- paste0(R_FOLDER,NameF,"/",NameF," LC_barchart.png")
+LCbarfile <- paste0(PROJECT_FILE_BASE," LC_barchart.png")
 LCbarimg <- external_img(src = LCbarfile, height = 3,width = 3)
 
-LCmapfile <- paste0(R_FOLDER,NameF,"/",NameF," LCMap.png")
+LCmapfile <- paste0(PROJECT_FILE_BASE," LCMap.png")
 LCmapimg <- external_img(src = LCmapfile)
 
 # Figure 3.1 caption 
@@ -557,7 +572,7 @@ S6.2_TIT<- block_list(
   fpar(ftext("Water Sources", FTXTT),fp_p = fp_par(text.align = "center")))
 
 #Aquifer spreadsheet
-AQ <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Aquifer.csv"),sep=",")
+AQ <- read.csv(paste0(PROJECT_FILE_BASE," Aquifer.csv"),sep=",")
 AQc<-nrow(AQ)
 
 AQ_T<-flextable(AQ)
@@ -577,7 +592,7 @@ M_AQ <-  block_list(
 M_AQ
 
 # map
-AQmapfile <- paste0(R_FOLDER,NameF,"/",NameF," Aquifers.png")
+AQmapfile <- paste0(PROJECT_FILE_BASE," Aquifers.png")
 AQmapimg <- external_img(src = AQmapfile)
 
 # Figure caption
@@ -603,7 +618,7 @@ S6.2_TIT<- block_list(
   fpar(ftext("Water Sources", FTXTT),fp_p = fp_par(text.align = "center")))
 
 #Hydrologic features spreadsheet
-HYDRO_FILE <- paste0(R_FOLDER,NameF,"/",NameF," Hydro_features.csv")
+HYDRO_FILE <- paste0(PROJECT_FILE_BASE," Hydro_features.csv")
 print(paste("PDKE: HYDRO_FILE: ", HYDRO_FILE))
 HF <- try(read.csv(HYDRO_FILE,sep=","))
 print(paste("PDKE: HF: ", HF))
@@ -641,7 +656,7 @@ M_HF <-  block_list(
 M_HF
 
 # map
-HFmapfile <- paste0(R_FOLDER,NameF,"/",NameF," Streams.png")
+HFmapfile <- paste0(PROJECT_FILE_BASE," Streams.png")
 HFmapimg <- external_img(src = HFmapfile)
 
 # legend
@@ -687,7 +702,7 @@ S8.0_TIT<- block_list(
   fpar(ftext("Rainfall Station Locations", FTXTT),fp_p = fp_par(text.align = "center")))
 
 ### Bring in table of stations and network links
-RAIN_FILE <- paste0(R_FOLDER,"/",NameF,"/",NameF," rain_stations.csv")
+RAIN_FILE <- paste0(PROJECT_FILE_BASE," rain_stations.csv")
 print(paste("PDKE: RAIN_FILE: ", RAIN_FILE))
 RS<-read.csv(RAIN_FILE,sep=",")
 RS_T <- flextable(RS)
@@ -726,7 +741,7 @@ FIG_6.a <- block_list(
                     "at the site, only three will be listed here."), fp_Fig)))
 
 # get map of stations and AOI
-RSfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," rf_stations.png")
+RSfile <- paste0(PROJECT_FILE_BASE," rf_stations.png")
 print(paste("PDKE: RSfile: ", RSfile))
 RSimg <- external_img(src = RSfile) 
 
@@ -781,19 +796,19 @@ p10<-p
                     " with area average shown in heading of each plot."), fp_Fig)))
 
 #Climate Variable figures 
-RF2file <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_RF.png")
+RF2file <- paste0(PROJECT_FILE_BASE," Climate_less_RF.png")
 RF2img <- external_img(src = RF2file, height = 3,width = 3) 
-TAAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_TA.png")
+TAAfile <- paste0(PROJECT_FILE_BASE," Climate_less_TA.png")
 TAAimg <- external_img(src = TAAfile, height = 3,width = 3) 
-RHfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_RH.png")
+RHfile <- paste0(PROJECT_FILE_BASE," Climate_less_RH.png")
 RHimg <- external_img(src = RHfile, height = 3,width = 3) 
-SRfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_SR.png")
+SRfile <- paste0(PROJECT_FILE_BASE," Climate_less_SR.png")
 SRimg <- external_img(src = SRfile, height = 3,width = 3) 
-SMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_SM.png")
+SMfile <- paste0(PROJECT_FILE_BASE," Climate_less_SM.png")
 SMimg <- external_img(src = SMfile, height = 3,width = 3) 
-ETfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_ET.png")
+ETfile <- paste0(PROJECT_FILE_BASE," Climate_less_ET.png")
 ETimg <- external_img(src = ETfile, height = 3,width = 3) 
-WSfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climate_less_WS.png")
+WSfile <- paste0(PROJECT_FILE_BASE," Climate_less_WS.png")
 WSimg <- external_img(src = WSfile, height = 3,width = 3)
 
 si<-1.65
@@ -807,7 +822,7 @@ S7_TIT<- block_list(
   fpar(ftext("Average Monthly Rainfall", FTXTT),fp_p = fp_par(text.align = "center")))
   # fpar(ftext("and Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
-CLIMA <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Annual Climate.csv"),sep=",")
+CLIMA <- read.csv(paste0(PROJECT_FILE_BASE," Annual Climate.csv"),sep=",")
 
 RFT <- CLIMA[1,2:13]
 MinT<- CLIMA[2,2:13]
@@ -836,14 +851,14 @@ FIG_7a <- block_list(
   fpar(ftext(paste0("Figure 10. Monthly rainfall maps for the wettest (top) and driest (bottom) months."), fp_Fig)))
 
 #Monthly rainfall barchart
-RFBfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climograph_RF.png")
+RFBfile <- paste0(PROJECT_FILE_BASE," Climograph_RF.png")
 RFBimg <- external_img(src = RFBfile, height = 2,width = 1) 
 
 #Month rainfall maps
-RFWfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF_wm.png")
+RFWfile <- paste0(PROJECT_FILE_BASE," RF_wm.png")
 RFWimg <- external_img(src = RFWfile, height = 3,width = 3) 
 
-RFDfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF_dm.png")
+RFDfile <- paste0(PROJECT_FILE_BASE," RF_dm.png")
 RFDimg <- external_img(src = RFDfile, height = 3,width = 3) 
 
 ###############   Slide 9 Average monthly air temperature 
@@ -891,14 +906,14 @@ FIG_9a <- block_list(
   fpar(ftext(paste0("Figure 12. Monthly air temperature maps for the coldest (top) and hottest (bottom) months."), fp_Fig)))
 
 #Monthly temp line chart
-TALfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Climograph_AT.png")
+TALfile <- paste0(PROJECT_FILE_BASE," Climograph_AT.png")
 TALimg <- external_img(src = TALfile, height = 2,width = 1) 
 
 #Month rainfall maps
-TACfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," TA_cm.png")
+TACfile <- paste0(PROJECT_FILE_BASE," TA_cm.png")
 TACimg <- external_img(src = TACfile, height = 3,width = 3) 
 
-TAHfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," TA_hm.png")
+TAHfile <- paste0(PROJECT_FILE_BASE," TA_hm.png")
 TAHimg <- external_img(src = TAHfile, height = 3,width = 3) 
 ###############   Slide 8 TA And RF
 print("PDKE Slide 8 TA And RF")
@@ -909,10 +924,10 @@ p13<-p
 S8_TIT<- block_list(
   fpar(ftext("Average Monthly Climate", FTXTT),fp_p = fp_par(text.align = "center")))
 
-TAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," TA12.png")
+TAfile <- paste0(PROJECT_FILE_BASE," TA12.png")
 TAimg <- external_img(src = TAfile , height = 3,width = 3) 
 
-RFFfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF12.png")
+RFFfile <- paste0(PROJECT_FILE_BASE," RF12.png")
 RFFimg <- external_img(src = RFFfile , height = 3,width = 3) 
 
 FIG_5 <- block_list(
@@ -964,7 +979,7 @@ DryM <- DSeaMRF_M
 SeaD <- round((WetM - DryM),1)
 
 #Season monthly rainfall percentiles
-P<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"RF percentiles.csv"),sep=",")
+P<-read.csv(paste0(PROJECT_FILE_BASE,"RF percentiles.csv"),sep=",")
 D_RF_P<-P[1,2]
 W_RF_P<-P[1,1]
 RFUnit3
@@ -983,7 +998,7 @@ FIG_12.1 <- block_list(
   SNameF,"."), fp_Fig)))
 
 #Mean CLIM Figure 
-SEAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," SeaMRF.png")
+SEAfile <- paste0(PROJECT_FILE_BASE," SeaMRF.png")
 SEAimg <- external_img(src = SEAfile, height = 3,width = 3) 
 
 
@@ -994,7 +1009,7 @@ print("PDKE Slide 10  Average Climate Table")
 p<-p+1
 p15<-p
 
-ACLIM<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Annual Climate.csv"),sep=",")
+ACLIM<- read.csv(paste0(PROJECT_FILE_BASE," Annual Climate.csv"),sep=",")
 ACLIM2 <- ACLIM[,1:13]
 ACLIM_T <- flextable(ACLIM)
 ACLIM_T <- bg(ACLIM_T, bg = "yellow", part = "header")
@@ -1051,11 +1066,11 @@ print("PDKE Slide 13 Seasonal Rainfall and ENSO")
 p<-p+1
 p17<-p
 
-MEIRF<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," MEI_S.csv"),sep=",")
+MEIRF<- read.csv(paste0(PROJECT_FILE_BASE," MEI_S.csv"),sep=",")
 MEIRF
 
 # get last year
-rf<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Annual_RF_in.csv"),sep=",")
+rf<-read.csv(paste0(PROJECT_FILE_BASE," Annual_RF_in.csv"),sep=",")
 yr<-rf[nrow(rf),]$Date
 
 EN_TIT<- block_list(
@@ -1094,7 +1109,7 @@ At ",SNameF,", the wet season during a Strong El Niño is ",DifWRF,"% dryer than
 MEI3 <-  block_list(
   fpar(ftext(MEI2, fp_Txa)))
 
-MEISfile <- paste0(R_FOLDER,NameF,"/",NameF,"ENSO_season_barplot.png")
+MEISfile <- paste0(PROJECT_FILE_BASE,"ENSO_season_barplot.png")
 MEISimg <- external_img(src = MEISfile, height = 1,width = 2.5) 
 
 FIG_14.1 <- block_list(
@@ -1115,11 +1130,11 @@ Trend <- paste0("Linear trends in annual and seasonal rainfall at ",SNameF," hav
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
 fp_Trend <- fpar(ftext(Trend, fp_Tx))
 
-Trendfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," RF_Trend.png")
+Trendfile <- paste0(PROJECT_FILE_BASE," RF_Trend.png")
 Trendimg <- external_img(src = Trendfile, height = 2,width = 2) 
 
 ### Bring in table of periods and trend directions
-  RFT<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," RF_trend_dirctions.csv"),sep=",")
+  RFT<-read.csv(paste0(PROJECT_FILE_BASE," RF_trend_dirctions.csv"),sep=",")
   RFT_T <- flextable(RFT)
   # RFT_T <- bold(RFT_T, bold = T, part = "header")
   RFT_T <- fontsize(RFT_T, size = 14)
@@ -1144,7 +1159,7 @@ S14_TIT<- block_list(
   fpar(ftext("Trends in Air Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
 # use monthly air temperature data to figure out values for text
-AT_FILE <- paste0(R_FOLDER,"/",NameF,"/",NameF,"_monthly_airtemp.csv")
+AT_FILE <- paste0(PROJECT_FILE_BASE,"_monthly_airtemp.csv")
 print(paste("PDKE: AT_FILE: ", AT_FILE))
 
 AT<-read.csv(AT_FILE,sep=",")
@@ -1177,7 +1192,7 @@ AT$range<-AT$max - AT$min
 ra<-round(mean(AT$range), 1)
 
 # find month-year with hottest temp
-ATd_FILE <- paste0(R_FOLDER,NameF,"/",NameF,"_daily_airtemp.csv")
+ATd_FILE <- paste0(PROJECT_FILE_BASE,"_daily_airtemp.csv")
 print(paste("PDKE: ATd_FILE: ", ATd_FILE))
 
 ATd<-read.csv(ATd_FILE,sep=",")
@@ -1213,7 +1228,7 @@ AirTrend2 <- paste0("At this site there is an average range of ",ra,"°F between
                     "within a single year. The highest monthly temperature of ",mt2,"°F was recorded in ",hot.m," ",hot.y,".") 
 fp_AirTrend2 <- fpar(ftext(AirTrend2, fp_Tx))
 
-Trendfile1 <- paste0(R_FOLDER,NameF,"/",NameF,"_monthly_airtemp.png")
+Trendfile1 <- paste0(PROJECT_FILE_BASE,"_monthly_airtemp.png")
 print(paste("PDKE: Trendfile1: ", Trendfile1))
 
 Trendimg1 <- external_img(src = Trendfile1, height = 1,width = 2)
@@ -1286,7 +1301,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 
   fp_SPI <- fpar(ftext(SPI, fp_Txa))
 
-  SPIfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," SPI.png")
+  SPIfile <- paste0(PROJECT_FILE_BASE," SPI.png")
   SPIimg <- external_img(src = SPIfile, height = 2,width = 2) 
 
   FIG_12 <- block_list(
@@ -1307,7 +1322,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
    
 
     #INFO for Slides 16 & 17
-  DROT <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought History.csv"),sep=",")
+  DROT <- read.csv(paste0(PROJECT_FILE_BASE," Drought History.csv"),sep=",")
 
     D_Sum <- sum(!is.na(DROT$A.Intensity))
   #if(DROT$P.Intensity[D_Sum] > 1){DROT <- DROT[-D_Sum,]}
@@ -1362,7 +1377,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
              fpar(ftext(" ", fp_Tx)),
              fpar(ftext(DHist2, fp_Tx)))
   
-  DHistfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"Drought_History.png")
+  DHistfile <- paste0(PROJECT_FILE_BASE,"Drought_History.png")
   DHistimg <- external_img(src = DHistfile, height = 2,width = 4) 
 
   FIG_13 <- block_list(
@@ -1376,17 +1391,17 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   p<-p+1
   p24<-p
   
-  SPI_NA<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," SPI_NEGS_ALL.csv"),sep=",")
+  SPI_NA<- read.csv(paste0(PROJECT_FILE_BASE," SPI_NEGS_ALL.csv"),sep=",")
   SPI_NA<-SPI_NA[which(!is.na(SPI_NA$date)),]
-  SPICNT<- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought Count.csv"),sep=",")
+  SPICNT<- read.csv(paste0(PROJECT_FILE_BASE," Drought Count.csv"),sep=",")
   
   SP_TIT<- block_list(
     fpar(ftext("Short-term vs Long-term Droughts", FTXTT),fp_p = fp_par(text.align = "center")))
   
-  SPI_3_SMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"Drought_HistoryS_3.png")
+  SPI_3_SMfile <- paste0(PROJECT_FILE_BASE,"Drought_HistoryS_3.png")
   SPI3_SMimg <- external_img(src = SPI_3_SMfile, height = 2,width = 4)
   
-  SPI_12_SMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF,"Drought_HistoryS_12.png")
+  SPI_12_SMfile <- paste0(PROJECT_FILE_BASE,"Drought_HistoryS_12.png")
   SPI12_SMimg <- external_img(src = SPI_12_SMfile, height = 2,width = 4)
   
   FIG_14 <- block_list(
@@ -1399,7 +1414,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                        "to consider both timescales for planning."), fp_Txa)))
   
   # bring in monthly rainfall dataset to get dates
-  MRF<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Monthly Rainfall_in.csv"),sep=",")
+  MRF<-read.csv(paste0(PROJECT_FILE_BASE," Monthly Rainfall_in.csv"),sep=",")
   RFC<-MRF[nrow(MRF),]
   
   RFC.y<-RFC$Year
@@ -1419,14 +1434,14 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   
   ### determine current drought status
   # SPI3
-  # spi3A<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"SPI_3.csv"),sep=",")
+  # spi3A<-read.csv(paste0(PROJECT_FILE_BASE,"SPI_3.csv"),sep=",")
   head(SPI_NA, 20)
   spi3A<-SPI_NA[which(SPI_NA$m.scale == 3),]
   spi3C<-round(spi3A[nrow(spi3A),]$spi_negs,1)
   spi3C
   tail(spi3A,30)
   
-  spi3H<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"Drought History SPI_3.csv"),sep=",")
+  spi3H<-read.csv(paste0(PROJECT_FILE_BASE,"Drought History SPI_3.csv"),sep=",")
   spi3HC<-spi3H[nrow(spi3H),]
   spi3HC
   
@@ -1445,12 +1460,12 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
 spi3CT
 
   # SPI12
-  # spi12A<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF,"SPI_12.csv"),sep=",")
+  # spi12A<-read.csv(paste0(PROJECT_FILE_BASE,"SPI_12.csv"),sep=",")
   spi12A<-SPI_NA[which(SPI_NA$m.scale == 12),]
   spi12C<-round(spi12A[nrow(spi12A),]$spi_negs, 1)
   tail(spi12A,20)
   
-  spi12H<-read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Drought History.csv"),sep=",")
+  spi12H<-read.csv(paste0(PROJECT_FILE_BASE," Drought History.csv"),sep=",")
   spi12HC<-spi12H[nrow(spi12H),]
   spi12HC
   
@@ -1504,7 +1519,7 @@ spi3CT
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
   fp_Fire <- fpar(ftext(FIRE, fp_Tx))
   
-  FireMfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," Fire.png")
+  FireMfile <- paste0(PROJECT_FILE_BASE," Fire.png")
   FireMimg <- external_img(src = FireMfile) 
   
   
@@ -1560,7 +1575,7 @@ spi3CT
     fpar(ftext("Average Rainfall Change", FTXTT),fp_p = fp_par(text.align = "center")),
     fpar(ftext("Mid-Century (2040-2070)", FTXTT),fp_p = fp_par(text.align = "center")))
   
-  Down <- read.csv(paste0(R_FOLDER,"/",NameF,"/",NameF," Downscaling.csv"),sep=",")
+  Down <- read.csv(paste0(PROJECT_FILE_BASE," Downscaling.csv"),sep=",")
 
   # Get PERCENT CHANGE values
   RFA_Thresh40 <-   Down[c(15,18),2]
@@ -1596,10 +1611,10 @@ spi3CT
                       "or ",RF40_8.5_ch," by ",abs(RF40_8.5)," inches (RCP 8.5) by mid-century."), fp_NM2)))
   RF_Down4
   
-  #RF40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDsRF2040.png")
+  #RF40file <- paste0(PROJECT_FILE_BASE," StDsRF2040.png")
   #RF40img <- external_img(src = RF40file, height = 6,width = 4) 
   
-  RF40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDsRF2040.png")
+  RF40file <- paste0(PROJECT_FILE_BASE," StDsRF2040.png")
   RF40img <- external_img(src = RF40file) 
   
   FIG_18<- block_list(
@@ -1708,7 +1723,7 @@ spi3CT
     fpar(RF2100t))
   RF_Down  
 
-  RF10085file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_RF_8.5_v2.png")
+  RF10085file <- paste0(PROJECT_FILE_BASE," DS_RF_8.5_v2.png")
   RF10085img <- external_img(src = RF10085file, height = 4,width = 4) 
   
   FIG_17<- block_list(
@@ -1763,7 +1778,7 @@ spi3CT
                       "or ",TA40_8.5_ch," by ",abs(TAA_Thresh40_8.5),"°F (RCP 8.5) by mid-century."), fp_NM2)))
   TA_Down4
   
-  TA40file <- paste0(R_FOLDER,"/",NameF,"/",NameF," StDs_Temp2040.png")
+  TA40file <- paste0(PROJECT_FILE_BASE," StDs_Temp2040.png")
   TA40img <- external_img(src = TA40file) 
   
   FIG_20 <- block_list(
@@ -1856,10 +1871,10 @@ spi3CT
     fpar(TA2100t))
   TA_Down  
     
-  RF10085file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_RF_8.5_v2.png")
+  RF10085file <- paste0(PROJECT_FILE_BASE," DS_RF_8.5_v2.png")
   RF10085img <- external_img(src = RF10085file, height = 4,width = 4) 
   
-  TA100file <- paste0(R_FOLDER,"/",NameF,"/",NameF," DS_Temp2100.png")
+  TA100file <- paste0(PROJECT_FILE_BASE," DS_Temp2100.png")
   TA100img <- external_img(src = TA100file)
   
   FIG_19<- block_list(
@@ -2007,7 +2022,7 @@ spi3CT
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
   fp_RF100 <- fpar(ftext(RF100, fp_Tx))
   
-  SCAfile <- paste0(R_FOLDER,"/",NameF,"/",NameF," 23yr_RF_Compare.png")
+  SCAfile <- paste0(PROJECT_FILE_BASE," 23yr_RF_Compare.png")
   SCAimg <- external_img(src = SCAfile) 
   
   FIG_A1 <- block_list(
@@ -2634,8 +2649,13 @@ add_slide("Two Content","Office Theme") %>%
 
   
   print(mypowerpoint, target = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v",ver,".pptx"))
-
   
+  ######### see how long the whole script takes, typically < 6 seconds ######### 
+
+  end_time <- Sys.time()
+  print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
+  print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
+  print(paste0("Execution time: ", end_time - start_time))
   
   # ### Save to powerpoint
   # 
