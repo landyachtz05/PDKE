@@ -5058,12 +5058,64 @@ mypowerpoint <- read_pptx() %>%
   print(mypowerpoint,
     target = paste0(P_FOLDER, NameF, "_CCVD_Portfolio_v", ver, ".pptx"))
 
-######### see how long the whole script takes, typically < 6 seconds #########
+  final_filename = paste0(P_FOLDER, NameF, "_CCVD_Portfolio_v", ver, ".pptx")
+  #print(mypowerpoint, target = paste0(P_FOLDER, NameF, "_CCVD_Portfolio_v", ver, ".pptx"))
 
-end_time <- Sys.time()
-print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
-print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
-print(paste0("Execution time: ", end_time - start_time))
+  
+  ######### see how long the whole script takes, typically < 6 seconds #########
+  
+  end_time <- Sys.time()
+  print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
+  print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
+  print(paste0("Execution time: ", end_time - start_time))
+  
+  
+  # ######### send email saying the file is ready #########
+  
+  # Custom unbox function to handle arrays
+  my_unbox <- function(x) {
+    print("my_unbox: ", my_unbox)
+    if (is.list(x) && length(x) == 1 && is.character(x[[1]])) {
+      print(x[[1]])
+      return(x[[1]])
+    } else {
+      print(x)
+      return(x)
+    }
+  }
+  
+  # Define the request body
+  # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
+  req <- list(
+    "recepients" = c("jgeis@hawaii.edu"),
+    "type" = "Info",
+    "source" = "PDKE",
+    "message" = paste("Your data is ready at", final_filename)
+  )
+  req_json <- toJSON(req, unbox = my_unbox)
+  print(req_json)  # Print the JSON string
+  
+  response <- POST(
+    url = "https://api.hcdp.ikewai.org/notify",
+    body = req_json,
+    encode = "json",
+    add_headers("Content-Type" = "application/json",
+      "Authorization" = "Bearer f5fd0e446a6309da1a57b8188461aabe"),
+    config(ssl_verifypeer = FALSE)
+  )
+  
+  # Check for success
+  if (status_code(response) == 200) {
+    print("Notification sent successfully!")
+  } else {
+    print(paste0(
+      "Error sending notification: ",
+      status_code(response),
+      " - ",
+      content(response, as = "text")
+    ))
+  }
+  
 
 # ### Save to powerpoint
 #
