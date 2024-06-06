@@ -63,7 +63,7 @@ WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images
 #R_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")  # Folder with your site specific folders
-PROJECT_NAME <- "selected_polygon_2024-06-04_10-53-13"
+PROJECT_NAME <- "selected_polygon_2024-06-05_14-26-59"
 R_FOLDER <-
   paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/", PROJECT_NAME, "/")  # Folder with your site specific files
 P_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_PPT/")     # Output folder
@@ -72,9 +72,10 @@ print("2")
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
 cat(file = stderr(), "args:", length(args), "\n")
+email = "jgeis@hawaii.edu"
 if (length(args) > 0) {
-  R_FOLDER <- args[1]
-  
+  email <- args[1];
+  R_FOLDER <- args[2]
   PROJECT_NAME <- basename(R_FOLDER)
 }
 print("3")
@@ -5087,7 +5088,7 @@ mypowerpoint <- read_pptx() %>%
   # Define the request body
   # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
   req <- list(
-    "recepients" = c("jgeis@hawaii.edu"),
+    "recepients" = c(email), # add hcdp@hawaii.edu
     "type" = "Info",
     "source" = "PDKE",
     "message" = paste("Your data is ready at", final_filename)

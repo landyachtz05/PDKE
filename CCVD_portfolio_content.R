@@ -81,7 +81,7 @@ for (package in packages) {
 
 # would normally do a print or cat w/o using stderr, but it's the only thing
 # that gets the shiny server on prod to actually print something.
-cat(file=stderr(), "In CCVD_portfolio_content.R", "\n")
+cat(file = stderr(), "In CCVD_portfolio_content.R", "\n")
 
 # non-user provided values
 BASE_DIR <- "/Users/jgeis/Work/PDKE"
@@ -97,13 +97,15 @@ print(paste("PDKE: 1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
 
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
-cat(file=stderr(), "args:", length(args), "\n")
+cat(file = stderr(), "args:", length(args), "\n")
 
-NP_FILE <- args[1];
-NM <- args[2];
-NM_s <- args[3];
-ILE <- args[4];
-ILE_s <- args[5];
+email <- args[1];
+NP_FILE <- args[2];
+NM <- args[3];
+NM_s <- args[4];
+ILE <- args[5];
+ILE_s <- args[6];
+
 
 # user provided values
 #NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
@@ -113,11 +115,18 @@ ILE_s <- args[5];
 #ILE <- "Oahu"
 #ILE_s <- "OA"
 
-cat(file=stderr(), "NP_FILE: ", NP_FILE, "\n")
-cat(file=stderr(), "NM: ", NM, "\n")
-cat(file=stderr(), "NM_s: ", NM_s, "\n")
-cat(file=stderr(), "ILE: ", ILE, "\n")
-cat(file=stderr(), "ILE_s: ", ILE_s, "\n")
+# cat(file = stderr(), "NP_FILE: ", NP_FILE, "\n")
+# cat(file = stderr(), "NM: ", NM, "\n")
+# cat(file = stderr(), "NM_s: ", NM_s, "\n")
+# cat(file = stderr(), "ILE: ", ILE, "\n")
+# cat(file = stderr(), "ILE_s: ", ILE_s, "\n")
+
+cat("email: ", email, "\n")
+cat("NP_FILE: ", NP_FILE, "\n")
+cat("NM: ", NM, "\n")
+cat("NM_s: ", NM_s, "\n")
+cat("ILE: ", ILE, "\n")
+cat("ILE_s: ", ILE_s, "\n")
 
 #ISLAND_FULL_NAMES <- c("Hawaiʻi", "Maui", "Kahoʻolawe", "Lānaʻi", "Molokaʻi", "Oʻahu", "Kauaʻi", "Niʻihau")
 #ISLAND_SHORT_NAMES <- c("BI", "MN", "KO", "LA","MO","OA","KA")
@@ -9751,7 +9760,7 @@ print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
 print(paste0("Execution time: ", end_time - start_time))
 
 #system(paste0(rscript_path, " ", myscript_path, " ", shQuote(path)), wait = FALSE)
-run_string <- paste0(rscript_path, " ", myscript_path, " ", shQuote(path))
+run_string <- paste0(rscript_path, " ", myscript_path, " ", shQuote(email), " ", shQuote(path))
 cat("runString: ", run_string, "\n")
 system(run_string, wait = FALSE)
 

@@ -23,22 +23,28 @@ environ <- "dev"
 #environ <- "prod"
 # prod, default if environ is not dev
 rscript_path = "/bin/Rscript" 
-myscript_path = "/srv/shiny-server/sample-apps/PDKESite/test.R"
+PDKE_dir = "/home/exouser/workflow/"
+#myscript_path = "/srv/shiny-server/sample-apps/PDKESite/test.R"
+#myscript_path = paste0(PDKE_dir, "test.R")
+myscript_path = paste0(PDKE_dir, "CCVD_portfolio_content.R")
 if (environ == "dev") {
   rscript_path = "/Rscript"
-  myscript_path = "/Users/jgeis/Work/PDKE/test.R"
+  PDKE_dir = "/Users/jgeis/Work/PDKE/"
+  #myscript_path = paste0(PDKE_dir, "test.R")
+  myscript_path = paste0(PDKE_dir, "CCVD_portfolio_content.R")
 }
 run_string = paste(rscript_path, myscript_path)
 
-get_intersected_islands <- function(sf_object, island_boundaries) {
-  # Check for intersection with island boundaries
-  intersected_islands <- sf::st_intersects(sf_object, island_boundaries)
-  
-  # Extract island names or identifiers
-  intersected_island_names <- unique(island_boundaries$isle[intersected_islands[[1]]])
-  display_intersected_islands(intersected_island_names)
-  return(intersected_island_names)
+
+# Function to validate email
+validate_email <- function(email) {
+  if (grepl("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email)) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
 }
+
 
 display_intersected_islands <- function(intersected_island_names) {
   island_names_string <- ""
@@ -52,6 +58,70 @@ display_intersected_islands <- function(intersected_island_names) {
     showNotification("The selected area does not intersect with any islands.", type = "warning")
   }
 }
+
+get_intersected_islands <- function(sf_object, island_boundaries) {
+  # Check for intersection with island boundaries
+  intersected_islands <- sf::st_intersects(sf_object, island_boundaries)
+  
+  # Extract island names or identifiers
+  intersected_island_names <- unique(island_boundaries$isle[intersected_islands[[1]]])
+  display_intersected_islands(intersected_island_names)
+  return(intersected_island_names)
+}
+
+run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, name, short_name, email) {
+  # work out short name from island name
+  #NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
+  #NP_FILE <- paste0(NP_DIR, "waikiki_watershed.shp")
+  #NM <- "Waikiki Watershed"
+  #NM_s <- "Waikiki"
+  #ILE <- "Oahu"
+  #ILE_s <- "OA"
+  
+  ISLAND_FULL_NAMES <- c("Hawaii", "Maui", "Kahoolawe", "Lanai", "Molokai", "Oahu", "Kauai")
+  ISLAND_SHORT_NAMES <- c("BI", "MN", "KO", "LA","MO","OA","KA")
+  
+  # get the short name for the given island name
+  island_full_name <- get_intersected_islands(sf_object, island_boundaries)
+  index <- match(island_full_name, ISLAND_FULL_NAMES)
+  island_short_name <- ""
+  # Check if the island was found
+  if (!is.na(index)) {
+    # Find the associated short name using the index
+    island_short_name <- ISLAND_SHORT_NAMES[index]
+  }
+  cat("shapefile_full_path: ", shapefile_full_path, "\n")
+  # this works
+  system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(email), " ", shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)), " ", shQuote(name), " ", shQuote(short_name), " ", shQuote(island_full_name), " ", shQuote(island_short_name)), wait = FALSE)
+  showNotification("Background R script has been initiated.", type = "message") 
+  
+  # # Construct the command string
+  # run_command <- paste0(
+  #   'nohup ',
+  #   Sys.getenv("R_HOME"), 
+  #   run_string
+  # )
+  # cat("run_command: ", run_command, "\n")
+  # args <- c(
+  #   shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)),
+  #   shQuote(name),
+  #   shQuote(short_name),
+  #   shQuote(island_full_name),
+  #   shQuote(island_short_name)
+  # )
+  # cat("args: ", args, "\n")
+  # 
+  # output_file = paste0("../CCVD/CCVD_OUTPUTS/", name, ".txt")
+  # error_file =paste0("../CCVD/CCVD_OUTPUTS/", name, "_err.txt")
+  # print(paste0("output_file: ", output_file))
+  # print(paste0("error_file: ", error_file))
+  # 
+  # system2(run_command, args, stdout=output_file, stderr=error_file)
+
+  
+}
+#nohup ./hello.sh > myoutput.txt >2&1 
+#nohup sh -c '/Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/waikiki_watershed.shp' 'waikiki_watershed' 'waikiki_watershed' 'Oahu' 'OA'' > /dev/null 2>&1 &
 
 # Define server logic
 server <- function(input, output, session) {
@@ -82,6 +152,12 @@ server <- function(input, output, session) {
   selected_polygon <- reactiveVal(NULL)
   selected_polygon(NULL)
   
+  # Reactive expression for email validation
+  valid_email <- reactive({
+    validate_email(input$email)
+  })
+  
+  
   # Render a leaflet map with drawing tools, initialization, only runs once upon startup
   output$map <- renderLeaflet({
     cat("renderLeaflet\n")
@@ -89,6 +165,9 @@ server <- function(input, output, session) {
     # made this not use pipes so I could add debugging statements between actions
     leaf <- leaflet()
     leaf <- addTiles(leaf)
+    
+    # Add satellite view
+    leaf <- addProviderTiles(leaf, providers$Esri.WorldImagery)
     
     # Set initial map view to the Hawaiian Islands
     leaf <- setView(leaf, lng = -157.4983, lat = 20.2927, zoom = 7)
@@ -147,7 +226,7 @@ server <- function(input, output, session) {
       selected_shapefile(sf::st_read(shapefile_paths[match(input$shapefile, shapefile_paths)]))
       
       # Update button label
-      updateActionButton(session, "save_button", label = "Generate data using selected shapefile", disabled = TRUE)
+      updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
       
       # Disable drawing when a shapefile is selected
       drawing_enabled(FALSE)
@@ -177,13 +256,13 @@ server <- function(input, output, session) {
   # Render the selected shapefile on the map
   observe({
     cat("observe 2\n")
-    
+
     shapefile <- selected_shapefile()
     if (!is.null(shapefile)) {
       proxy <- leafletProxy("map")
       proxy <- clearShapes(proxy)
-      proxy <- addPolygons(proxy, 
-                           data = shapefile, 
+      proxy <- addPolygons(proxy,
+                           data = shapefile,
                            group = "Selected Shapefile",
                            fillColor = "transparent",
                            color = "#B0C4DE", # Choose a light color for the boundaries
@@ -191,12 +270,51 @@ server <- function(input, output, session) {
                            opacity = 0.5, # Set line opacity to a lower value
                            layerId = shapefile[[names(shapefile)[1]]]
       )
+      # # Auto-select and zoom to a single polygon if it exists
+      # if (nrow(shapefile) == 1) {
+      #   polygon_id <- shapefile[[names(shapefile)[1]]][1]
+      #   selected_polygon(shapefile$geometry)
+      #   # Update the map to highlight the selected polygon
+      #   proxy <- clearGroup(proxy, "highlightedPolygon")
+      #   proxy <- addPolygons(proxy, 
+      #                        data = shapefile, 
+      #                        group = "highlightedPolygon",
+      #                        fillColor = "blue",
+      #                        color = "#B0C4DE", # Choose a light color for the boundaries
+      #                        weight = 2, # Set the line weight (thickness) to a low value
+      #                        opacity = 0.5, # Set line opacity to a lower value
+      #                        fillOpacity = 0.5, # Set fill opacity to make the fill color visible
+      #                        layerId = ~get(names(shapefile)[1])
+      #   )
+      #   
+      #   # Zoom to the polygon's bounds
+      #   current_bounds <- proxy %>% leaflet::getMapBounds()
+      #   zoom_level <- current_bounds$zoom
+      #   proxy %>% leaflet::fitBounds(
+      #     lng1 = sf::st_bbox(shapefile)[1],
+      #     lat1 = sf::st_bbox(shapefile)[2],
+      #     lng2 = sf::st_bbox(shapefile)[3],
+      #     lat2 = sf::st_bbox(shapefile)[4],
+      #     zoom = zoom_level + 1  # Add 1 to zoom level for a closer view
+      #   )
+      # }
     } else {
       proxy <- leafletProxy("map")
       proxy <- clearShapes(proxy)
     }
   })
+  
+  
   ########## stuff for drop-down menu - end   ##########  
+  
+  # # Enable submit button based on email input
+  # observeEvent(input$email_input, {
+  #   if (nchar(input$email_input) > 0) {
+  #     updateActionButton(session, "save_button", label = "Generate Data", disabled = FALSE)
+  #   } else {
+  #     updateActionButton(session, "save_button", disabled = TRUE)
+  #   }
+  # })
   
   # Observe event for when shapes are drawn on the map
   observeEvent(input$map_draw_new_feature, {
@@ -206,7 +324,8 @@ server <- function(input, output, session) {
     drawnFeature(input$map_draw_new_feature)
     
     # enable the submit button
-    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = FALSE)
+    #updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = FALSE)
+    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = !valid_email())
     
     # reset all values so user starts from scratch
     selected_shapefile <- reactiveVal(NULL)
@@ -256,12 +375,14 @@ server <- function(input, output, session) {
                            layerId = ~get(first_attribute)
       )
     }
-    updateActionButton(session, "save_button", label = "Generate data", disabled = FALSE)
+    #updateActionButton(session, "save_button", label = "Generate data", disabled = FALSE)
+    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = !valid_email())
   })
   
   # Observe event for the save button click
   observeEvent(input$save_button, {
     cat("observeEvent: save_button\n")
+    email <- input$email
 
     # Get the drawn feature's geometry from the reactive value
     feature <- drawnFeature()
@@ -301,18 +422,22 @@ server <- function(input, output, session) {
         if (sf::st_crs(sf_object) != sf::st_crs(island_boundaries)) {
           sf_object <- sf::st_transform(sf_object, sf::st_crs(island_boundaries))
         }
-        intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
 
         # Generate the filename using the current date and time
         datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-        filename <- paste0("Shapefiles/selected_area_", datetime_str, ".shp")
+        #filename <- paste0("Shapefiles/selected_area_", datetime_str, ".shp")
+        filename <- paste0("selected_area_", datetime_str)
+        full_filename <- paste0("Shapefiles/", filename, ".shp")
+        #full_filepath <- paste0(PDKE_dir, "PDKESite/", "Shapefiles/", filename, ".shp")
         
         # Write the sf object to a shapefile
-        sf::st_write(sf_object, filename)
-        showNotification(paste("The selected area has been saved as:", filename), type = "message")
+        sf::st_write(sf_object, full_filename)
+        showNotification(paste("The selected area has been saved as:", full_filename), type = "message")
         
         # call the other script asynchronously to do the processing
-        system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE)
+        #intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
+        #system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(full_filepath), " ", shQuote(intersected_island_names)), wait = FALSE)
+        run_ccvd(sf_object, island_boundaries, full_filename, filename, datetime_str, email)
         
         showNotification("Background R script has been initiated.", type = "message")
         
@@ -322,19 +447,20 @@ server <- function(input, output, session) {
     # user selected a specific polygon from a pre-defined shapefile
     } else if (!is.null(selected_polygon())) {
       print("selected_polygon save")
-      # Generate the filename using the current date and time
-      datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-      filename <- paste0("Shapefiles/selected_polygon_", datetime_str, ".shp")
       tryCatch({
         # Extract the geometry object from the reactive value
         sf_object <- selected_polygon()
 
-        # Save the selected polygon as a shapefile
-        sf::st_write(sf_object, filename)
-        showNotification(paste("The selected polygon has been saved as:", filename), type = "message")
+        # Generate the filename using the current date and time
+        datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
+        filename <- paste0("selected_polygon_", datetime_str)
+        full_filename <- paste0("Shapefiles/", filename, ".shp")
         
-        intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
-        system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(filename), " ", shQuote(intersected_island_names)), wait = FALSE)
+        # Save the selected polygon as a shapefile
+        sf::st_write(sf_object, full_filename)
+        showNotification(paste("The selected polygon has been saved as:", full_filename), type = "message")
+
+        run_ccvd(sf_object, island_boundaries, full_filename, filename, datetime_str, email)
         
       }, error = function(e) {
         print(paste("Error:", e))
@@ -343,10 +469,11 @@ server <- function(input, output, session) {
     # user selected a pre-defined shapefile
     } else if (!is.null(selected_shapefile())) {
       print("selected_shapefile")
-      sf_object<-selected_shapefile()
-      intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
-      system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(selected_shapefile_path()), " ", shQuote(intersected_island_names)), wait = FALSE)
-      showNotification("Background R script has been initiated.", type = "message")
+      
+      full_filename <- sub(".*PDKESite/", "", selected_shapefile_path())
+      filename <- sub(".*/(.*)\\.shp$", "\\1", selected_shapefile_path())
+      run_ccvd(selected_shapefile(), island_boundaries, full_filename, filename, filename, email)
+        
       #cat(file=stderr(), "selected_shapefile2: ", selected_shapefile_path(), "\n")
     } 
     # reset all values so user starts from scratch
