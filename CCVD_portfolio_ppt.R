@@ -12,6 +12,7 @@
 # library(purrr)
 # library(imager)
 # library(pdftools)
+# library(jsonlite)
 start_time <- Sys.time()
 PROJ_DEBUG = 3
 
@@ -29,7 +30,8 @@ packages <-
     "mschart",
     "purrr",
     "imager",
-    "pdftools"
+    "pdftools",
+    "jsonlite"
   )
 for (package in packages) {
   print(paste("pkgTest: ", package))
@@ -73,18 +75,25 @@ print("2")
 args <- commandArgs(trailingOnly = TRUE)
 cat(file = stderr(), "args:", length(args), "\n")
 email = "jgeis@hawaii.edu"
-if (length(args) > 0) {
+if (length(args) == 4) {
   email <- args[1];
   R_FOLDER <- args[2]
   PROJECT_NAME <- basename(R_FOLDER)
+  NameF <- args[3] # project_name
+  SNameF <- args[4] # project_short_name
 }
 print("3")
+print(paste("PDKE: 3, email: ", email))
+print(paste("PDKE: 3, R_FOLDER: ", R_FOLDER))
+print(paste("PDKE: 3, NameF: ", NameF))
+print(paste("PDKE: 3, SNameF: ", SNameF))
+print(paste("PDKE: 3, PROJECT_NAME: ", PROJECT_NAME))
 
 cat(file = stderr(), "R_FOLDER: ", R_FOLDER, "\n")
-PROJECT_FILE_BASE <- paste0(R_FOLDER, PROJECT_NAME)
+PROJECT_FILE_BASE <- paste0(R_FOLDER, "/", PROJECT_NAME)
 #Unit Name (should be PROJECT_NAME, but kept because it's a pain to change everywhere due to SNameF)
-NameF <- PROJECT_NAME
-print(paste("PDKE: 3,NameF: ", NameF))
+#NameF <- PROJECT_NAME
+#print(paste("PDKE: 3,NameF: ", NameF))
 
 print(paste("PDKE: 1,I_FOLDER: ", I_FOLDER))
 print(paste("PDKE: 1,R_FOLDER: ", R_FOLDER))
@@ -370,9 +379,11 @@ CLIM <- read.csv(CLIM_FILE, sep = ",")
 print("PDKE: 4,CLIM")
 
 CLIM
-#Short Name
-SNameF <- CLIM[1, 16]
-SNameF
+#Short Name, provide a default if one wasn't passed in
+#if (!SNameF) {
+#  SNameF <- CLIM[1, 16]
+#}
+print(paste("PDKE, SNameF: ", SNameF))
 
 ## Read in landcover file
 LAND <-
@@ -5096,12 +5107,17 @@ mypowerpoint <- read_pptx() %>%
   req_json <- toJSON(req, unbox = my_unbox)
   print(req_json)  # Print the JSON string
   
+  json_data <- fromJSON(paste0(BASE_DIR,"/credentials.json"))
+  # Parse out the value for "bearer"
+  bearer_value <- paste0("Bearer ", json_data$bearer)
+  
   response <- POST(
     url = "https://api.hcdp.ikewai.org/notify",
     body = req_json,
     encode = "json",
-    add_headers("Content-Type" = "application/json",
-      "Authorization" = "Bearer f5fd0e446a6309da1a57b8188461aabe"),
+    add_headers(
+      "Content-Type" = "application/json",
+      "Authorization" = bearer_value),
     config(ssl_verifypeer = FALSE)
   )
   

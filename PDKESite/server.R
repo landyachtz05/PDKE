@@ -36,15 +36,35 @@ if (environ == "dev") {
 run_string = paste(rscript_path, myscript_path)
 
 
-# Function to validate email
-validate_email <- function(email) {
+# # Function to validate email
+# validate_email <- function(email) {
+#   if (grepl("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email)) {
+#     return(TRUE)
+#   } else {
+#     return(FALSE)
+#   }
+# }
+
+validate_text_inputs <- function(email, polygon_name, polygon_short_name) {
+  print("validate_text_inputs: 1")
   if (grepl("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email)) {
-    return(TRUE)
+    print("validate_text_inputs: 2")
+    if (grepl("^[A-Za-z0-9._%+-]", polygon_name)) {
+      print("validate_text_inputs: 3")
+      if (grepl("^[A-Za-z0-9._%+-]", polygon_short_name)) {
+        print("validate_text_inputs: 4")
+        return(TRUE)
+      }
+    }
   } else {
     return(FALSE)
   }
 }
 
+# Function to update the state of the submit button
+update_submit_button <- function(session, valid_text_inputs, polygon_selected) {
+  updateActionButton(session, "save_button", label = "Generate data", disabled = !(valid_text_inputs && polygon_selected))
+}
 
 display_intersected_islands <- function(intersected_island_names) {
   island_names_string <- ""
@@ -69,7 +89,7 @@ get_intersected_islands <- function(sf_object, island_boundaries) {
   return(intersected_island_names)
 }
 
-run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, name, short_name, email) {
+run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, name, short_name, email, polygon_name, polygon_short_name) {
   # work out short name from island name
   #NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
   #NP_FILE <- paste0(NP_DIR, "waikiki_watershed.shp")
@@ -91,8 +111,17 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, name, sh
     island_short_name <- ISLAND_SHORT_NAMES[index]
   }
   cat("shapefile_full_path: ", shapefile_full_path, "\n")
-  # this works
-  system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(email), " ", shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)), " ", shQuote(name), " ", shQuote(short_name), " ", shQuote(island_full_name), " ", shQuote(island_short_name)), wait = FALSE)
+  # this works, temporarily commented out so I can test w/o invoking the other stuff
+  system(paste0(Sys.getenv("R_HOME"), 
+    run_string, " ", 
+    shQuote(email), " ", 
+    shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)), " ", 
+    shQuote(name), " ", 
+    shQuote(short_name), " ", 
+    shQuote(island_full_name), " ", 
+    shQuote(island_short_name), " ", 
+    shQuote(polygon_name), " ", 
+    shQuote(polygon_short_name)), wait = FALSE)
   showNotification("Background R script has been initiated.", type = "message") 
   
   # # Construct the command string
@@ -152,11 +181,20 @@ server <- function(input, output, session) {
   selected_polygon <- reactiveVal(NULL)
   selected_polygon(NULL)
   
+  # # Reactive expression for email validation
+  # valid_email <- reactive({
+  #   validate_email(input$email)
+  # })
+  
   # Reactive expression for email validation
-  valid_email <- reactive({
-    validate_email(input$email)
+  valid_text_inputs <- reactive({
+    validate_text_inputs(input$email, input$polygon_name, input$polygon_name)
   })
   
+  # Reactive expression to check if a polygon is selected or drawn
+  polygon_selected <- reactive({
+    !is.null(drawnFeature()) || !is.null(selected_polygon()) || !is.null(selected_shapefile())
+  })
   
   # Render a leaflet map with drawing tools, initialization, only runs once upon startup
   output$map <- renderLeaflet({
@@ -204,6 +242,7 @@ server <- function(input, output, session) {
     }
     # Disable the save button
     updateActionButton(session, "save_button", disabled = TRUE)
+
     leaf
   })
 
@@ -213,6 +252,11 @@ server <- function(input, output, session) {
     cat("renderUI\n")
     shapefile_choices <- c("Select a pre-defined shapefile", shapefile_paths)
     selectInput("shapefile", "Select a shapefile:", choices = shapefile_choices)
+  })
+  
+  # Observe changes in email input
+  observe({
+    update_submit_button(session, valid_text_inputs(), polygon_selected())
   })
   
   # Update the selected_shapefile reactive value when a shapefile is selected
@@ -226,7 +270,7 @@ server <- function(input, output, session) {
       selected_shapefile(sf::st_read(shapefile_paths[match(input$shapefile, shapefile_paths)]))
       
       # Update button label
-      updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
+      #updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
       
       # Disable drawing when a shapefile is selected
       drawing_enabled(FALSE)
@@ -239,7 +283,7 @@ server <- function(input, output, session) {
       
       selected_shapefile(NULL)
       # Update button label
-      updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
+      #updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
       # Enable drawing when no shapefile is selected
       drawing_enabled(TRUE)
       
@@ -251,6 +295,7 @@ server <- function(input, output, session) {
       selected_polygon <- reactiveVal(NULL)
       selected_polygon(NULL)
     }
+    update_submit_button(session, valid_text_inputs(), polygon_selected())
   })
   
   # Render the selected shapefile on the map
@@ -325,7 +370,8 @@ server <- function(input, output, session) {
     
     # enable the submit button
     #updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = FALSE)
-    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = !valid_email())
+    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = !valid_text_inputs())
+    #update_submit_button(session, valid_text_inputs(), polygon_selected())
     
     # reset all values so user starts from scratch
     selected_shapefile <- reactiveVal(NULL)
@@ -376,13 +422,17 @@ server <- function(input, output, session) {
       )
     }
     #updateActionButton(session, "save_button", label = "Generate data", disabled = FALSE)
-    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = !valid_email())
+    updateActionButton(session, "save_button", label = "Generate data using drawn area", disabled = !valid_text_inputs())
+    #update_submit_button(session, valid_text_inputs(), polygon_selected())
+    
   })
   
   # Observe event for the save button click
   observeEvent(input$save_button, {
     cat("observeEvent: save_button\n")
     email <- input$email
+    polygon_name <- input$polygon_name
+    polygon_short_name <- input$polygon_short_name
 
     # Get the drawn feature's geometry from the reactive value
     feature <- drawnFeature()
@@ -437,7 +487,7 @@ server <- function(input, output, session) {
         # call the other script asynchronously to do the processing
         #intersected_island_names <- get_intersected_islands(sf_object, island_boundaries)
         #system(paste0(Sys.getenv("R_HOME"), run_string, " ", shQuote(full_filepath), " ", shQuote(intersected_island_names)), wait = FALSE)
-        run_ccvd(sf_object, island_boundaries, full_filename, filename, datetime_str, email)
+        run_ccvd(sf_object, island_boundaries, full_filename, filename, datetime_str, email, polygon_name, polygon_short_name)
         
         showNotification("Background R script has been initiated.", type = "message")
         
@@ -460,7 +510,7 @@ server <- function(input, output, session) {
         sf::st_write(sf_object, full_filename)
         showNotification(paste("The selected polygon has been saved as:", full_filename), type = "message")
 
-        run_ccvd(sf_object, island_boundaries, full_filename, filename, datetime_str, email)
+        run_ccvd(sf_object, island_boundaries, full_filename, filename, datetime_str, email, polygon_name, polygon_short_name)
         
       }, error = function(e) {
         print(paste("Error:", e))
@@ -472,7 +522,7 @@ server <- function(input, output, session) {
       
       full_filename <- sub(".*PDKESite/", "", selected_shapefile_path())
       filename <- sub(".*/(.*)\\.shp$", "\\1", selected_shapefile_path())
-      run_ccvd(selected_shapefile(), island_boundaries, full_filename, filename, filename, email)
+      run_ccvd(selected_shapefile(), island_boundaries, full_filename, filename, filename, email, polygon_name, polygon_short_name)
         
       #cat(file=stderr(), "selected_shapefile2: ", selected_shapefile_path(), "\n")
     } 

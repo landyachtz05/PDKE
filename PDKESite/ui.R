@@ -20,12 +20,14 @@ ui <- fluidPage(
     sidebarPanel(
       # Dropdown menu to select a shapefile
       uiOutput("shapefile_select"),
+      textInput("polygon_name", "Polygon Description:", ""),
+      textInput("polygon_short_name", "Polygon short name:", ""),
       # Text input for email address
       textInput("email", "Enter your email address:", value = "", placeholder = "your.email@example.com"),
       
       # Warning message for email validation
       tags$div(id = "email_warning", style = "color: red; margin-top: 12px;",
-        tags$p("An email address is required to submit.")
+        tags$p("An email address is required to submit.  'Generate Data' button will not be enabled until an email address is provided")
       ),
       
       # JavaScript code snippet to handle email validation
