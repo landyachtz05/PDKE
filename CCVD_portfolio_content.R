@@ -105,9 +105,6 @@ NM <- args[3];
 NM_s <- args[4];
 ILE <- args[5];
 ILE_s <- args[6];
-polygon_name = args[7]
-polygon_short_name = args[8]
-
 
 # user provided values
 #NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
@@ -9763,7 +9760,7 @@ print(paste0("Execution time: ", end_time - start_time))
 
 #system(paste0(rscript_path, " ", myscript_path, " ", shQuote(path)), wait = FALSE)
 run_string <- paste0(rscript_path, " ", myscript_path, " ", shQuote(email), " ", shQuote(path), " ", 
-  shQuote(polygon_name), " ", shQuote(polygon_short_name))
+  shQuote(NM), " ", shQuote(NM_s))
 cat("runString: ", run_string, "\n")
 system(run_string, wait = FALSE)
 
