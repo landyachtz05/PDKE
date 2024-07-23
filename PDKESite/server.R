@@ -113,8 +113,8 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
     shQuote(island_full_name), " ",
     shQuote(island_short_name)
   ), wait = FALSE)
-  showNotification("Background R script has been initiated.  When the results are ready, you will receive an email with a link to the download.", type = "message")
-  
+  showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
+
   datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
   csv_output_string <- paste0(datetime_str, ",", shapefile_full_path, ", ", island_full_name, ", ", polygon_name)
   print(paste0("csv_output_string: ", csv_output_string))
@@ -489,9 +489,6 @@ server <- function(input, output, session) {
         
         # call the other script asynchronously to do the processing
         run_ccvd(sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
-        
-        showNotification("Background R script has been initiated.", type = "message")
-        
       } else {
         showNotification("No area selected to save as shapefile.", type = "warning")
       }
