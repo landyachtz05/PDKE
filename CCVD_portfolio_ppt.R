@@ -31,7 +31,8 @@ packages <-
     "purrr",
     "imager",
     "pdftools",
-    "jsonlite"
+    "jsonlite",
+    "httr"
   )
 for (package in packages) {
   print(paste("pkgTest: ", package))
