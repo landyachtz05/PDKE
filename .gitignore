@@ -1,0 +1,11 @@
+CCVD/
+.DS_Store
+.Rproj.user
+CCVD_portfolio_content_March_11.R
+CCVD_portfolio_content_works.R
+InstallPackages.R
+PDKE.Rproj
+jens-notes.txt
+credentials.json
+locations.csv
+Shapefiles/
