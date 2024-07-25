@@ -1,3 +1,5 @@
+# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Kaa_2024_07_25_08_21_36 Kaa Kaa
+
 # library(magrittr)
 # library(tidyverse)
 # library(rvg)
@@ -59,14 +61,20 @@ for (package in packages) {
   }
 }
 
+debug_print <- function(content) {
+  #cat(file = stderr(), content, "\n")
+  print(paste("debug_print:", content))
+}
 
 print("1")
 BASE_DIR <- "/Users/jgeis/Work/PDKE"
+#BASE_DIR <- "/srv/shiny-server"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images
 #R_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")  # Folder with your site specific folders
-PROJECT_NAME <- "selected_polygon_2024-06-05_14-26-59"
+datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+PROJECT_NAME <- paste0("polygon", datetime_str)
 R_FOLDER <-
   paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/", PROJECT_NAME, "/")  # Folder with your site specific files
 P_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_PPT/")     # Output folder
@@ -83,22 +91,25 @@ if (length(args) == 4) {
   NameF <- args[3] # project_name
   SNameF <- args[4] # project_short_name
 }
-print("3")
-print(paste("PDKE: 3, email: ", email))
-print(paste("PDKE: 3, R_FOLDER: ", R_FOLDER))
-print(paste("PDKE: 3, NameF: ", NameF))
-print(paste("PDKE: 3, SNameF: ", SNameF))
-print(paste("PDKE: 3, PROJECT_NAME: ", PROJECT_NAME))
+#date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", R_FOLDER)
+
+debug_print("3")
+debug_print(paste("PDKE: 3, email: ", email))
+debug_print(paste("PDKE: 3, R_FOLDER: ", R_FOLDER))
+debug_print(paste("PDKE: 3, NameF: ", NameF))
+debug_print(paste("PDKE: 3, SNameF: ", SNameF))
+debug_print(paste("PDKE: 3, PROJECT_NAME: ", PROJECT_NAME))
 
 cat(file = stderr(), "R_FOLDER: ", R_FOLDER, "\n")
-PROJECT_FILE_BASE <- paste0(R_FOLDER, "/", PROJECT_NAME)
+PROJECT_FILE_BASE <- paste0(R_FOLDER, "/", NameF)
+debug_print(paste0("PROJECT_FILE_BASE: ", PROJECT_FILE_BASE))
 #Unit Name (should be PROJECT_NAME, but kept because it's a pain to change everywhere due to SNameF)
 #NameF <- PROJECT_NAME
 #print(paste("PDKE: 3,NameF: ", NameF))
 
-print(paste("PDKE: 1,I_FOLDER: ", I_FOLDER))
-print(paste("PDKE: 1,R_FOLDER: ", R_FOLDER))
-print(paste("PDKE: 1,P_FOLDER: ", P_FOLDER))
+debug_print(paste("PDKE: 1,I_FOLDER: ", I_FOLDER))
+debug_print(paste("PDKE: 1,R_FOLDER: ", R_FOLDER))
+debug_print(paste("PDKE: 1,P_FOLDER: ", P_FOLDER))
 
 
 ### SET SITE FOLDER AND VERSION ###
@@ -1783,7 +1794,7 @@ Trendimg <- external_img(src = Trendfile,
 
 ### Bring in table of periods and trend directions
 RFT <-
-  read.csv(paste0(PROJECT_FILE_BASE, " RF_trend_dirctions.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, " RF_trend_directions.csv"), sep = ",")
 RFT_T <- flextable(RFT)
 # RFT_T <- bold(RFT_T, bold = T, part = "header")
 RFT_T <- fontsize(RFT_T, size = 14)
@@ -5069,10 +5080,10 @@ mypowerpoint <- read_pptx() %>%
   
   
   print(mypowerpoint,
-    target = paste0(P_FOLDER, NameF, "_CCVD_Portfolio_v", ver, ".pptx"))
+    target = paste0(P_FOLDER, PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx"))
 
-  final_filename = paste0(P_FOLDER, NameF, "_CCVD_Portfolio_v", ver, ".pptx")
-  #print(mypowerpoint, target = paste0(P_FOLDER, NameF, "_CCVD_Portfolio_v", ver, ".pptx"))
+  final_filename = paste0(P_FOLDER, PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+  #print(mypowerpoint, target = paste0(P_FOLDER, PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx"))
 
   
   ######### see how long the whole script takes, typically < 6 seconds #########
