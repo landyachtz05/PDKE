@@ -1,0 +1,17 @@
+# Cron job to scan the following directories daily at midnight and delete any 
+# contained files or directories older than one week:
+# /srv/shiny-server/PDKESite/Shapefiles/UserDefinedPolygon 
+# /srv/shiny-server/PDKESite/Shapefiles/SelectedPolygon 
+# /srv/shiny-server/PDKE/CCVD/MINI-PPT 
+# /srv/shiny-server/PDKE/CCVD/CCVD_OUTPUTS
+#
+# Explanation:
+# 0 0 * * 0: This cron schedule runs the command at midnight (00:00) every Sunday (day 0 of the week).
+# find /srv/shiny-server/PDKESite/Shapefiles/UserDefinedPolygon /srv/shiny-server/PDKESite/Shapefiles/SelectedPolygon: This searches # both directories.
+# -mindepth 1 prevents the top-level directories from being deleted.
+# -mtime +7 selects items older than 7 days.
+# -exec rm -rf {} deletes the found files and directories. {} is a placeholder for the file names found by find.
+# To run:
+# Edit Crontab: You can add this line to the crontab of the user running the script by using the 'crontab -e' command.
+# 
+0 0 * * * find /srv/shiny-server/PDKESite/Shapefiles/UserDefinedPolygon /srv/shiny-server/PDKESite/Shapefiles/SelectedPolygon /srv/shiny-server/PDKE/CCVD/MINI-PPT /srv/shiny-server/PDKE/CCVD/CCVD_OUTPUTS -mindepth 1 -mtime +7 -exec rm -rf {} \;
