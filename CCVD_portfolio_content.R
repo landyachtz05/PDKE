@@ -2,6 +2,7 @@
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp Kaa Kaa Lanai LA
 # to redirect all output to a file, use R CMD BATCH, it creates a file called CCVD_portfolio_content.Rout
 
+# Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp Hamakuapoko Hamakuapoko Maui MN
 # for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
 start_time <- Sys.time()
 
@@ -654,7 +655,7 @@ debug_print(paste("datetime_str: ", datetime_str))
 
 
 PATH <- paste0(OUTPUTS_FOLDER, UNIT_N[u], "_", datetime_str)
-PATH_WITH_PROJECT_NAME <- paste0(PATH, "/", UNIT_N[u]) 
+PATH_WITH_PROJECT_NAME <- paste0(PATH, "/", UNIT_N[u], "_") 
 print(paste("PDKE 29, PATH:", PATH))
 dir.create(PATH, showWarnings = TRUE, recursive = FALSE)
 print(paste("PDKE 29, PATH_WITH_PROJECT_NAME:", PATH_WITH_PROJECT_NAME))
@@ -759,7 +760,7 @@ print("PDKE: 32, Mokupuni")
 
 dpi <- 300
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Mokupuni.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Mokupuni.png"),
   width = 5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -835,7 +836,7 @@ plot(MI3)
 MId <- as(MI3, "data.frame")
 write.csv(
   data.frame(MId),
-  paste0(PATH_WITH_PROJECT_NAME, " Moku.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Moku.csv"),
   row.names = F
 )
 
@@ -852,7 +853,7 @@ yma <- ymax(MI3) * 1.0001
 
 # make map
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Moku.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Moku.png"),
   width = 5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -925,7 +926,7 @@ plot(AI3)
 AId <- as(AI3, "data.frame")
 write.csv(
   data.frame(AId),
-  paste0(PATH_WITH_PROJECT_NAME, " Ahupuaa.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Ahupuaa.csv"),
   row.names = F
 )
 
@@ -939,7 +940,7 @@ dpi <- 300
 
 # make map
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Ahupuaa.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Ahupuaa.png"),
   width = 5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -989,7 +990,7 @@ TITF <- "Fire Occurrence 1999-2022"
 
 dpi <- 300
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Fire.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Fire.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -1038,7 +1039,7 @@ FR2 <- FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "102"), ]
 FR3 <- FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "103"), ]
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " FireRisk.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "FireRisk.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -1104,7 +1105,7 @@ colfuncEL <- colorRampPalette(brewer.pal(9, "PuBuGn"))(100)
 SHAPE <- UNIT_X[[u]]
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " ELMap.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "ELMap.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -1211,7 +1212,7 @@ LC_ct2
 
 # write to table
 write.csv(LC_ct2,
-          paste0(PATH_WITH_PROJECT_NAME, " Landcover.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, "Landcover.csv"),
           row.names = F)
 
 # set class names as leveled factors
@@ -1238,7 +1239,7 @@ LC3 <- paste0(LC_ct2[3, ]$class_name, "(", LC_ct2[3, ]$pct, ")")
 ylim <- max(LC_ct2$acres) + (max(LC_ct2$acres) * 0.15)
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " LC_barchart.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "LC_barchart.png"),
   width = 5 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -1298,7 +1299,7 @@ TITF <- paste0("Landcover", " ", Iname)
 dpi = 300
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " LCMap.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "LCMap.png"),
   width = 7 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -1443,7 +1444,7 @@ AQe <-
 colnames(AQe)[1] = "DOH Aquifer"
 write.csv(
   data.frame(AQe),
-  paste0(PATH_WITH_PROJECT_NAME, " Aquifer.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Aquifer.csv"),
   row.names = F
 )
 AQe
@@ -1459,7 +1460,7 @@ yma <- ymax(AQ3) * 1.0001
 dpi = 300
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Aquifers.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Aquifers.png"),
   width = 4 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -1624,7 +1625,7 @@ yma <- ymax(HALE) * 1.0001
 # make map
 dpi = 300
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Streams.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Streams.png"),
   width = 4 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -1724,7 +1725,7 @@ for (i in 1:length(ht)) {
 
 write.csv(
   data.frame(ht),
-  paste0(PATH_WITH_PROJECT_NAME, " Hydro_features.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Hydro_features.csv"),
   row.names = F
 )
 
@@ -1776,7 +1777,7 @@ st
 
 # export table
 write.csv(st,
-          paste0(PATH_WITH_PROJECT_NAME, " rain_stations.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, "rain_stations.csv"),
           row.names = F)
 
 # ### Make map of island with station and AOI
@@ -1792,7 +1793,7 @@ yma <- ymax(CoastM)
 
 # make map
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " rf_stations.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "rf_stations.png"),
   width = 5 * dpi,
   height = 3.5 * dpi,
   res = dpi
@@ -3553,7 +3554,7 @@ RFLO <-
 
 write.csv(
   Cell.CL_Year,
-  paste0(PATH_WITH_PROJECT_NAME, " Annual Climate.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Annual Climate.csv"),
   row.names = F
 )
 Cell.CL_Year
@@ -3593,7 +3594,7 @@ NTA <- min(TA) - min(TA) * 0.2
 #Make Cliamo Graph and Save to ouptput folder
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climograph2.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climograph2.png"),
   width = 5 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -3665,7 +3666,7 @@ dev.off()
 print("PDKE: 53, Monthly Rainfall")
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climograph_RF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climograph_RF.png"),
   width = 5 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -3702,7 +3703,7 @@ dev.off()
 col <- rgb(0.2, 0.2, 1, alpha = 0.15)
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climograph_AT.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climograph_AT.png"),
   width = 5.2 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -3948,7 +3949,7 @@ BI_brksWS <- round(seq(WSLO, WSUP, length = 9), 2)
 colfuncWS <- colorRampPalette(brewer.pal(9, "Purples"))(50)
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_RF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climate_less_RF.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -3976,7 +3977,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_TA.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climate_less_TA.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4004,7 +4005,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_RH.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climate_less_RH.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4033,7 +4034,7 @@ dev.off()
 
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_SR.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climate_less_SR.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4061,7 +4062,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_SM.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climate_less_SM.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4089,7 +4090,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_ET.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climate_less_ET.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4117,7 +4118,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_WS.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Climate_less_WS.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4148,7 +4149,7 @@ dev.off()
 print("PDKE: 54, Temperature Maps Figure ")
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " TA12.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "TA12.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4509,7 +4510,7 @@ if (cm == "DEC") {
 ### make plots
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " TA_hm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "TA_hm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4536,7 +4537,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " TA_cm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "TA_cm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4566,7 +4567,7 @@ dev.off()
 print("PDKE: 56, MEAN ANNUAL Relative Humidity 12-maps")
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " RH12.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "RH12.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4818,7 +4819,7 @@ dpi = 300
 print("PDKE: 57, MEAN ANNUAL Rainfall 12-maps ")
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " RF12.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "RF12.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5178,7 +5179,7 @@ if (wm == "DEC") {
 ### make plots
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " RF_dm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "RF_dm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5205,7 +5206,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " RF_wm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "RF_wm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5341,7 +5342,7 @@ Cell.DataCLR[3, 14] <- WetLO
 Cell.DataCLR
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " SeaRF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "SeaRF.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5400,7 +5401,7 @@ dev.off()
 
 # export seasonal monthly rainfall figure from above
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " SeaMRF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "SeaMRF.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5936,7 +5937,7 @@ RFdslo <- RFdsup * -1
 
 write.csv(
   Cell.Data_DS,
-  paste0(PATH_WITH_PROJECT_NAME, " Downscaling.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Downscaling.csv"),
   row.names = F
 )
 
@@ -5953,7 +5954,7 @@ colfunc2 <- colorRampPalette(brewer.pal(11, "RdBu"))(100)
 BI_brks2 <- round(seq(RFdslo, RFdsup , length = 9), 0)
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " DS_RF_8.5_v2.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "DS_RF_8.5_v2.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6090,7 +6091,7 @@ print("PDKE: 69, Dynamical and Statistical Downscaling ")
 ########## Downscaling Compare RF RCP 4.5
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " DS_RF_2100_4.5.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "DS_RF_2100_4.5.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6229,7 +6230,7 @@ dev.off()
 print("PDKE: 70, Statistical 2040-2070")
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " StDsRF2040.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "StDsRF2040.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6330,7 +6331,7 @@ if (TUnit == "°F") {
 }
 print("PDKE: 71A")
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " DS_Temp2100.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "DS_Temp2100.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6575,7 +6576,7 @@ dev.off()
 print("PDKE: 72, AIR TEMP 2040-2070 ")
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " StDs_Temp2040.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "StDs_Temp2040.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6827,7 +6828,7 @@ TITLE = paste(UNIT_Ns[u], " 23-yr RF Compare (", RFUnit2, ")")
 dpi = 300
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " 23yr_RF_Compare.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "23yr_RF_Compare.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -6869,12 +6870,12 @@ if (RFUnit == " in") {
 
 write.csv(
   MRF100,
-  paste0(PATH_WITH_PROJECT_NAME, " Monthly Rainfall_", RFUnit2, ".csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Monthly Rainfall_", RFUnit2, ".csv"),
   row.names = F
 )
 
 # ## Can read in the csv from above to start script here
-# MRF100<-read.csv(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_in.csv"))
+# MRF100<-read.csv(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u],"_Monthly Rainfall_in.csv"))
 
 # fix month values
 MRF100$Month <- sub(".*/", "", MRF100$Date)
@@ -6957,7 +6958,7 @@ RFT$Trend <- c(LM1s, LM4s, LM6s)
 RFT
 write.csv(
   RFT,
-  paste0(PATH_WITH_PROJECT_NAME, " RF_trend_directions.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "RF_trend_directions.csv"),
   row.names = F
 )
 ###
@@ -7010,7 +7011,7 @@ head(Mean_Y_RF, 20)
 
 write.csv(
   Mean_Y_RF,
-  paste0(PATH_WITH_PROJECT_NAME, " Annual_RF_in.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Annual_RF_in.csv"),
   row.names = F
 )
 
@@ -7217,7 +7218,7 @@ LM6RYD <- round(summary(LM6YD)$r.squared, 2)
 
 dpi <- 300
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " RF_Trend.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "RF_Trend.png"),
   width = 6.3 * dpi,
   height = 7 * dpi,
   res = dpi
@@ -7460,7 +7461,7 @@ SPI3 <- spi(RF, scale = 3, distribution = 'Gamma')
 
 #PlOT ALL SPI
 png(
-  paste0(PATH_WITH_PROJECT_NAME, " SPI.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "SPI.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -7493,7 +7494,7 @@ print("PDKE: 86, Derek's Drought Code from Guam")
 # load rainfall dataset created around line 2828 above
 wd <- paste0(PATH, "/")
 setwd(wd)
-csv <- paste0(UNIT_N[u], " Monthly Rainfall_", RFUnit2, ".csv")
+csv <- paste0(UNIT_N[u], "_Monthly Rainfall_", RFUnit2, ".csv")
 RF_Data <- read.csv(csv)
 head(RF_Data)
 tail(RF_Data)
@@ -7571,7 +7572,7 @@ head(SPI_ALL, 50)
 # Save SPI_ALL drought intensity (inverted SPI) dataset
 write.csv(
   SPI_ALL,
-  paste0(PATH_WITH_PROJECT_NAME, " SPI_NEGS_ALL.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "SPI_NEGS_ALL.csv"),
   row.names = F
 )
 
@@ -7818,7 +7819,7 @@ Cell.DataSPI
 
 write.csv(
   Cell.DataSPI,
-  paste0(PATH_WITH_PROJECT_NAME, " Drought History.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Drought History.csv"),
   row.names = F
 )
 
@@ -8660,7 +8661,7 @@ Cell.SPICNT
 
 write.csv(
   Cell.SPICNT,
-  paste0(PATH_WITH_PROJECT_NAME, " Drought Count.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Drought Count.csv"),
   row.names = F
 )
 
@@ -8840,7 +8841,7 @@ MEI_D <- subset(MEI, select = -c(MEI_W))
 print("PDKE: 98.4, MEI")
 
 # ## Can read in the csv from above to start script here
-# MRF100<-read.csv(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u]," Monthly Rainfall_in.csv"))
+# MRF100<-read.csv(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u],"_Monthly Rainfall_in.csv"))
 
 head(MRF100)
 tail(MRF100)
@@ -9278,7 +9279,7 @@ dev.off()
 Cell.MEI
 # I don't think this is used...
 write.csv(Cell.MEI,
-          paste0(PATH_WITH_PROJECT_NAME, " MEI_A.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, "MEI_A.csv"),
           row.names = F)
 
 
@@ -9399,7 +9400,7 @@ dev.off()
 
 cc
 ### Export table of average monthly rainfall by season and ENSO phase
-write.csv(cc, paste0(PATH_WITH_PROJECT_NAME, " MEI_S.csv"))
+write.csv(cc, paste0(PATH_WITH_PROJECT_NAME, "MEI_S.csv"))
 
 #####################################################
 ##### Air temperature graph
@@ -9523,7 +9524,7 @@ dat.y$date <- as.Date(paste0(dat.y$year, "-01-01"))
 
 # write to csv table of annual air temp values from monthly means (min, max, mean)
 write.csv(dat.y,
-          paste0(PATH_WITH_PROJECT_NAME, "_monthly_airtemp.csv"))
+          paste0(PATH_WITH_PROJECT_NAME, "monthly_airtemp.csv"))
 
 slope <-
   formatC((coef(lm(
@@ -9534,7 +9535,7 @@ slope
 dpi = 300
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, "_annual_airtemp.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "annual_airtemp.png"),
   width = 6 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -9581,7 +9582,7 @@ tail(dat2)
 
 # write to csv table of monthly air temp values (min, max, mean)
 write.csv(dat2,
-          paste0(PATH_WITH_PROJECT_NAME, "_daily_airtemp.csv"))
+          paste0(PATH_WITH_PROJECT_NAME, "daily_airtemp.csv"))
 
 # set y-axis limits
 ylow <- min(dat.y$min, na.rm = T) * .5
@@ -9600,7 +9601,7 @@ yl <- min(dat.y$min, na.rm = T) * .75
 dpi = 300
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, "_monthly_airtemp.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "monthly_airtemp.png"),
   width = 6 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -9715,7 +9716,7 @@ anom$date <-
 
 # write to csv table of monthly air temp anomaly values
 write.csv(anom,
-          paste0(PATH_WITH_PROJECT_NAME, "_anomaly_airtemp.csv"))
+          paste0(PATH_WITH_PROJECT_NAME, "anomaly_airtemp.csv"))
 
 # set y-axis limits
 ylow <- min(anom$anom_f) * .95
@@ -9734,7 +9735,7 @@ yl <- (((min(anom$anom_f) - max(anom$anom_f)) / 2) + max(anom$anom_f))
 dpi = 300
 
 png(
-  paste0(PATH_WITH_PROJECT_NAME, "_monthly_airtemp_anomaly.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "monthly_airtemp_anomaly.png"),
   width = 6 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -9778,7 +9779,8 @@ run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ",
   shQuote(email), " ", 
   shQuote(PATH), " ", 
   shQuote(NM), " ", 
-  shQuote(NM_s))
+  shQuote(NM_s), " ",
+  shQuote(NP_FILE))
 cat("runString: ", run_string, "\n")
 system(run_string, wait = FALSE)
 
