@@ -1,4 +1,5 @@
 # Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Kaa_2024_07_25_08_21_36 Kaa Kaa
+# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Hamakuapoko_2024_07_25_11_06_12 Hamakuapoko Hamakuapoko /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp 
 
 # library(magrittr)
 # library(tidyverse)
@@ -61,10 +62,6 @@ for (package in packages) {
   }
 }
 
-debug_print <- function(content) {
-  #cat(file = stderr(), content, "\n")
-  print(paste("debug_print:", content))
-}
 
 print("1")
 BASE_DIR <- "/Users/jgeis/Work/PDKE"
@@ -79,33 +76,45 @@ R_FOLDER <-
   paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/", PROJECT_NAME, "/")  # Folder with your site specific files
 P_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_PPT/")     # Output folder
 print("2")
+NameF <- "default_name"
+SNameF <- "default_short_name"
 
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
-cat(file = stderr(), "args:", length(args), "\n")
 email = "jgeis@hawaii.edu"
-if (length(args) == 4) {
+if (length(args) > 4) {
   email <- args[1];
   R_FOLDER <- args[2]
   PROJECT_NAME <- basename(R_FOLDER)
   NameF <- args[3] # project_name
   SNameF <- args[4] # project_short_name
+  SHAPEFILE <- args[5] # the full path to the shapefile containing the shape that caused all this.
 }
-#date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", R_FOLDER)
+date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", SHAPEFILE)
+PROJECT_WITH_DATE = paste0(SNameF, "_", date_time_str)
 
+debug_print <- function(content) {
+  #cat(file = stderr(), PROJECT_WITH_DATE, ": ", content, "\n")
+  print(paste0(PROJECT_WITH_DATE, ": ", content))
+  #print(paste0(content,))
+}
+
+debug_print(paste0("date_time_str: ", date_time_str))
+debug_print(paste0("PROJECT_WITH_DATE: ", PROJECT_WITH_DATE))
+debug_print(paste0("args: ", length(args)))
 debug_print("3")
-debug_print(paste("PDKE: 3, email: ", email))
-debug_print(paste("PDKE: 3, R_FOLDER: ", R_FOLDER))
-debug_print(paste("PDKE: 3, NameF: ", NameF))
-debug_print(paste("PDKE: 3, SNameF: ", SNameF))
-debug_print(paste("PDKE: 3, PROJECT_NAME: ", PROJECT_NAME))
+debug_print(paste0("PDKE: 3, email: ", email))
+debug_print(paste0("PDKE: 3, R_FOLDER: ", R_FOLDER))
+debug_print(paste0("PDKE: 3, NameF: ", NameF))
+debug_print(paste0("PDKE: 3, SNameF: ", SNameF))
+debug_print(paste0("PDKE: 3, PROJECT_NAME: ", PROJECT_NAME))
 
-cat(file = stderr(), "R_FOLDER: ", R_FOLDER, "\n")
-PROJECT_FILE_BASE <- paste0(R_FOLDER, "/", NameF)
+#debug_print(file = stderr(), "R_FOLDER: ", R_FOLDER, "\n")
+PROJECT_FILE_BASE <- paste0(R_FOLDER, "/", NameF, "_")
 debug_print(paste0("PROJECT_FILE_BASE: ", PROJECT_FILE_BASE))
 #Unit Name (should be PROJECT_NAME, but kept because it's a pain to change everywhere due to SNameF)
 #NameF <- PROJECT_NAME
-#print(paste("PDKE: 3,NameF: ", NameF))
+#debug_print(paste("PDKE: 3,NameF: ", NameF))
 
 debug_print(paste("PDKE: 1,I_FOLDER: ", I_FOLDER))
 debug_print(paste("PDKE: 1,R_FOLDER: ", R_FOLDER))
@@ -136,7 +145,7 @@ ELUnit2 = "ft"
 
 ############################ LOGOS
 ## Read in images from the Image folder
-print("PDKE: 1")
+debug_print("PDKE: 1")
 
 PDKE_Short <- paste0(I_FOLDER, "PDKE_Logo_Color_Rounded_Type-03.jpg")
 PDKE_Short
@@ -364,21 +373,21 @@ D_HLDimg <- external_img(src = D_HLDfile ,
 
 ######
 
-print("PDKE: 2")
+debug_print("PDKE: 2")
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
 
-#print(paste("PDKE: 3,RANL[f]: ", RANL[f]))
+#debug_print(paste("PDKE: 3,RANL[f]: ", RANL[f]))
 
 #create path to folder
 #RAN_F <- paste0(R_FOLDER,RANL[f],"/")
-#print(paste("PDKE: 3,RAN_F: ", RAN_F))
+#debug_print(paste("PDKE: 3,RAN_F: ", RAN_F))
 
 # list the output from Code 1
 #RANL2 <- list.files(RAN_F)
 #RANL2 <- list.files(R_FOLDER)
-#print(paste("PDKE: 3,RANL2: ", RANL2))
+#debug_print(paste("PDKE: 3,RANL2: ", RANL2))
 
 
 
@@ -386,32 +395,28 @@ print("PDKE: 2")
 ##### Read in CSV Files
 ## Read in Mean Climate File
 CLIM_FILE <- paste0(PROJECT_FILE_BASE, "MEAN Climate.csv")
-print(paste("PDKE: 3,CLIM_FILE: ", CLIM_FILE))
+debug_print(paste("PDKE: 3,CLIM_FILE: ", CLIM_FILE))
 CLIM <- read.csv(CLIM_FILE, sep = ",")
-print("PDKE: 4,CLIM")
+debug_print("PDKE: 4,CLIM")
 
-CLIM
-#Short Name, provide a default if one wasn't passed in
-#if (!SNameF) {
-#  SNameF <- CLIM[1, 16]
-#}
-print(paste("PDKE, SNameF: ", SNameF))
+#CLIM
+debug_print(paste0("PDKE, SNameF: ", SNameF))
 
 ## Read in landcover file
 LAND <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Landcover.csv"), sep = ",")
-print(paste("PDKE, LAND: ", LAND))
+  read.csv(paste0(PROJECT_FILE_BASE, "Landcover.csv"), sep = ",")
+#debug_print(paste0("PDKE, LAND: ", LAND))
 
 ## Hawaiian land division files
-MOKU <- read.csv(paste0(PROJECT_FILE_BASE, " Moku.csv"), sep = ",")
-print(paste("PDKE, MOKU: ", MOKU))
+MOKU <- read.csv(paste0(PROJECT_FILE_BASE, "Moku.csv"), sep = ",")
+#debug_print(paste("PDKE, MOKU: ", MOKU))
 
 # TODO: JEN: Find out why AHU and AHU5 point to the same file and if one can go away
-AHU <- read.csv(paste0(PROJECT_FILE_BASE, " Ahupuaa.csv"), sep = ",")
-print(paste("PDKE, AHU: ", AHU))
+AHU <- read.csv(paste0(PROJECT_FILE_BASE, "Ahupuaa.csv"), sep = ",")
+#debug_print(paste("PDKE, AHU: ", AHU))
 
-AHU5 <- read.csv(paste0(PROJECT_FILE_BASE, " Ahupuaa.csv"), sep = ",")
-print(paste("PDKE, AHU5: ", AHU5))
+AHU5 <- read.csv(paste0(PROJECT_FILE_BASE, "Ahupuaa.csv"), sep = ",")
+#debug_print(paste("PDKE, AHU5: ", AHU5))
 
 
 #Font styles
@@ -498,7 +503,7 @@ fp_TxBs <-
 
 ############# Slide 1 TITLE
 ISL <- CLIM[1, 15]
-print(paste("PDKE, ISL: ", ISL))
+debug_print(paste("PDKE, ISL: ", ISL))
 
 #Slide one Title
 #Standardize S1_TIT
@@ -509,10 +514,10 @@ TIT <-
   )
 SUB <-
   fpar(ftext(paste0(NameF, ", ", ISL), fp_BR2), fp_p = fp_par(text.align = "center"))
-print(paste("PDKE, SUB: ", SUB))
+#debug_print(paste("PDKE, SUB: ", SUB))
 
 ################ Slide 2 PDKE
-print("PDKE SLIDE 2")
+debug_print("PDKE SLIDE 2")
 
 # start slide/page numbers
 p <- 1
@@ -577,7 +582,7 @@ The PDKE program was piloted in November of 2019 with funding from the Pacific I
 fp_HDKE <- fpar(ftext(HDKE, fp_TxBs))
 
 ################ Slide 3 PART 1
-print("PDKE SLIDE 2 PART 1")
+debug_print("PDKE SLIDE 2 PART 1")
 
 p <- p + 1
 p2 <- p
@@ -609,7 +614,7 @@ FIG_1 <-
 
 
 ################ Slide 4 Hawaiian Land Divisions
-print("PDKE SLIDE 4 Hawaiian Land Divisions")
+debug_print("PDKE SLIDE 4 Hawaiian Land Divisions")
 
 p <- p + 1
 p3 <- p
@@ -635,7 +640,7 @@ fp_Tx <- fp_text(italic = TRUE,
 fp_HLD1 <- fpar(ftext(HLD1, fp_Tx))
 
 # Make moku label based on how many moku there are
-MOKU
+#MOKU
 MO <- MOKU[1, ]$moku
 if (nrow(MOKU) == 1) {
   MO1 <- MO
@@ -662,7 +667,7 @@ if (nrow(MOKU) > 4) {
       ", and ",
       MOKU[5, ]$moku)
 }
-MO1
+#MO1
 
 # Ahupuaa count and names
 AHc <- nrow(AHU)
@@ -681,7 +686,7 @@ if (AHc > 2) {
       AHU5[3, ]$ahupuaa2,
       ".")
 }
-AHa
+#AHa
 
 # Figure text
 MP <- block_list(fpar(ftext(
@@ -694,7 +699,7 @@ MP <- block_list(fpar(ftext(
   ),
   fp_Fig5
 )))
-MP
+#MP
 
 if (nrow(MOKU) == 1) {
   MO <- block_list(fpar(ftext(
@@ -720,7 +725,7 @@ if (nrow(MOKU) > 1) {
     fp_Fig5
   )))
 }
-MO
+#MO
 
 if (AHc < 3) {
   AH <- block_list(fpar(ftext(
@@ -749,17 +754,17 @@ if (AHc > 2) {
     fp_Fig5
   )))
 }
-AH
+#AH
 
 # Load land division maps
-MPmfile <- paste0(PROJECT_FILE_BASE, " Mokupuni.png")
-print(MPmfile)
+MPmfile <- paste0(PROJECT_FILE_BASE, "Mokupuni.png")
+#debug_print(MPmfile)
 MPmimg <- external_img(src = MPmfile)
 
-MOmfile <- paste0(PROJECT_FILE_BASE, " Moku.png")
+MOmfile <- paste0(PROJECT_FILE_BASE, "Moku.png")
 MOmimg <- external_img(src = MOmfile)
 
-AHmfile <- paste0(PROJECT_FILE_BASE, " Ahupuaa.png")
+AHmfile <- paste0(PROJECT_FILE_BASE, "Ahupuaa.png")
 AHmimg <- external_img(src = AHmfile)
 
 ft1 <-
@@ -768,7 +773,7 @@ ft1 <-
   )))
 
 ###############   Slide 5 Elevation
-print("PDKE Slide 5 Elevation")
+debug_print("PDKE Slide 5 Elevation")
 
 p <- p + 1
 p4 <- p
@@ -828,7 +833,7 @@ FIG_2 <- block_list(fpar(ftext(
 )))
 
 #Read in elevation figure
-Elevfile <- paste0(PROJECT_FILE_BASE, " ELMap.png")
+Elevfile <- paste0(PROJECT_FILE_BASE, "ELMap.png")
 Elevimg <- external_img(src = Elevfile)
 
 ft2 <-
@@ -838,7 +843,7 @@ ft2 <-
 
 
 ############### Slide 6.1 (NEW) Landcover
-print("PDKE Slide 6.1 (NEW) Landcover")
+debug_print("PDKE Slide 6.1 (NEW) Landcover")
 
 p <- p + 1
 p5 <- p
@@ -863,17 +868,17 @@ LAND_T <-
     LC3,
     ". Each landcover type exhibits different climate change impacts and management needs."
   )
-LAND_T
+#LAND_T
 
 M_LAND <-  block_list(fpar(ftext(LAND_T, fp_Tx)))
 
 #Read in landcover figures
-LCbarfile <- paste0(PROJECT_FILE_BASE, " LC_barchart.png")
+LCbarfile <- paste0(PROJECT_FILE_BASE, "LC_barchart.png")
 LCbarimg <- external_img(src = LCbarfile,
   height = 3,
   width = 3)
 
-LCmapfile <- paste0(PROJECT_FILE_BASE, " LCMap.png")
+LCmapfile <- paste0(PROJECT_FILE_BASE, "LCMap.png")
 LCmapimg <- external_img(src = LCmapfile)
 
 # Figure 3.1 caption
@@ -907,7 +912,7 @@ ft3 <-
   )))
 
 ################ Slide 7.1 Water Sources - Aquifers
-print("PDKE Slide 7.1 Water Sources - Aquifers")
+debug_print("PDKE Slide 7.1 Water Sources - Aquifers")
 
 p <- p + 1
 p6 <- p
@@ -915,14 +920,14 @@ p6 <- p
 S6.2_TIT <- block_list(fpar(ftext("Water Sources", FTXTT), fp_p = fp_par(text.align = "center")))
 
 #Aquifer spreadsheet
-AQ <- read.csv(paste0(PROJECT_FILE_BASE, " Aquifer.csv"), sep = ",")
+AQ <- read.csv(paste0(PROJECT_FILE_BASE, "Aquifer.csv"), sep = ",")
 AQc <- nrow(AQ)
 
 AQ_T <- flextable(AQ)
 AQ_T <- bold(AQ_T, bold = TRUE, part = "header")
 AQ_T <- fontsize(AQ_T, size = 12)
 AQ_T <- autofit(AQ_T)
-AQ_T
+#AQ_T
 
 #Body text
 AQ_Tt <-
@@ -935,13 +940,13 @@ AQ_Tt <-
 
 In general, basal aquifers are more susceptible to saltwater intrusion than high level aquifers."
   )
-AQ_Tt
+#AQ_Tt
 
 M_AQ <-  block_list(fpar(ftext(AQ_Tt, fp_Tx)))
-M_AQ
+#M_AQ
 
 # map
-AQmapfile <- paste0(PROJECT_FILE_BASE, " Aquifers.png")
+AQmapfile <- paste0(PROJECT_FILE_BASE, "Aquifers.png")
 AQmapimg <- external_img(src = AQmapfile)
 
 # Figure caption
@@ -954,14 +959,14 @@ FIG_5.b <- block_list(fpar(ftext(
   ),
   fp_Fig
 )))
-FIG_5.b
+#FIG_5.b
 
 # Table caption
 TAB_0 <- block_list(fpar(ftext(
   paste0("Table 1. Aquifer characteristics for ", SNameF, "."),
   fp_Fig
 )))
-TAB_0
+#TAB_0
 
 ft3.1 <-
   block_list(fpar(ftext(
@@ -969,7 +974,7 @@ ft3.1 <-
   )))
 
 ################ Slide 7.2 Water Sources - Streams
-print("PDKE Slide 7.2 Water Sources - Streams")
+debug_print("PDKE Slide 7.2 Water Sources - Streams")
 
 p <- p + 1
 p7 <- p
@@ -977,15 +982,15 @@ p7 <- p
 S6.2_TIT <- block_list(fpar(ftext("Water Sources", FTXTT), fp_p = fp_par(text.align = "center")))
 
 #Hydrologic features spreadsheet
-HYDRO_FILE <- paste0(PROJECT_FILE_BASE, " Hydro_features.csv")
-print(paste("PDKE: HYDRO_FILE: ", HYDRO_FILE))
+HYDRO_FILE <- paste0(PROJECT_FILE_BASE, "Hydro_features.csv")
+debug_print(paste0("PDKE: HYDRO_FILE: ", HYDRO_FILE))
 HF <- try(read.csv(HYDRO_FILE, sep = ","))
-print(paste("PDKE: HF: ", HF))
-print(paste("PDKE: HF[1]: ", HF[1]))
+#debug_print(paste0("PDKE: HF: ", HF))
+#debug_print(paste0("PDKE: HF[1]: ", HF[1]))
 
 # this was throwing errors as it fails when the df has data in it.  Removing for now until I can figure out why it's needed.
 #if (HF[1] == "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : \n  first five rows are empty: giving up\n") {
-#    print("PDKE: In loop")
+#    debug_print("PDKE: In loop")
 #    HF<-data.frame()
 #}
 
@@ -1011,7 +1016,7 @@ for (i in 2:nrow(HF)) {
     ft <- "no"
   }
 }
-ft
+#ft
 
 #Body text
 HF_T <-
@@ -1028,10 +1033,10 @@ Perennial streams are typically reliable water sources, while intermittent ",
   )
 
 M_HF <-  block_list(fpar(ftext(HF_T, fp_Tx)))
-M_HF
+#M_HF
 
 # map
-HFmapfile <- paste0(PROJECT_FILE_BASE, " Streams.png")
+HFmapfile <- paste0(PROJECT_FILE_BASE, "Streams.png")
 HFmapimg <- external_img(src = HFmapfile)
 
 # legend
@@ -1052,7 +1057,7 @@ FIG_6.b <- block_list(fpar(ftext(
 
 
 ################ Slide 7 PART 1
-print("PDKE Slide 7 PART 1")
+debug_print("PDKE Slide 7 PART 1")
 
 p <- p + 1
 p8 <- p
@@ -1079,7 +1084,7 @@ fp_PART1 <- fpar(ftext(PART1, fp_Tx))
 #NameF_I <- fp_text(italic = TRUE, color = "darkblue", font.size = 20)
 
 ###############   Rainfall Stations Slide 8a
-print("PDKE Slide 8a Rainfall Stations")
+debug_print("PDKE Slide 8a Rainfall Stations")
 
 p <- p + 1
 p9 <- p
@@ -1090,15 +1095,15 @@ S8.0_TIT <- block_list(fpar(
 ))
 
 ### Bring in table of stations and network links
-RAIN_FILE <- paste0(PROJECT_FILE_BASE, " rain_stations.csv")
-print(paste("PDKE: RAIN_FILE: ", RAIN_FILE))
+RAIN_FILE <- paste0(PROJECT_FILE_BASE, "rain_stations.csv")
+debug_print(paste("PDKE: RAIN_FILE: ", RAIN_FILE))
 RS <- read.csv(RAIN_FILE, sep = ",")
 RS_T <- flextable(RS)
 RS_T <- bold(RS_T, bold = TRUE, part = "header")
 RS_T <- fontsize(RS_T, size = 12)
 #Creates a table for the PPT
 RS_T <- autofit(RS_T)
-RS_T
+#RS_T
 
 # get closest station and network
 s1 <- RS[1, 1]
@@ -1130,7 +1135,7 @@ fp_Tx <- fp_text(italic = TRUE,
   color = "black",
   font.size = 19)
 fp_RS1 <- fpar(ftext(RS1, fp_Tx))
-fp_RS1
+#fp_RS1
 
 # Figure 5 caption
 FIG_5.a <- block_list(fpar(ftext(
@@ -1157,12 +1162,12 @@ FIG_6.a <- block_list(fpar(ftext(
 )))
 
 # get map of stations and AOI
-RSfile <- paste0(PROJECT_FILE_BASE, " rf_stations.png")
-print(paste("PDKE: RSfile: ", RSfile))
+RSfile <- paste0(PROJECT_FILE_BASE, "rf_stations.png")
+debug_print(paste0("PDKE: RSfile: ", RSfile))
 RSimg <- external_img(src = RSfile)
 
 ###############   Slide 6 Mean Climate
-print("PDKE Slide 6 Mean Climate")
+debug_print("PDKE Slide 6 Mean Climate")
 
 p <- p + 1
 p10 <- p
@@ -1222,7 +1227,7 @@ Tt <-
     part = c("body", "header"),
     unit = "in"
   )
-Tt
+#Tt
 
 FIG_5.1 <- block_list(fpar(ftext(
   paste0(
@@ -1243,38 +1248,38 @@ FIG_6.1 <- block_list(fpar(ftext(
 )))
 
 #Climate Variable figures
-RF2file <- paste0(PROJECT_FILE_BASE, " Climate_less_RF.png")
+RF2file <- paste0(PROJECT_FILE_BASE, "Climate_less_RF.png")
 RF2img <- external_img(src = RF2file,
   height = 3,
   width = 3)
-TAAfile <- paste0(PROJECT_FILE_BASE, " Climate_less_TA.png")
+TAAfile <- paste0(PROJECT_FILE_BASE, "Climate_less_TA.png")
 TAAimg <- external_img(src = TAAfile,
   height = 3,
   width = 3)
-RHfile <- paste0(PROJECT_FILE_BASE, " Climate_less_RH.png")
+RHfile <- paste0(PROJECT_FILE_BASE, "Climate_less_RH.png")
 RHimg <- external_img(src = RHfile,
   height = 3,
   width = 3)
-SRfile <- paste0(PROJECT_FILE_BASE, " Climate_less_SR.png")
+SRfile <- paste0(PROJECT_FILE_BASE, "Climate_less_SR.png")
 SRimg <- external_img(src = SRfile,
   height = 3,
   width = 3)
-SMfile <- paste0(PROJECT_FILE_BASE, " Climate_less_SM.png")
+SMfile <- paste0(PROJECT_FILE_BASE, "Climate_less_SM.png")
 SMimg <- external_img(src = SMfile,
   height = 3,
   width = 3)
-ETfile <- paste0(PROJECT_FILE_BASE, " Climate_less_ET.png")
+ETfile <- paste0(PROJECT_FILE_BASE, "Climate_less_ET.png")
 ETimg <- external_img(src = ETfile,
   height = 3,
   width = 3)
-WSfile <- paste0(PROJECT_FILE_BASE, " Climate_less_WS.png")
+WSfile <- paste0(PROJECT_FILE_BASE, "Climate_less_WS.png")
 WSimg <- external_img(src = WSfile,
   height = 3,
   width = 3)
 
 si <- 1.65
 ###############   Slide 8 Average monthly rainfall
-print("PDKE Slide 8 Average monthly rainfall")
+debug_print("PDKE Slide 8 Average monthly rainfall")
 
 p <- p + 1
 p11 <- p
@@ -1286,7 +1291,7 @@ S7_TIT <- block_list(fpar(
 # fpar(ftext("and Temperature", FTXTT),fp_p = fp_par(text.align = "center")))
 
 CLIMA <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Annual Climate.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Annual Climate.csv"), sep = ",")
 
 RFT <- CLIMA[1, 2:13]
 MinT <- CLIMA[2, 2:13]
@@ -1348,24 +1353,24 @@ FIG_7a <- block_list(fpar(ftext(
 )))
 
 #Monthly rainfall barchart
-RFBfile <- paste0(PROJECT_FILE_BASE, " Climograph_RF.png")
+RFBfile <- paste0(PROJECT_FILE_BASE, "Climograph_RF.png")
 RFBimg <- external_img(src = RFBfile,
   height = 2,
   width = 1)
 
 #Month rainfall maps
-RFWfile <- paste0(PROJECT_FILE_BASE, " RF_wm.png")
+RFWfile <- paste0(PROJECT_FILE_BASE, "RF_wm.png")
 RFWimg <- external_img(src = RFWfile,
   height = 3,
   width = 3)
 
-RFDfile <- paste0(PROJECT_FILE_BASE, " RF_dm.png")
+RFDfile <- paste0(PROJECT_FILE_BASE, "RF_dm.png")
 RFDimg <- external_img(src = RFDfile,
   height = 3,
   width = 3)
 
 ###############   Slide 9 Average monthly air temperature
-print("PDKE Slide 9 Average monthly air temperature")
+debug_print("PDKE Slide 9 Average monthly air temperature")
 
 p <- p + 1
 p12 <- p
@@ -1411,7 +1416,7 @@ min.col <- function(m, ...)
 TAh <- TAT[max.col(TAT)]
 TAl <- TAT[min.col(TAT)]
 TAv <- round(TAh - TAl, 2)
-TAv
+#TAv
 
 CLIMO_TA <-
   paste0(
@@ -1453,23 +1458,23 @@ FIG_9a <- block_list(fpar(ftext(
 )))
 
 #Monthly temp line chart
-TALfile <- paste0(PROJECT_FILE_BASE, " Climograph_AT.png")
+TALfile <- paste0(PROJECT_FILE_BASE, "Climograph_AT.png")
 TALimg <- external_img(src = TALfile,
   height = 2,
   width = 1)
 
 #Month rainfall maps
-TACfile <- paste0(PROJECT_FILE_BASE, " TA_cm.png")
+TACfile <- paste0(PROJECT_FILE_BASE, "TA_cm.png")
 TACimg <- external_img(src = TACfile,
   height = 3,
   width = 3)
 
-TAHfile <- paste0(PROJECT_FILE_BASE, " TA_hm.png")
+TAHfile <- paste0(PROJECT_FILE_BASE, "TA_hm.png")
 TAHimg <- external_img(src = TAHfile,
   height = 3,
   width = 3)
 ###############   Slide 8 TA And RF
-print("PDKE Slide 8 TA And RF")
+debug_print("PDKE Slide 8 TA And RF")
 
 p <- p + 1
 p13 <- p
@@ -1479,12 +1484,12 @@ S8_TIT <- block_list(fpar(
   fp_p = fp_par(text.align = "center")
 ))
 
-TAfile <- paste0(PROJECT_FILE_BASE, " TA12.png")
+TAfile <- paste0(PROJECT_FILE_BASE, "TA12.png")
 TAimg <- external_img(src = TAfile ,
   height = 3,
   width = 3)
 
-RFFfile <- paste0(PROJECT_FILE_BASE, " RF12.png")
+RFFfile <- paste0(PROJECT_FILE_BASE, "RF12.png")
 RFFimg <- external_img(src = RFFfile ,
   height = 3,
   width = 3)
@@ -1508,7 +1513,7 @@ FIG_6 <- block_list(fpar(ftext(
 )))
 
 ###############   Slide 9 Seasonal Rainfall
-print("PDKE Slide 9 Seasonal Rainfall")
+debug_print("PDKE Slide 9 Seasonal Rainfall")
 
 p <- p + 1
 p14 <- p
@@ -1518,7 +1523,7 @@ S9_TIT <- block_list(fpar(
   fp_p = fp_par(text.align = "center")
 ))
 
-CLIM
+#CLIM
 
 #Season
 DSeaMRF  <- round(CLIM[1, 13], 0)
@@ -1554,7 +1559,7 @@ P <-
   read.csv(paste0(PROJECT_FILE_BASE, "RF percentiles.csv"), sep = ",")
 D_RF_P <- P[1, 2]
 W_RF_P <- P[1, 1]
-RFUnit3
+#RFUnit3
 
 SEA <-
   paste0(
@@ -1593,7 +1598,7 @@ FIG_12.1 <- block_list(fpar(ftext(
 )))
 
 #Mean CLIM Figure
-SEAfile <- paste0(PROJECT_FILE_BASE, " SeaMRF.png")
+SEAfile <- paste0(PROJECT_FILE_BASE, "SeaMRF.png")
 SEAimg <- external_img(src = SEAfile,
   height = 3,
   width = 3)
@@ -1601,13 +1606,13 @@ SEAimg <- external_img(src = SEAfile,
 
 
 ###############   Slide 10  Average Climate Table
-print("PDKE Slide 10  Average Climate Table")
+debug_print("PDKE Slide 10  Average Climate Table")
 
 p <- p + 1
 p15 <- p
 
 ACLIM <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Annual Climate.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Annual Climate.csv"), sep = ",")
 ACLIM2 <- ACLIM[, 1:13]
 ACLIM_T <- flextable(ACLIM)
 ACLIM_T <- bg(ACLIM_T, bg = "yellow", part = "header")
@@ -1636,7 +1641,7 @@ TAB1 <- block_list(fpar(ftext(
 
 
 ################ Slide 12
-print("PDKE Slide 12")
+debug_print("PDKE Slide 12")
 
 p <- p + 1
 p16 <- p
@@ -1690,17 +1695,17 @@ ft4 <-
   )))
 
 ################ Slide 13 Seasonal Rainfall and ENSO
-print("PDKE Slide 13 Seasonal Rainfall and ENSO")
+debug_print("PDKE Slide 13 Seasonal Rainfall and ENSO")
 
 p <- p + 1
 p17 <- p
 
-MEIRF <- read.csv(paste0(PROJECT_FILE_BASE, " MEI_S.csv"), sep = ",")
-MEIRF
+MEIRF <- read.csv(paste0(PROJECT_FILE_BASE, "MEI_S.csv"), sep = ",")
+#MEIRF
 
 # get last year
 rf <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Annual_RF_in.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Annual_RF_in.csv"), sep = ",")
 yr <- rf[nrow(rf), ]$Date
 
 EN_TIT <- block_list(fpar(
@@ -1711,29 +1716,29 @@ EN_TIT <- block_list(fpar(
 # SEL wet season rainfall
 SEL_RFW <- MEIRF[which(MEIRF$Season == "wet"), ]
 SEL_RFW <- SEL_RFW[which(SEL_RFW$Phase == "Strong El Nino"), ]$Mean
-SEL_RFW
+#SEL_RFW
 
 # SLA dry season rainfall
 SLA_RFD <- MEIRF[which(MEIRF$Season == "dry"), ]
 SLA_RFD <- SLA_RFD[which(SLA_RFD$Phase == "Strong La Nina"), ]$Mean
-SLA_RFD
+#SLA_RFD
 
 # Longterm average seasonal rainfalls (across all ENSO phases)
 WetSA <- MEIRF[which(MEIRF$Season == "wet"), ]
 WetSA <- mean(WetSA$Mean)
-WetSA
+#WetSA
 
 DrySA <- MEIRF[which(MEIRF$Season == "dry"), ]
 DrySA <- mean(DrySA$Mean)
-DrySA
+#DrySA
 
 # SEL wet season rainfall % difference from overall average
 DifWRF <- round(((WetSA - SEL_RFW) / WetSA) * 100, 0)
-DifWRF
+#DifWRF
 
 # SLA dry season rainfall % difference from overall average
 DifDRF <- round(((DrySA - SLA_RFD) / DrySA) * 100, 0)
-DifDRF
+#DifDRF
 
 MEI2 <-
   paste0(
@@ -1764,7 +1769,7 @@ FIG_14.1 <- block_list(fpar(ftext(
 )))
 
 #################### Slide 14 ###############################
-print("PDKE Slide 14")
+debug_print("PDKE Slide 14")
 
 p <- p + 1
 p18 <- p
@@ -1787,14 +1792,14 @@ fp_Tx <- fp_text(italic = TRUE,
   font.size = 20)
 fp_Trend <- fpar(ftext(Trend, fp_Tx))
 
-Trendfile <- paste0(PROJECT_FILE_BASE, " RF_Trend.png")
+Trendfile <- paste0(PROJECT_FILE_BASE, "RF_Trend.png")
 Trendimg <- external_img(src = Trendfile,
   height = 2,
   width = 2)
 
 ### Bring in table of periods and trend directions
 RFT <-
-  read.csv(paste0(PROJECT_FILE_BASE, " RF_trend_directions.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "RF_trend_directions.csv"), sep = ",")
 RFT_T <- flextable(RFT)
 # RFT_T <- bold(RFT_T, bold = T, part = "header")
 RFT_T <- fontsize(RFT_T, size = 14)
@@ -1822,7 +1827,7 @@ FIG_9 <- block_list(fpar(ftext(
 
 
 #################### Slide 14 (NEW) Air Temperature Monthly and Annual #########################
-print("PDKE Slide 14 (NEW) Air Temperature Monthly and Annual")
+debug_print("PDKE Slide 14 (NEW) Air Temperature Monthly and Annual")
 
 p <- p + 1
 p19 <- p
@@ -1833,11 +1838,11 @@ S14_TIT <- block_list(fpar(
 ))
 
 # use monthly air temperature data to figure out values for text
-AT_FILE <- paste0(PROJECT_FILE_BASE, "_monthly_airtemp.csv")
-print(paste("PDKE: AT_FILE: ", AT_FILE))
+AT_FILE <- paste0(PROJECT_FILE_BASE, "monthly_airtemp.csv")
+debug_print(paste("PDKE: AT_FILE: ", AT_FILE))
 
 AT <- read.csv(AT_FILE, sep = ",")
-print(paste("PDKE: AT: ", AT))
+#debug_print(paste("PDKE: AT: ", AT))
 
 # get average annual air temperature values
 AT2 <- aggregate(mean ~ year, AT, mean)
@@ -1870,11 +1875,11 @@ AT$range <- AT$max - AT$min
 ra <- round(mean(AT$range), 1)
 
 # find month-year with hottest temp
-ATd_FILE <- paste0(PROJECT_FILE_BASE, "_daily_airtemp.csv")
-print(paste("PDKE: ATd_FILE: ", ATd_FILE))
+ATd_FILE <- paste0(PROJECT_FILE_BASE, "daily_airtemp.csv")
+debug_print(paste("PDKE: ATd_FILE: ", ATd_FILE))
 
 ATd <- read.csv(ATd_FILE, sep = ",")
-head(ATd)
+#head(ATd)
 mt <- max(ATd$max.x)
 mt2 <- round(mt, 1)
 
@@ -1936,7 +1941,7 @@ AirTrend <-
     " by ",
     airchange2
   )
-AirTrend
+#AirTrend
 
 fp_Tx <- fp_text(italic = TRUE,
   color = "black",
@@ -1958,15 +1963,15 @@ AirTrend2 <-
   )
 fp_AirTrend2 <- fpar(ftext(AirTrend2, fp_Tx))
 
-Trendfile1 <- paste0(PROJECT_FILE_BASE, "_monthly_airtemp.png")
-print(paste("PDKE: Trendfile1: ", Trendfile1))
+Trendfile1 <- paste0(PROJECT_FILE_BASE, "monthly_airtemp.png")
+debug_print(paste("PDKE: Trendfile1: ", Trendfile1))
 
 Trendimg1 <- external_img(src = Trendfile1,
   height = 1,
   width = 2)
 
 Trendfile2 <- paste0(I_FOLDER, "airtemp_legend2.jpg")
-print(paste("PDKE: Trendfile2: ", Trendfile2))
+debug_print(paste("PDKE: Trendfile2: ", Trendfile2))
 Trendimg2 <- external_img(src = Trendfile2,
   height = 1,
   width = 1)
@@ -1994,7 +1999,7 @@ ft5 <-
   )))
 
 ################ Slide 15 PART 4 Drought and Fire Occurrence ###############
-print("PDKE Slide 15 PART 4 Drought and Fire Occurrence")
+debug_print("PDKE Slide 15 PART 4 Drought and Fire Occurrence")
 
 #Today,
 #increased wildland fire activity,
@@ -2021,7 +2026,7 @@ fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 
 
 ####################  SLIDE 16 FIVE TYPES OF DROUght######################################
-print("PDKE Slide 16 FIVE TYPES OF DROUght")
+debug_print("PDKE Slide 16 FIVE TYPES OF DROUght")
 
 p <- p + 1
 p21 <- p
@@ -2043,7 +2048,7 @@ fp_Tx <- fp_text(italic = TRUE,
 fp_D_t <- fpar(ftext(D_t, fp_Tx))
 
 #################### Slide 17 ###############################
-print("PDKE Slide 17")
+debug_print("PDKE Slide 17")
 
 p <- p + 1
 p22 <- p
@@ -2071,7 +2076,7 @@ SPI <-
 
 fp_SPI <- fpar(ftext(SPI, fp_Txa))
 
-SPIfile <- paste0(PROJECT_FILE_BASE, " SPI.png")
+SPIfile <- paste0(PROJECT_FILE_BASE, "SPI.png")
 SPIimg <- external_img(src = SPIfile,
   height = 2,
   width = 2)
@@ -2091,7 +2096,7 @@ FIG_12 <- block_list(fpar(ftext(
 
 
 #################### Slide 18 ###############################
-print("PDKE Slide 18")
+debug_print("PDKE Slide 18")
 
 p <- p + 1
 p23 <- p
@@ -2104,7 +2109,7 @@ S16_TIT <- block_list(fpar(
 
 #INFO for Slides 16 & 17
 DROT <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Drought History.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Drought History.csv"), sep = ",")
 
 D_Sum <- sum(!is.na(DROT$A.Intensity))
 #if(DROT$P.Intensity[D_Sum] > 1){DROT <- DROT[-D_Sum,]}
@@ -2153,7 +2158,7 @@ if (Drot_ct > 24) {
 DrotT_T1 <- flextable(DROT1[1:6])
 DrotT_T1 <- bg(DrotT_T1, bg = "orange", part = "header")
 DrotT_T1 <- autofit(DrotT_T1)
-DrotT_T1
+#DrotT_T1
 
 if (exists("DROT2")) {
   DrotT_T2 <- flextable(DROT2[1:6])
@@ -2220,16 +2225,16 @@ FIG_13 <- block_list(fpar(ftext(
 
 
 #################### Slide 20 ###############################
-print("PDKE Slide 20")
+debug_print("PDKE Slide 20")
 
 p <- p + 1
 p24 <- p
 
 SPI_NA <-
-  read.csv(paste0(PROJECT_FILE_BASE, " SPI_NEGS_ALL.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "SPI_NEGS_ALL.csv"), sep = ",")
 SPI_NA <- SPI_NA[which(!is.na(SPI_NA$date)), ]
 SPICNT <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Drought Count.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Drought Count.csv"), sep = ",")
 
 SP_TIT <- block_list(fpar(
   ftext("Short-term vs Long-term Droughts", FTXTT),
@@ -2268,7 +2273,7 @@ SPI3v12 <- block_list(fpar(ftext(
 
 # bring in monthly rainfall dataset to get dates
 MRF <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Monthly Rainfall_in.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Monthly Rainfall_in.csv"), sep = ",")
 RFC <- MRF[nrow(MRF), ]
 
 RFC.y <- RFC$Year
@@ -2313,16 +2318,16 @@ if (RFC$Month == 12) {
 ### determine current drought status
 # SPI3
 # spi3A<-read.csv(paste0(PROJECT_FILE_BASE,"SPI_3.csv"),sep = ",")
-head(SPI_NA, 20)
+#head(SPI_NA, 20)
 spi3A <- SPI_NA[which(SPI_NA$m.scale == 3), ]
 spi3C <- round(spi3A[nrow(spi3A), ]$spi_negs, 1)
-spi3C
-tail(spi3A, 30)
+#spi3C
+#tail(spi3A, 30)
 
 spi3H <-
   read.csv(paste0(PROJECT_FILE_BASE, "Drought History SPI_3.csv"), sep = ",")
 spi3HC <- spi3H[nrow(spi3H), ]
-spi3HC
+#spi3HC
 
 if (spi3HC$P.Intensity <= 1.5) {
   spi3HRL <- "moderate"
@@ -2365,18 +2370,18 @@ if (is.na(spi3HC$End)) {
       "."
     )
 }
-spi3CT
+#spi3CT
 
 # SPI12
 # spi12A<-read.csv(paste0(PROJECT_FILE_BASE,"SPI_12.csv"),sep = ",")
 spi12A <- SPI_NA[which(SPI_NA$m.scale == 12), ]
 spi12C <- round(spi12A[nrow(spi12A), ]$spi_negs, 1)
-tail(spi12A, 20)
+#tail(spi12A, 20)
 
 spi12H <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Drought History.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Drought History.csv"), sep = ",")
 spi12HC <- spi12H[nrow(spi12H), ]
-spi12HC
+#spi12HC
 
 if (spi12HC$P.Intensity <= 1.5) {
   spi12HRL <- "moderate"
@@ -2419,7 +2424,7 @@ if (is.na(spi12HC$End)) {
       "."
     )
 }
-spi12CT
+#spi12CT
 
 SPI3v12.1 <- block_list(fpar(ftext(
   paste0(
@@ -2431,13 +2436,13 @@ SPI3v12.1 <- block_list(fpar(ftext(
   ),
   fp_NM8
 )))
-SPI3v12.1
+#SPI3v12.1
 
 SPI3v12.2 <- block_list(fpar(ftext(paste0(spi3CT), fp_Txa)))
-SPI3v12.2
+#SPI3v12.2
 
 SPI3v12.3 <- block_list(fpar(ftext(paste0(spi12CT), fp_Txa)))
-SPI3v12.3
+#SPI3v12.3
 
 # A total of ", SPICNT[1,3], " droughts were observed at ",
 #  SNameF , ". Over this same time period, only ", SPICNT[1,4] ," droughts were identified when looking at the SPI-12 timeseries. It is important to compare the 3-month SPI with longer time scales. ",
@@ -2445,7 +2450,7 @@ SPI3v12.3
 # "would prevent a misinterpretation that a drought might be over."), fp_Txa)))
 
 #################### Slide 21 ###############################
-print("PDKE Slide 21")
+debug_print("PDKE Slide 21")
 
 p <- p + 1
 p25 <- p
@@ -2469,7 +2474,7 @@ fp_Tx <- fp_text(italic = TRUE,
   font.size = 20)
 fp_Fire <- fpar(ftext(FIRE, fp_Tx))
 
-FireMfile <- paste0(PROJECT_FILE_BASE, " Fire.png")
+FireMfile <- paste0(PROJECT_FILE_BASE, "Fire.png")
 FireMimg <- external_img(src = FireMfile)
 
 
@@ -2484,7 +2489,7 @@ FIG_16 <- block_list(fpar(ftext(
 
 
 ################ Slide 22 PART 5 Downscaling ###############
-print("PDKE Slide 22 PART 5 Downscaling")
+debug_print("PDKE Slide 22 PART 5 Downscaling")
 
 p <- p + 1
 p26 <- p
@@ -2544,7 +2549,7 @@ fp_Part4.4 <- fpar(ftext(Part4.4, fp_Tx))
 
 
 #################### Slide 23 ###############################
-print("PDKE Slide 23")
+debug_print("PDKE Slide 23")
 
 p <- p + 1
 p27 <- p
@@ -2559,7 +2564,7 @@ S21_TIT <- block_list(fpar(
   ))
 
 Down <-
-  read.csv(paste0(PROJECT_FILE_BASE, " Downscaling.csv"), sep = ",")
+  read.csv(paste0(PROJECT_FILE_BASE, "Downscaling.csv"), sep = ",")
 
 # Get PERCENT CHANGE values
 RFA_Thresh40 <-   Down[c(15, 18), 2]
@@ -2575,13 +2580,13 @@ RF40_4.5 <- round(RFA * (RFA_Thresh40_4.5 * 0.01), 0)
 RF40_8.5 <- round(RFA * (RFA_Thresh40_8.5 * 0.01), 0)
 
 AnnualRM_in  <- paste0(RF40_4.5, " to ", RF40_8.5, " in/year")
-AnnualRM_in
+#AnnualRM_in
 AnnualRM  <-
   paste0(RFA_Thresh40_4.5,
     " to ",
     RFA_Thresh40_8.5,
     "% change from present")
-AnnualRM
+#AnnualRM
 
 # choose whether text says "increase" or "decrease"
 ifelse(RFA_Thresh40_4.5 >= 0,
@@ -2617,12 +2622,12 @@ RF_Down4 <-  block_list(
     fp_NM2
   ))
 )
-RF_Down4
+#RF_Down4
 
 #RF40file <- paste0(PROJECT_FILE_BASE," StDsRF2040.png")
 #RF40img <- external_img(src = RF40file, height = 6,width = 4)
 
-RF40file <- paste0(PROJECT_FILE_BASE, " StDsRF2040.png")
+RF40file <- paste0(PROJECT_FILE_BASE, "StDsRF2040.png")
 RF40img <- external_img(src = RF40file)
 
 FIG_18 <- block_list(fpar(ftext(
@@ -2638,7 +2643,7 @@ FIG_18 <- block_list(fpar(ftext(
 
 
 ##################### Slide 24 #################################################
-print("PDKE Slide 24")
+debug_print("PDKE Slide 24")
 
 p <- p + 1
 p28 <- p
@@ -2666,7 +2671,7 @@ y1 <-
     RFA_Thresh100_S8.5)
 y1 <- data.frame(t(y1))
 y1 <- y1[order(y1$t.y1.), ]
-y1
+#y1
 
 RF100_min <- min(y1)
 RF100_max <- max(y1)
@@ -2684,7 +2689,7 @@ AnnualR  <-
     "to",
     max(RFA_Thresh100),
     "% change from present")
-AnnualR
+#AnnualR
 
 # get minimum and maximum AMMOUNT change
 RFA <- CLIMA[1, 14]
@@ -2699,13 +2704,13 @@ if (MaxRF >= 0) {
 
 # get RCP setting AMOUNT changes
 RF100_4.5a <- round(RFA * (RF100_min * 0.01), 0)
-RF100_4.5a
+#RF100_4.5a
 RF100_8.5a <- round(RFA * (RF100_max * 0.01), 0)
-RF100_8.5a
+#RF100_8.5a
 # choose whether text says "increase" or "decrease"
 ifelse(RF100_min >= 0, RF100_4.5t <-
     "increase", RF100_4.5t <- "decrease")
-RF100_4.5t
+#RF100_4.5t
 ifelse(RF100_max >= 0, RF100_8.5t <-
     "increase", RF100_8.5t <- "decrease")
 
@@ -2793,7 +2798,7 @@ if (a != b && c != d)
       fp_NM2
     )
 }
-AnnualR
+#AnnualR
 RF_Down <-  block_list(
   fpar(ftext("Rainfall in the Year 2100" , fp_NM5)),
   fpar(ftext("                    ", fp_Fig2)),
@@ -2811,9 +2816,9 @@ RF_Down <-  block_list(
   fpar(ftext("                    ", fp_Fig2)),
   fpar(RF2100t)
 )
-RF_Down
+#RF_Down
 
-RF10085file <- paste0(PROJECT_FILE_BASE, " DS_RF_8.5_v2.png")
+RF10085file <- paste0(PROJECT_FILE_BASE, "DS_RF_8.5_v2.png")
 RF10085img <-
   external_img(src = RF10085file,
     height = 4,
@@ -2832,7 +2837,7 @@ FIG_17 <- block_list(fpar(ftext(
 
 
 #################### Slide 25 Temperature 2040
-print("PDKE Slide 25 Temperature 2040")
+debug_print("PDKE Slide 25 Temperature 2040")
 
 p <- p + 1
 p29 <- p
@@ -2850,13 +2855,13 @@ S23_TIT <- block_list(fpar(
   ))
 
 # get AMMOUNT change (deg F)
-Down
+#Down
 TAA_Thresh40_4.5 <-   Down[c(23), 2]
-TAA_Thresh40_4.5
+#TAA_Thresh40_4.5
 TAA_Thresh40_8.5 <-   Down[c(24), 2]
 
 TAA_RM  <- paste0(TAA_Thresh40_4.5, " to ", TAA_Thresh40_8.5, "°F")
-TAA_RM
+#TAA_RM
 
 # get percent change
 TAA <- CLIMA[3, 14]
@@ -2865,7 +2870,7 @@ TA40_8.5 <- round((TAA_Thresh40_8.5 * 100) / TAA, 0)
 
 TAAnnualRM  <-
   paste0(TA40_4.5, " to ", TA40_8.5, "% change from present")
-TAAnnualRM
+#TAAnnualRM
 
 # choose whether text says "increase" or "decrease"
 ifelse(TAA_Thresh40_4.5 >= 0,
@@ -2901,9 +2906,9 @@ TA_Down4 <-  block_list(
     fp_NM2
   ))
 )
-TA_Down4
+#TA_Down4
 
-TA40file <- paste0(PROJECT_FILE_BASE, " StDs_Temp2040.png")
+TA40file <- paste0(PROJECT_FILE_BASE, "StDs_Temp2040.png")
 TA40img <- external_img(src = TA40file)
 
 FIG_20 <- block_list(fpar(ftext(
@@ -2918,7 +2923,7 @@ FIG_20 <- block_list(fpar(ftext(
 )))
 
 #################### Slide 25 Temperature 2100
-print("PDKE Slide 26")
+debug_print("PDKE Slide 26")
 
 p <- p + 1
 p30 <- p
@@ -2976,7 +2981,7 @@ ifelse(TA100_8.5c >= 0,
 # ifelse(TA100_8.5c>=0, TA100_8.5c<-paste0("+ ",TA100_8.5c), TA100_8.5c<-TA100_8.5c)
 
 AnnualT  <- paste(MinTA, " to ", MaxTA, "% change from present")
-AnnualT
+#AnnualT
 # DryR  <- paste(min(TAD_Thresh100), " to ", max(TAD_Thresh100), "% Change")
 # WetR  <- paste(min(TAW_Thresh100), " to ", max(TAW_Thresh100), "% Change")
 #
@@ -3057,7 +3062,7 @@ if (a != b && c != d)
       fp_NM2
     )
 }
-TA2100t
+#TA2100t
 
 TA_Down <-  block_list(
   fpar(ftext("Air Temp. in the Year 2100" , fp_NM5)),
@@ -3070,15 +3075,15 @@ TA_Down <-  block_list(
   fpar(ftext("                    ", fp_Fig2)),
   fpar(TA2100t)
 )
-TA_Down
+#TA_Down
 
-RF10085file <- paste0(PROJECT_FILE_BASE, " DS_RF_8.5_v2.png")
+RF10085file <- paste0(PROJECT_FILE_BASE, "DS_RF_8.5_v2.png")
 RF10085img <-
   external_img(src = RF10085file,
     height = 4,
     width = 4)
 
-TA100file <- paste0(PROJECT_FILE_BASE, " DS_Temp2100.png")
+TA100file <- paste0(PROJECT_FILE_BASE, "DS_Temp2100.png")
 TA100img <- external_img(src = TA100file)
 
 FIG_19 <- block_list(fpar(ftext(
@@ -3094,7 +3099,7 @@ FIG_19 <- block_list(fpar(ftext(
 
 
 ################ Slide 27 Summary and Conclusions ###############
-print("PDKE Slide 27 Summary and Conclusions")
+debug_print("PDKE Slide 27 Summary and Conclusions")
 
 p <- p + 1
 p31 <- p
@@ -3288,7 +3293,7 @@ fp_RES <-  block_list(
 #             ph_label = "Content Placeholder 2", href = "https://cran.r-project.org")
 
 ################ Slide 29 Acknowledgements ###############
-print("PDKE Slide 29 Acknowledgements")
+debug_print("PDKE Slide 29 Acknowledgements")
 
 p <- p + 1
 p33 <- p
@@ -3340,7 +3345,7 @@ Draft <- block_list(fpar(
 ))
 
 ############## Slide 30 Works Cited ###########
-print("PDKE Slide 30 Works Cited")
+debug_print("PDKE Slide 30 Works Cited")
 
 p <- p + 1
 p34 <- p
@@ -3355,7 +3360,7 @@ Worksimg <- external_img(src = Worksfile ,
 
 
 ############### Slide 31 ANNEX I ###############
-print("PDKE Slide 31 ANNEX I")
+debug_print("PDKE Slide 31 ANNEX I")
 
 p <- p + 1
 p35 <- p
@@ -3375,7 +3380,7 @@ fp_Tx <- fp_text(italic = TRUE,
   font.size = 18)
 fp_RF100 <- fpar(ftext(RF100, fp_Tx))
 
-SCAfile <- paste0(PROJECT_FILE_BASE, " 23yr_RF_Compare.png")
+SCAfile <- paste0(PROJECT_FILE_BASE, "23yr_RF_Compare.png")
 SCAimg <- external_img(src = SCAfile)
 
 FIG_A1 <- block_list(fpar(ftext(
@@ -3392,7 +3397,7 @@ FIG_A1 <- block_list(fpar(ftext(
 
 
 ################ Slide 32 ANNEX II #############
-print("PDKE Slide 32 ANNEX II")
+debug_print("PDKE Slide 32 ANNEX II")
 
 p <- p + 1
 p36 <- p
@@ -3417,7 +3422,7 @@ fp_DownA <- fpar(ftext(DownA, fp_Tx))
 
 
 #################### History of Drought Events table
-print("PDKE History of Drought Events table")
+debug_print("PDKE History of Drought Events table")
 
 p <- p + 1
 p37 <- p
@@ -3449,15 +3454,15 @@ TAB3 <- block_list(fpar(ftext(
 ###############
 ###############  SLIDE DECK
 ###############
-print("SLIDE DECK")
+debug_print("SLIDE DECK")
 
 # Check if the MINI_PPT directory exists
 if (!file.exists(P_FOLDER)) {
   # If the directory does not exist, create it
   dir.create(P_FOLDER)
-  cat("Directory created:", P_FOLDER, "\n")
+  debug_print(paste0("Directory created: ", P_FOLDER))
 } else {
-  cat("Directory already exists:", P_FOLDER, "\n")
+  debug_print(paste0("Directory already exists: ", P_FOLDER))
 }
 
 #Look up office themes for R PPT
@@ -5089,9 +5094,9 @@ mypowerpoint <- read_pptx() %>%
   ######### see how long the whole script takes, typically < 6 seconds #########
   
   end_time <- Sys.time()
-  print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
-  print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
-  print(paste0("Execution time: ", end_time - start_time))
+  debug_print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
+  debug_print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
+  debug_print(paste0("Execution time: ", end_time - start_time))
   
   
   # ######### send email saying the file is ready #########
@@ -5107,17 +5112,17 @@ mypowerpoint <- read_pptx() %>%
       return(x)
     }
   }
-  
+
   # Define the request body
   # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
   req <- list(
     "recepients" = c(email), # add hcdp@hawaii.edu
     "type" = "Info",
     "source" = "PDKE",
-    "message" = paste("Your data is ready at", final_filename)
+    "message" = paste0("Your data is ready at: ", final_filename, ".  You may also download the shapefile of the target area here: ", SHAPEFILE)
   )
   req_json <- toJSON(req, unbox = my_unbox)
-  print(req_json)  # Print the JSON string
+  debug_print(req_json)  # Print the JSON string
   
   json_data <- fromJSON(paste0(BASE_DIR,"/credentials.json"))
   # Parse out the value for "bearer"
@@ -5135,9 +5140,9 @@ mypowerpoint <- read_pptx() %>%
   
   # Check for success
   if (status_code(response) == 200) {
-    print("Notification sent successfully!")
+    debug_print("Notification sent successfully!")
   } else {
-    print(paste0(
+    debug_print(paste0(
       "Error sending notification: ",
       status_code(response),
       " - ",
