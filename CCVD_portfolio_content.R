@@ -1,3 +1,7 @@
+# to test via command line, no interface needed
+# Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp Kaa Kaa Lanai LA
+# to redirect all output to a file, use R CMD BATCH, it creates a file called CCVD_portfolio_content.Rout
+
 # for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
 start_time <- Sys.time()
 
@@ -7,6 +11,8 @@ PROJ_DEBUG = 3
 #install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 #install.packages("rgdal", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 #install.packages("rgeos", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+#install.packages("gridExtra", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+#install.packages("ggplot2", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 
 packages <-
   c(
@@ -48,27 +54,49 @@ packages <-
     "zoo"
   )
 for (package in packages) {
-  print(paste("pkgTest: ", package))
-  # require() returns TRUE if the packages is loaded, FALSE if it isn't.
+  # First attempt to install the package
   if (!require(package, character.only = TRUE)) {
-    print(paste("  ", package, "1"))
-    install.packages(package, dep = TRUE, repos = 'http://cran.us.r-project.org')
+    print(paste("Trying to install", package, "from primary repository..."))
+    tryCatch({
+      install.packages(package, dep = TRUE, repos = 'http://cran.us.r-project.org')
+      if (!require(package, character.only = TRUE)) {
+        stop("Package installation failed from primary repository.")
+      }
+    }, error = function(e) {
+      print(paste("Error installing", package, "from primary repository:", e$message))
+    })
   }
-  else if (!require(package, character.only = TRUE)) {
-    print(paste("  ", package, "2"))
-    install.packages(package, dep = TRUE, repos = 'https://packagemanager.posit.co/cran/2023-10-13')
+  
+  # Second attempt if the first one fails
+  if (!require(package, character.only = TRUE)) {
+    print(paste("Trying to install", package, "from secondary repository..."))
+    tryCatch({
+      install.packages(package, dep = TRUE, repos = 'https://packagemanager.posit.co/cran/2023-10-13')
+      if (!require(package, character.only = TRUE)) {
+        stop("Package installation failed from secondary repository.")
+      }
+    }, error = function(e) {
+      print(paste("Error installing", package, "from secondary repository:", e$message))
+    })
   }
-  else if (!require(package, character.only = TRUE)) {
-    print(paste("  ", package, "3"))
-    install.packages(package, dep = TRUE, repos = 'http://cran.rstudio.com/')
+  
+  # Third attempt if the second one fails
+  if (!require(package, character.only = TRUE)) {
+    print(paste("Trying to install", package, "from tertiary repository..."))
+    tryCatch({
+      install.packages(package, dep = TRUE, repos = 'http://cran.rstudio.com/')
+      if (!require(package, character.only = TRUE)) {
+        stop("Package installation failed from tertiary repository.")
+      }
+    }, error = function(e) {
+      print(paste("Error installing", package, "from tertiary repository:", e$message))
+    })
   }
-  else if (!require(package, character.only = TRUE)) {
-    print(paste("Package: ", package, " not found"))
-  }
-  if (require(package, character.only = TRUE)) {
-    print(paste("Package: ", package, " installed"))
-    library(package, character.only = TRUE, quietly = TRUE)
-    
+  # Final check if the package is still not available
+  if (!require(package, character.only = TRUE)) {
+    print(paste("Failed to install or load", package))
+  } else {
+    print(paste(package, "loaded successfully."))
   }
 }
 
@@ -79,25 +107,39 @@ for (package in packages) {
 
 ##########################################################################################################################
 
-# would normally do a print or cat w/o using stderr, but it's the only thing
-# that gets the shiny server on prod to actually print something.
-cat(file = stderr(), "In CCVD_portfolio_content.R", "\n")
+debug_print <- function(content) {
+  # would normally do a print or cat w/o using stderr, but this the only thing
+  # that gets the shiny server on prod to actually print something.
+  #cat(file = stderr(), content, "\n")
+  
+  print(content)
+}
+
+
+#cat(file = stderr(), "In CCVD_portfolio_content.R", "\n")
+debug_print("In CCVD_portfolio_content.R")
 
 # non-user provided values
 BASE_DIR <- "/Users/jgeis/Work/PDKE"
+#BASE_DIR <- "/srv/shiny-server"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 INPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")       # INPUT FOLDER
 OUTPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/")       # OUTPUT FOLDER
-rscript_path = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript
-myscript_path = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
+RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript
+MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 #phase2_dir = paste0(BASE_DIR,"/CCVD/MINI_Phase2/")
-print(paste("PDKE: 1,INPUTS_FOLDER: ", INPUTS_FOLDER))
-print(paste("PDKE: 1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
+#datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+
+debug_print(paste("PDKE: 1,BASE_DIR: ", BASE_DIR))
+debug_print(paste("PDKE: 1,WORKING_DIR: ", WORKING_DIR))
+debug_print(paste("PDKE: 1,INPUTS_FOLDER: ", INPUTS_FOLDER))
+debug_print(paste("PDKE: 1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
 
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
-cat(file = stderr(), "args:", length(args), "\n")
+#cat(file = stderr(), "args:", length(args), "\n")
+debug_print(paste0("args:", length(args)))
 
 email <- args[1];
 NP_FILE <- args[2];
@@ -105,6 +147,10 @@ NM <- args[3];
 NM_s <- args[4];
 ILE <- args[5];
 ILE_s <- args[6];
+
+# Extract the date and time string from the passed-in shape file using a regular expression
+datetime_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", NP_FILE)
+debug_print(paste0("datetime_str: ", datetime_str))
 
 # user provided values
 #NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
@@ -120,12 +166,12 @@ ILE_s <- args[6];
 # cat(file = stderr(), "ILE: ", ILE, "\n")
 # cat(file = stderr(), "ILE_s: ", ILE_s, "\n")
 
-cat("email: ", email, "\n")
-cat("NP_FILE: ", NP_FILE, "\n")
-cat("NM: ", NM, "\n")
-cat("NM_s: ", NM_s, "\n")
-cat("ILE: ", ILE, "\n")
-cat("ILE_s: ", ILE_s, "\n")
+debug_print(paste0("email: ", email))
+debug_print(paste0("NP_FILE: ", NP_FILE))
+debug_print(paste0("NM: ", NM))
+debug_print(paste0("NM_s: ", NM_s))
+debug_print(paste0("ILE: ", ILE))
+debug_print(paste0("ILE_s: ", ILE_s))
 
 #ISLAND_FULL_NAMES <- c("Hawaiʻi", "Maui", "Kahoʻolawe", "Lānaʻi", "Molokaʻi", "Oʻahu", "Kauaʻi", "Niʻihau")
 #ISLAND_SHORT_NAMES <- c("BI", "MN", "KO", "LA","MO","OA","KA")
@@ -383,8 +429,15 @@ print("PDKE: 22")
 
 ##########   Forest Roads
 # F_Roads <- readOGR(paste0(INPUTS_FOLDER,"Forestry Roads/Forestry_Roads.shp"))
+print("PDKE: 22.1")
+
+print(paste0("INPUTS_FOLDER: ", INPUTS_FOLDER))
+print("PDKE: 22.2")
+
 F_Roads_File <-
   paste0(INPUTS_FOLDER, "Forestry Roads/Forestry_Roads.shp")
+print("PDKE: 22.3")
+
 print(paste("PDKE: 23,F_Roads_File", F_Roads_File))
 F_Roads <- readOGR(F_Roads_File)
 F_Roads <- spTransform(F_Roads, crs(EXAMP))
@@ -595,13 +648,21 @@ print(UNIT_N[u])         # Name Of Unit
 print("Maps")
 
 #Create A Directory for Output
-path <- paste0(OUTPUTS_FOLDER, UNIT_N[u])
-print(paste("PDKE 29, PATH:", path))
-dir.create(path, showWarnings = TRUE, recursive = FALSE)
+debug_print(paste("OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
+debug_print(paste("UNIT_N[u]: ", UNIT_N[u]))
+debug_print(paste("datetime_str: ", datetime_str))
+
+
+PATH <- paste0(OUTPUTS_FOLDER, UNIT_N[u], "_", datetime_str)
+PATH_WITH_PROJECT_NAME <- paste0(PATH, "/", UNIT_N[u]) 
+print(paste("PDKE 29, PATH:", PATH))
+dir.create(PATH, showWarnings = TRUE, recursive = FALSE)
+print(paste("PDKE 29, PATH_WITH_PROJECT_NAME:", PATH_WITH_PROJECT_NAME))
+
 #
 # TODO: the above got the following, so add error handling:
 # Warning message:
-# In dir.create(path, showWarnings = TRUE, recursive = FALSE) :
+# In dir.create(PATH, showWarnings = TRUE, recursive = FALSE) :
 #  '/Users/jgeis/Work/PDKE/CCVD/MINI_Phase2/Waikiki Watershed' already exists
 
 
@@ -698,7 +759,7 @@ print("PDKE: 32, Mokupuni")
 
 dpi <- 300
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Mokupuni.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Mokupuni.png"),
   width = 5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -774,7 +835,7 @@ plot(MI3)
 MId <- as(MI3, "data.frame")
 write.csv(
   data.frame(MId),
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Moku.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Moku.csv"),
   row.names = F
 )
 
@@ -791,7 +852,7 @@ yma <- ymax(MI3) * 1.0001
 
 # make map
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Moku.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Moku.png"),
   width = 5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -864,7 +925,7 @@ plot(AI3)
 AId <- as(AI3, "data.frame")
 write.csv(
   data.frame(AId),
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Ahupuaa.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Ahupuaa.csv"),
   row.names = F
 )
 
@@ -878,7 +939,7 @@ dpi <- 300
 
 # make map
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Ahupuaa.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Ahupuaa.png"),
   width = 5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -928,7 +989,7 @@ TITF <- "Fire Occurrence 1999-2022"
 
 dpi <- 300
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Fire.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Fire.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -977,7 +1038,7 @@ FR2 <- FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "102"), ]
 FR3 <- FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "103"), ]
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " FireRisk.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " FireRisk.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -1043,7 +1104,7 @@ colfuncEL <- colorRampPalette(brewer.pal(9, "PuBuGn"))(100)
 SHAPE <- UNIT_X[[u]]
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " ELMap.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " ELMap.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -1150,7 +1211,7 @@ LC_ct2
 
 # write to table
 write.csv(LC_ct2,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Landcover.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, " Landcover.csv"),
           row.names = F)
 
 # set class names as leveled factors
@@ -1177,7 +1238,7 @@ LC3 <- paste0(LC_ct2[3, ]$class_name, "(", LC_ct2[3, ]$pct, ")")
 ylim <- max(LC_ct2$acres) + (max(LC_ct2$acres) * 0.15)
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " LC_barchart.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " LC_barchart.png"),
   width = 5 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -1237,7 +1298,7 @@ TITF <- paste0("Landcover", " ", Iname)
 dpi = 300
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " LCMap.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " LCMap.png"),
   width = 7 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -1382,7 +1443,7 @@ AQe <-
 colnames(AQe)[1] = "DOH Aquifer"
 write.csv(
   data.frame(AQe),
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Aquifer.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Aquifer.csv"),
   row.names = F
 )
 AQe
@@ -1398,7 +1459,7 @@ yma <- ymax(AQ3) * 1.0001
 dpi = 300
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Aquifers.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Aquifers.png"),
   width = 4 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -1563,7 +1624,7 @@ yma <- ymax(HALE) * 1.0001
 # make map
 dpi = 300
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Streams.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Streams.png"),
   width = 4 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -1663,7 +1724,7 @@ for (i in 1:length(ht)) {
 
 write.csv(
   data.frame(ht),
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Hydro_features.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Hydro_features.csv"),
   row.names = F
 )
 
@@ -1715,7 +1776,7 @@ st
 
 # export table
 write.csv(st,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " rain_stations.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, " rain_stations.csv"),
           row.names = F)
 
 # ### Make map of island with station and AOI
@@ -1731,7 +1792,7 @@ yma <- ymax(CoastM)
 
 # make map
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " rf_stations.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " rf_stations.png"),
   width = 5 * dpi,
   height = 3.5 * dpi,
   res = dpi
@@ -3492,7 +3553,7 @@ RFLO <-
 
 write.csv(
   Cell.CL_Year,
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Annual Climate.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Annual Climate.csv"),
   row.names = F
 )
 Cell.CL_Year
@@ -3532,7 +3593,7 @@ NTA <- min(TA) - min(TA) * 0.2
 #Make Cliamo Graph and Save to ouptput folder
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climograph2.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climograph2.png"),
   width = 5 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -3604,7 +3665,7 @@ dev.off()
 print("PDKE: 53, Monthly Rainfall")
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climograph_RF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climograph_RF.png"),
   width = 5 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -3641,7 +3702,7 @@ dev.off()
 col <- rgb(0.2, 0.2, 1, alpha = 0.15)
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climograph_AT.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climograph_AT.png"),
   width = 5.2 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -3887,7 +3948,7 @@ BI_brksWS <- round(seq(WSLO, WSUP, length = 9), 2)
 colfuncWS <- colorRampPalette(brewer.pal(9, "Purples"))(50)
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climate_less_RF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_RF.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -3915,7 +3976,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climate_less_TA.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_TA.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -3943,7 +4004,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climate_less_RH.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_RH.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -3972,7 +4033,7 @@ dev.off()
 
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climate_less_SR.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_SR.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4000,7 +4061,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climate_less_SM.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_SM.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4028,7 +4089,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climate_less_ET.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_ET.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4056,7 +4117,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Climate_less_WS.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " Climate_less_WS.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4087,7 +4148,7 @@ dev.off()
 print("PDKE: 54, Temperature Maps Figure ")
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " TA12.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " TA12.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4448,7 +4509,7 @@ if (cm == "DEC") {
 ### make plots
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " TA_hm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " TA_hm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4475,7 +4536,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " TA_cm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " TA_cm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4505,7 +4566,7 @@ dev.off()
 print("PDKE: 56, MEAN ANNUAL Relative Humidity 12-maps")
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " RH12.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " RH12.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -4757,7 +4818,7 @@ dpi = 300
 print("PDKE: 57, MEAN ANNUAL Rainfall 12-maps ")
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " RF12.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " RF12.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5117,7 +5178,7 @@ if (wm == "DEC") {
 ### make plots
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " RF_dm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " RF_dm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5144,7 +5205,7 @@ spplot(
 dev.off()
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " RF_wm.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " RF_wm.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5280,7 +5341,7 @@ Cell.DataCLR[3, 14] <- WetLO
 Cell.DataCLR
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " SeaRF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " SeaRF.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5339,7 +5400,7 @@ dev.off()
 
 # export seasonal monthly rainfall figure from above
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " SeaMRF.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " SeaMRF.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -5418,7 +5479,7 @@ print("PDKE: 59F")
 
 # write seasonal monthly rainfall percentiles to csv
 write.csv(P,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "RF percentiles.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, "RF percentiles.csv"),
           row.names = F)
 
 ########## Add Data To tABLE
@@ -5472,7 +5533,7 @@ Cell.RF_Year[u, 3:15] <-  MEANRF2
 
 write.csv(
   Cell.DataCLR,
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "Mean Climate.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, "Mean Climate.csv"),
   row.names = F
 )
 Cell.DataCLR
@@ -5875,7 +5936,7 @@ RFdslo <- RFdsup * -1
 
 write.csv(
   Cell.Data_DS,
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Downscaling.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Downscaling.csv"),
   row.names = F
 )
 
@@ -5892,7 +5953,7 @@ colfunc2 <- colorRampPalette(brewer.pal(11, "RdBu"))(100)
 BI_brks2 <- round(seq(RFdslo, RFdsup , length = 9), 0)
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " DS_RF_8.5_v2.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " DS_RF_8.5_v2.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6029,7 +6090,7 @@ print("PDKE: 69, Dynamical and Statistical Downscaling ")
 ########## Downscaling Compare RF RCP 4.5
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " DS_RF_2100_4.5.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " DS_RF_2100_4.5.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6168,7 +6229,7 @@ dev.off()
 print("PDKE: 70, Statistical 2040-2070")
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " StDsRF2040.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " StDsRF2040.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6269,7 +6330,7 @@ if (TUnit == "°F") {
 }
 print("PDKE: 71A")
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " DS_Temp2100.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " DS_Temp2100.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6514,7 +6575,7 @@ dev.off()
 print("PDKE: 72, AIR TEMP 2040-2070 ")
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " StDs_Temp2040.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " StDs_Temp2040.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -6766,7 +6827,7 @@ TITLE = paste(UNIT_Ns[u], " 23-yr RF Compare (", RFUnit2, ")")
 dpi = 300
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " 23yr_RF_Compare.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " 23yr_RF_Compare.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -6798,7 +6859,6 @@ MRF_AD3 =  Cell.AF_Maps[c(1:840), ]
 head(MRF_AD3)
 tail(MRF_AD3)
 
-
 colnames(MRF_AD3) <- c("Date", "Year", "Month", "RF")
 colnames(MRF_ND3) <- c("Date", "Year", "Month", "RF")
 
@@ -6809,15 +6869,7 @@ if (RFUnit == " in") {
 
 write.csv(
   MRF100,
-  paste0(
-    OUTPUTS_FOLDER,
-    UNIT_N[u],
-    "/",
-    UNIT_N[u],
-    " Monthly Rainfall_",
-    RFUnit2,
-    ".csv"
-  ),
+  paste0(PATH_WITH_PROJECT_NAME, " Monthly Rainfall_", RFUnit2, ".csv"),
   row.names = F
 )
 
@@ -6905,17 +6957,10 @@ RFT$Trend <- c(LM1s, LM4s, LM6s)
 RFT
 write.csv(
   RFT,
-  paste0(
-    OUTPUTS_FOLDER,
-    UNIT_N[u],
-    "/",
-    UNIT_N[u],
-    " RF_trend_dirctions.csv"
-  ),
+  paste0(PATH_WITH_PROJECT_NAME, " RF_trend_directions.csv"),
   row.names = F
 )
 ###
-
 T1 <- round(coefficients(summary(LM1))[2, 1], 2)
 T2 <- round(coefficients(summary(LM2))[2, 1], 2)
 T3 <- round(coefficients(summary(LM3))[2, 1], 2)
@@ -6965,7 +7010,7 @@ head(Mean_Y_RF, 20)
 
 write.csv(
   Mean_Y_RF,
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Annual_RF_in.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Annual_RF_in.csv"),
   row.names = F
 )
 
@@ -7172,7 +7217,7 @@ LM6RYD <- round(summary(LM6YD)$r.squared, 2)
 
 dpi <- 300
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " RF_Trend.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " RF_Trend.png"),
   width = 6.3 * dpi,
   height = 7 * dpi,
   res = dpi
@@ -7415,7 +7460,7 @@ SPI3 <- spi(RF, scale = 3, distribution = 'Gamma')
 
 #PlOT ALL SPI
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " SPI.png"),
+  paste0(PATH_WITH_PROJECT_NAME, " SPI.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -7446,7 +7491,7 @@ Cell.DataSPI
 print("PDKE: 86, Derek's Drought Code from Guam")
 
 # load rainfall dataset created around line 2828 above
-wd <- paste0(OUTPUTS_FOLDER, UNIT_N, "/")
+wd <- paste0(PATH, "/")
 setwd(wd)
 csv <- paste0(UNIT_N[u], " Monthly Rainfall_", RFUnit2, ".csv")
 RF_Data <- read.csv(csv)
@@ -7526,7 +7571,7 @@ head(SPI_ALL, 50)
 # Save SPI_ALL drought intensity (inverted SPI) dataset
 write.csv(
   SPI_ALL,
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " SPI_NEGS_ALL.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " SPI_NEGS_ALL.csv"),
   row.names = F
 )
 
@@ -7773,7 +7818,7 @@ Cell.DataSPI
 
 write.csv(
   Cell.DataSPI,
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Drought History.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Drought History.csv"),
   row.names = F
 )
 
@@ -7823,7 +7868,7 @@ colnames(xx) <- c("DT", "SP")
 xx$DT <- as.Date(xx$DT)
 
 write.csv(xx,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "SPI_12.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, "SPI_12.csv"),
           row.names = F)
 
 # Calculate monthly climatology SPI-12 values (min, mean, max)
@@ -7854,7 +7899,7 @@ rownames(spi12am) <- c("mean", "min", "max")
 spi12am
 
 write.csv(spi12am,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "SPI_12 monthly.csv"))
+          paste0(PATH_WITH_PROJECT_NAME, "SPI_12 monthly.csv"))
 
 # change positive SPI values to 0 and make drought figure
 SPIVEC <- SPI_ALL[which(SPI_ALL$m.scale == 12), ]$SPI
@@ -7880,7 +7925,7 @@ tail(xx)
 
 dpi = 300
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "Drought_History.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "Drought_History.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -8207,13 +8252,7 @@ Cell.DataSPI3_S
 
 write.csv(
   Cell.DataSPI3_S,
-  paste0(
-    OUTPUTS_FOLDER,
-    UNIT_N[u],
-    "/",
-    UNIT_N[u],
-    "Drought History SPI_3.csv"
-  ),
+  paste0(PATH_WITH_PROJECT_NAME, "Drought History SPI_3.csv"),
   row.names = F
 )
 
@@ -8268,19 +8307,13 @@ xx$DT <- as.Date(xx$DT)
 xx
 
 write.csv(xx,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "SPI_3.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, "SPI_3.csv"),
           row.names = F)
 
 # plot and write figure
 dpi = 300
 png(
-  paste0(
-    OUTPUTS_FOLDER,
-    UNIT_N[u],
-    "/",
-    UNIT_N[u],
-    "Drought_HistoryS_3.png"
-  ),
+  paste0(PATH_WITH_PROJECT_NAME, "Drought_HistoryS_3.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -8627,7 +8660,7 @@ Cell.SPICNT
 
 write.csv(
   Cell.SPICNT,
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " Drought Count.csv"),
+  paste0(PATH_WITH_PROJECT_NAME, " Drought Count.csv"),
   row.names = F
 )
 
@@ -8667,13 +8700,7 @@ xx
 # plot and write figure
 dpi = 300
 png(
-  paste0(
-    OUTPUTS_FOLDER,
-    UNIT_N[u],
-    "/",
-    UNIT_N[u],
-    "Drought_HistoryS_12.png"
-  ),
+  paste0(PATH_WITH_PROJECT_NAME, "Drought_HistoryS_12.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
@@ -9128,7 +9155,7 @@ MAXD3 <- MAXD - MAXC
 dpi = 300
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "MEI_DRY.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "MEI_DRY.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -9197,7 +9224,7 @@ MAXD22 <- MAXD - MAXB
 MAXD3 <- MAXD - MAXC
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "MEI_WET.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "MEI_WET.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
@@ -9251,7 +9278,7 @@ dev.off()
 Cell.MEI
 # I don't think this is used...
 write.csv(Cell.MEI,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " MEI_A.csv"),
+          paste0(PATH_WITH_PROJECT_NAME, " MEI_A.csv"),
           row.names = F)
 
 
@@ -9327,13 +9354,7 @@ cc
 ylim <- max(cc$Mean) * 1.2
 
 png(
-  paste0(
-    OUTPUTS_FOLDER,
-    UNIT_N[u],
-    "/",
-    UNIT_N[u],
-    "ENSO_season_barplot.png"
-  ),
+  paste0(PATH_WITH_PROJECT_NAME, "ENSO_season_barplot.png"),
   width = 6 * dpi,
   height = 2.5 * dpi,
   res = dpi
@@ -9378,7 +9399,7 @@ dev.off()
 
 cc
 ### Export table of average monthly rainfall by season and ENSO phase
-write.csv(cc, paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], " MEI_S.csv"))
+write.csv(cc, paste0(PATH_WITH_PROJECT_NAME, " MEI_S.csv"))
 
 #####################################################
 ##### Air temperature graph
@@ -9502,7 +9523,7 @@ dat.y$date <- as.Date(paste0(dat.y$year, "-01-01"))
 
 # write to csv table of annual air temp values from monthly means (min, max, mean)
 write.csv(dat.y,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "_monthly_airtemp.csv"))
+          paste0(PATH_WITH_PROJECT_NAME, "_monthly_airtemp.csv"))
 
 slope <-
   formatC((coef(lm(
@@ -9513,7 +9534,7 @@ slope
 dpi = 300
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "_annual_airtemp.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "_annual_airtemp.png"),
   width = 6 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -9560,7 +9581,7 @@ tail(dat2)
 
 # write to csv table of monthly air temp values (min, max, mean)
 write.csv(dat2,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "_daily_airtemp.csv"))
+          paste0(PATH_WITH_PROJECT_NAME, "_daily_airtemp.csv"))
 
 # set y-axis limits
 ylow <- min(dat.y$min, na.rm = T) * .5
@@ -9579,7 +9600,7 @@ yl <- min(dat.y$min, na.rm = T) * .75
 dpi = 300
 
 png(
-  paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "_monthly_airtemp.png"),
+  paste0(PATH_WITH_PROJECT_NAME, "_monthly_airtemp.png"),
   width = 6 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -9694,7 +9715,7 @@ anom$date <-
 
 # write to csv table of monthly air temp anomaly values
 write.csv(anom,
-          paste0(OUTPUTS_FOLDER, UNIT_N[u], "/", UNIT_N[u], "_anomaly_airtemp.csv"))
+          paste0(PATH_WITH_PROJECT_NAME, "_anomaly_airtemp.csv"))
 
 # set y-axis limits
 ylow <- min(anom$anom_f) * .95
@@ -9713,13 +9734,7 @@ yl <- (((min(anom$anom_f) - max(anom$anom_f)) / 2) + max(anom$anom_f))
 dpi = 300
 
 png(
-  paste0(
-    OUTPUTS_FOLDER,
-    UNIT_N[u],
-    "/",
-    UNIT_N[u],
-    "_monthly_airtemp_anomaly.png"
-  ),
+  paste0(PATH_WITH_PROJECT_NAME, "_monthly_airtemp_anomaly.png"),
   width = 6 * dpi,
   height = 3 * dpi,
   res = dpi
@@ -9758,9 +9773,12 @@ print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
 print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
 print(paste0("Execution time: ", end_time - start_time))
 
-#system(paste0(rscript_path, " ", myscript_path, " ", shQuote(path)), wait = FALSE)
-run_string <- paste0(rscript_path, " ", myscript_path, " ", shQuote(email), " ", shQuote(path), " ", 
-  shQuote(NM), " ", shQuote(NM_s))
+#system(paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ", shQuote(PATH)), wait = FALSE)
+run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ", 
+  shQuote(email), " ", 
+  shQuote(PATH), " ", 
+  shQuote(NM), " ", 
+  shQuote(NM_s))
 cat("runString: ", run_string, "\n")
 system(run_string, wait = FALSE)
 
