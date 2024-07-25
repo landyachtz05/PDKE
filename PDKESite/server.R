@@ -20,8 +20,6 @@ environ <- "dev"
 # prod, default if environ is not dev
 rscript_path = "/bin/Rscript" 
 PDKE_dir = "/home/exouser/workflow/"
-#myscript_path = "/srv/shiny-server/sample-apps/PDKESite/test.R"
-#myscript_path = paste0(PDKE_dir, "test.R")
 if (environ == "dev") {
   rscript_path = "/Rscript"
   PDKE_dir = "/Users/jgeis/Work/PDKE/"
@@ -103,18 +101,34 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   }
   cat("shapefile_full_path: ", shapefile_full_path, "\n")
   
-  # this works, gets temporarily commented out so I can test w/o invoking the other stuff
-  system(paste0(Sys.getenv("R_HOME"),
+  full_run_string <- paste0(Sys.getenv("R_HOME"),
     run_string, " ",
     shQuote(email), " ",
     shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)), " ",
     shQuote(polygon_name), " ",
     shQuote(polygon_short_name), " ",
     shQuote(island_full_name), " ",
-    shQuote(island_short_name)
-  ), wait = FALSE)
+    shQuote(island_short_name))
+  print(paste0("full_run_string: ", full_run_string))
+  # /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp' 'Kaa' 'Kaa' 'Lanai' 'LA'"
+  
+  # this works, gets temporarily commented out so I can test w/o invoking the other stuff
+  system(full_run_string, wait = FALSE)
+  
+  # system(paste0(Sys.getenv("R_HOME"),
+  #   run_string, " ",
+  #   shQuote(email), " ",
+  #   shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)), " ",
+  #   shQuote(polygon_name), " ",
+  #   shQuote(polygon_short_name), " ",
+  #   shQuote(island_full_name), " ",
+  #   shQuote(island_short_name)
+  # ), wait = FALSE)
   showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
 
+  # Disable the save button to prevent a re-submission.
+  #updateActionButton(session, "save_button", disabled = TRUE)
+  
   datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
   csv_output_string <- paste0(datetime_str, ",", shapefile_full_path, ", ", island_full_name, ", ", polygon_name)
   print(paste0("csv_output_string: ", csv_output_string))
