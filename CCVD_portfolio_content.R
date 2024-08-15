@@ -121,7 +121,7 @@ setwd(WORKING_DIR)               # WORKING DIRECTORY
 INPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")       # INPUT FOLDER
 OUTPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/")       # OUTPUT FOLDER
 #RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript, dev
-RSCRIPT_PATH = paste0("/bin/Rscript") # where to find Rscript, prod
+RSCRIPT_PATH = paste0("/usr/bin/Rscript") # where to find Rscript, prod
 
 MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 #phase2_dir = paste0(BASE_DIR,"/CCVD/MINI_Phase2/")
