@@ -64,8 +64,8 @@ for (package in packages) {
 
 
 print("In CCVD_portfolio_ppt.R")
-BASE_DIR <- "/Users/jgeis/Work/PDKE"
-#BASE_DIR <- "/srv/shiny-server"
+#BASE_DIR <- "/Users/jgeis/Work/PDKE"
+BASE_DIR <- "/srv/shiny-server"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images

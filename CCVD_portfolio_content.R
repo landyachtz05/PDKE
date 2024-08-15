@@ -116,8 +116,8 @@ for (package in packages) {
 print("In CCVD_portfolio_content.R")
 
 # non-user provided values
-BASE_DIR <- "/Users/jgeis/Work/PDKE"
-#BASE_DIR <- "/srv/shiny-server"
+#BASE_DIR <- "/Users/jgeis/Work/PDKE"
+BASE_DIR <- "/srv/shiny-server"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 INPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")       # INPUT FOLDER
