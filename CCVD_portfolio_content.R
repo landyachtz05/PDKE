@@ -31,8 +31,6 @@ packages <-
     "ggplot2",
     "grid",
     "data.table",
-    "devtools",
-    "DescTools",
     "lubridate",
     "rgeos",
     "latticeExtra",
