@@ -7,8 +7,8 @@
 # for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
 start_time <- Sys.time()
 
-Sys.setenv(PROJ_LIB = "/opt/anaconda3/share/proj/")
-#Sys.setenv(PROJ_LIB = "/usr/share/proj/")
+#Sys.setenv(PROJ_LIB = "/opt/anaconda3/share/proj/")
+Sys.setenv(PROJ_LIB = "/usr/share/proj/")
 
 PROJ_DEBUG = 3
 #install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
