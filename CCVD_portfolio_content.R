@@ -110,7 +110,6 @@ for (package in packages) {
 
 ##########################################################################################################################
 
-#cat(file = stderr(), "In CCVD_portfolio_content.R", "\n")
 print("In CCVD_portfolio_content.R")
 
 # non-user provided values
@@ -148,7 +147,6 @@ debug_print <- function(content) {
   #print(paste0(PROJECT_WITH_DATE, ", PDKE: ", content)) # dev
 }
 
-#cat(file = stderr(), "args:", length(args), "\n")
 debug_print(paste0("args:", length(args)))
 debug_print(paste("1,BASE_DIR: ", BASE_DIR))
 debug_print(paste("1,WORKING_DIR: ", WORKING_DIR))
@@ -166,12 +164,6 @@ debug_print(paste0("datetime_str: ", datetime_str))
 #NM_s <- "Waikiki"
 #ILE <- "Oahu"
 #ILE_s <- "OA"
-
-# cat(file = stderr(), "NP_FILE: ", NP_FILE, "\n")
-# cat(file = stderr(), "NM: ", NM, "\n")
-# cat(file = stderr(), "NM_s: ", NM_s, "\n")
-# cat(file = stderr(), "ILE: ", ILE, "\n")
-# cat(file = stderr(), "ILE_s: ", ILE_s, "\n")
 
 debug_print(paste0("email: ", email))
 debug_print(paste0("NP_FILE: ", NP_FILE))
@@ -9790,7 +9782,7 @@ run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ",
   shQuote(NM), " ", 
   shQuote(NM_s), " ",
   shQuote(NP_FILE))
-cat("runString: ", run_string, "\n")
+debug_print(paste0("runString: ", run_string))
 system(run_string, wait = FALSE)
 
 ### END! ###
