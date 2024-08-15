@@ -394,7 +394,7 @@ debug_print("2")
 
 ##### Read in CSV Files
 ## Read in Mean Climate File
-CLIM_FILE <- paste0(PROJECT_FILE_BASE, "MEAN Climate.csv")
+CLIM_FILE <- paste0(PROJECT_FILE_BASE, "Mean Climate.csv")
 debug_print(paste("3,CLIM_FILE: ", CLIM_FILE))
 CLIM <- read.csv(CLIM_FILE, sep = ",")
 debug_print("4,CLIM")
