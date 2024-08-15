@@ -3,20 +3,22 @@
 # to redirect all output to a file, use R CMD BATCH, it creates a file called CCVD_portfolio_content.Rout
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waiawa_2024_07_25_13_00_08.shp Waiawa Waiawa Oahu OA
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waianae_2024_07_25_17_43_41.shp Waianae Waianae Oahu OA
-
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp Hamakuapoko Hamakuapoko Maui MN
 # for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
 start_time <- Sys.time()
 
-#Sys.setenv(PROJ_LIB = "/Users/jgeis/opt/anaconda3/lib/python3.8/site-packages/fiona/proj_data")
 Sys.setenv(PROJ_LIB = "/opt/anaconda3/share/proj/")
+#Sys.setenv(PROJ_LIB = "/usr/share/proj/")
+
 PROJ_DEBUG = 3
 #install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 #install.packages("rgdal", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 #install.packages("rgeos", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 #install.packages("gridExtra", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 #install.packages("ggplot2", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+# sudo su - -c "R -e \"install.packages('DescTools', repos='http://packagemanager.posit.co/cran/2023-10-13')\""
 
+library('DescTools')
 packages <-
   c(
     "gstat",
@@ -120,7 +122,9 @@ WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 INPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")       # INPUT FOLDER
 OUTPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/")       # OUTPUT FOLDER
-RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript
+#RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript, dev
+RSCRIPT_PATH = paste0("/bin/Rscript") # where to find Rscript, prod
+
 MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 #phase2_dir = paste0(BASE_DIR,"/CCVD/MINI_Phase2/")
 #datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
@@ -142,16 +146,16 @@ options(warn = -1)  # Suppress all warnings
 debug_print <- function(content) {
   # would normally do a print or cat w/o using stderr, but this the only thing
   # that gets the shiny server on prod to actually print something.
-  #cat(file = stderr(), content, "\n")
-  print(paste0(PROJECT_WITH_DATE, ": ", content))
+  cat(file = stderr(), PROJECT_WITH_DATE, " PDKE: ", content, "\n") # prod
+  #print(paste0(PROJECT_WITH_DATE, ", PDKE: ", content)) # dev
 }
 
 #cat(file = stderr(), "args:", length(args), "\n")
 debug_print(paste0("args:", length(args)))
-debug_print(paste("PDKE: 1,BASE_DIR: ", BASE_DIR))
-debug_print(paste("PDKE: 1,WORKING_DIR: ", WORKING_DIR))
-debug_print(paste("PDKE: 1,INPUTS_FOLDER: ", INPUTS_FOLDER))
-debug_print(paste("PDKE: 1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
+debug_print(paste("1,BASE_DIR: ", BASE_DIR))
+debug_print(paste("1,WORKING_DIR: ", WORKING_DIR))
+debug_print(paste("1,INPUTS_FOLDER: ", INPUTS_FOLDER))
+debug_print(paste("1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
 
 # Extract the date and time string from the passed-in shape file using a regular expression
 datetime_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", NP_FILE)
@@ -222,7 +226,7 @@ plot(EXAMP)
 
 
 Coast <- readOGR(COAST_PATH)
-debug_print(paste("PDKE: 1,COAST_PATH", COAST_PATH))
+debug_print(paste("1,COAST_PATH", COAST_PATH))
 plot(Coast[which(Coast$COAST_GEO_ == 10), ])
 
 # ALL ISLANDS
@@ -255,17 +259,17 @@ Coast_KO <-
 
 ############################################################
 
-debug_print(paste("PDKE: 1,NP_FILE", NP_FILE))
+debug_print(paste("1,NP_FILE", NP_FILE))
 #debug_print(file.exists(NP_FILE))
 # these all work, once I had all the files, not just the shp file
 NP_ALL <- readOGR(NP_FILE)
 
-debug_print("PDKE: 1")
+debug_print("1")
 
 HALE <- NP_ALL
 
 plot(HALE)
-debug_print("PDKE: 2")
+debug_print("2")
 
 if (ILE_s == "BI") {
   plot(Coast_BI, main = ILE) + plot(HALE , add = T, col = "red")
@@ -289,7 +293,7 @@ if (ILE_s == "KA") {
   plot(Coast_KA, main = ILE) + plot(HALE , add = T, col = "red")
 }
 
-debug_print("PDKE: 3")
+debug_print("3")
 
 ##################################################
 ##########   Define Units
@@ -311,7 +315,7 @@ UNIT_N <- as.vector(as.character(c(NM, NM)))
 UNIT_Ns <- as.vector(as.character(c(NM_s, NM_s)))
 
 #20,24,-26 34
-debug_print("PDKE: 4")
+debug_print("4")
 
 
 ##########   COUNT INPUTS
@@ -337,32 +341,32 @@ MeanRF_ALL <-
     recursive = T,
     full.names = T
   )
-#debug_print(paste0("PDKE: 5:", MeanRF_ALL))
+#debug_print(paste0("5:", MeanRF_ALL))
 
 # ### Find state-wide mean monthly rainfall stats (min, mean, max, percentiles)
 # # loop through month maps and calculate stats, also make average monthly rainfall map
 # n<-1
 # fq<-data.frame(quantile(c(0:0)))
-# debug_print("PDKE: 6")
+# debug_print("6")
 
 # sm<-stack()
-# debug_print("PDKE: 7")
+# debug_print("7")
 
 # for (i in MeanRF_ALL[1:12]) {
 #   m<-raster(i)
-#   debug_print(paste0("PDKE: 8", i))
-#   debug_print(paste0("PDKE: m", m))
+#   debug_print(paste0("8", i))
+#   debug_print(paste0("m", m))
 
 #   # convert mm to inches
 #   if(RFUnit == " in") {m  <- m  * 0.0393701}
-#   debug_print("PDKE: 9")
+#   debug_print("9")
 
 #   # calculate quantiles and put in dataframe
 #   quant<-quantile(m)
-#   debug_print("PDKE: 10")
+#   debug_print("10")
 
 #   mq<-data.frame(quant)
-#   debug_print("PDKE: 11")
+#   debug_print("11")
 
 #   colnames(mq)<-n
 #   fq<-cbind(fq,mq)
@@ -370,18 +374,18 @@ MeanRF_ALL <-
 
 #   # add raster to stack
 #   sm<-stack(sm, m)
-#   debug_print("PDKE: 12")
+#   debug_print("12")
 # }
 # sm
-# debug_print("PDKE: 13")
+# debug_print("13")
 
 # rm(mean)
-# debug_print("PDKE: 14")
+# debug_print("14")
 
 #fq<-round(fq[2:ncol(fq)], 2)
 #stateRF<-rowMeans(fq)
 # stateRFM<-calc(sm, mean, na.rm=TRUE)
-# debug_print("PDKE: 15")
+# debug_print("15")
 stateRFM <-
   read.csv(paste0(INPUTS_FOLDER, "Mean_RF_Data/StateMaps/stateRFMd_input.csv"))
 #stateRFM<-read.csv(paste0(INPUTS_FOLDER,"Mean_RF_Data/StateMaps/stateRFM_quantiles_input.csv"))
@@ -392,20 +396,20 @@ stateRFMd <- as.data.frame(stateRFM, na.rm = T)
 stateRFMd <- data.frame(stateRFMd[1])
 
 u <- 1
-debug_print("PDKE: 16")
+debug_print("16")
 
 ##########   FIRE OCCURRENCE AND RISK
 #Fire Occurrence Shape 2022 (From Clay)
 #FIRE_Shape <- readOGR(paste0(INPUTS_FOLDER,"StateFire_1999/fires_1999_2022/fires_1999_2022.shp"))
 FIRE_Shape_File <-
   paste0(INPUTS_FOLDER, "fires_1999_2022/fires_1999_2022.shp")
-debug_print(paste("PDKE: 17,FIRE_Shape_File", FIRE_Shape_File))
+debug_print(paste("17,FIRE_Shape_File", FIRE_Shape_File))
 FIRE_Shape <- readOGR(FIRE_Shape_File)
-debug_print("PDKE: 18")
+debug_print("18")
 FIRE_Shape_T <- spTransform(FIRE_Shape, crs(EXAMP))
-debug_print("PDKE: 19")
+debug_print("19")
 crs(FIRE_Shape_T) <- CRS(proj4string(EXAMP))
-debug_print("PDKE: 20")
+debug_print("20")
 
 # Fire_Mask <- mask(x = FIRE_Shape_T, mask = UNIT_X[[u]])
 # Fire_Crop <- crop(x = FIRE_Shape_T, y = extent(UNIT_X[[u]]))
@@ -419,7 +423,7 @@ FRISK <-
     )
   )
 crs(FRISK) <- "+proj=longlat +datum=WGS84 +no_defs"
-debug_print("PDKE: 21")
+debug_print("21")
 
 FRISK_Shape <-
   readOGR(
@@ -430,18 +434,18 @@ FRISK_Shape <-
   )
 FRISK_Shape_T <- spTransform(FRISK_Shape, crs(EXAMP))
 crs(FRISK_Shape_T) <- CRS(proj4string(EXAMP))
-debug_print("PDKE: 22")
+debug_print("22")
 
 ##########   Forest Roads
 # F_Roads <- readOGR(paste0(INPUTS_FOLDER,"Forestry Roads/Forestry_Roads.shp"))
-debug_print("PDKE: 22.1")
+debug_print("22.1")
 
-debug_print(paste0("PDKE: 22.2, INPUTS_FOLDER: ", INPUTS_FOLDER))
+debug_print(paste0("22.2, INPUTS_FOLDER: ", INPUTS_FOLDER))
 
 F_Roads_File <-
   paste0(INPUTS_FOLDER, "Forestry Roads/Forestry_Roads.shp")
 
-debug_print(paste("PDKE: 23,F_Roads_File", F_Roads_File))
+debug_print(paste("23,F_Roads_File", F_Roads_File))
 F_Roads <- readOGR(F_Roads_File)
 F_Roads <- spTransform(F_Roads, crs(EXAMP))
 plot(F_Roads)
@@ -450,7 +454,7 @@ plot(F_Roads)
 # I_Trails <- readOGR(paste0(INPUTS_FOLDER,"Inventory Trails/InventoryTrails.shp"))
 I_Trails_File <-
   paste0(INPUTS_FOLDER, "Inventory Trails/InventoryTrails.shp")
-debug_print(paste("PDKE: 24,I_Trails_File", I_Trails_File))
+debug_print(paste("24,I_Trails_File", I_Trails_File))
 I_Trails <- readOGR(I_Trails_File)
 I_Trails <- spTransform(I_Trails, crs(EXAMP))
 plot(I_Trails)
@@ -532,8 +536,8 @@ D2_files <-
     recursive = T,
     full.names = T
   )
-#print(paste("PDKE: 25,DyDs_files: ", DyDs_files))
-#print(paste("PDKE: 26,D2_files: ", D2_files))
+#print(paste("25,DyDs_files: ", DyDs_files))
+#print(paste("26,D2_files: ", D2_files))
 
 
 ##########   Month Year Rainfall Maps (Frazier et al., 2016)
@@ -542,7 +546,7 @@ D2_files <-
 RF_Map_Path_A_DIR <-
   paste0(BASE_DIR,
          "/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
-debug_print(paste("PDKE: 27,RF_Map_Path_A_DIR: ", RF_Map_Path_A_DIR))
+debug_print(paste("27,RF_Map_Path_A_DIR: ", RF_Map_Path_A_DIR))
 RF_Map_Path_A <- (RF_Map_Path_A_DIR)
 
 ##########   Month-Year Rainfall Maps New Lucas et al., In Review
@@ -556,7 +560,7 @@ RF_Map_Path_A <- (RF_Map_Path_A_DIR)
 RF_Map_Path_DIR <-
   paste0(BASE_DIR, "/CCVD/NEW_RF_MAPS/statewide_rf_mm/rf_mm/")
 RF_Map_Path <- (RF_Map_Path_DIR)
-debug_print(paste("PDKE: 28,RF_Map_Path: ", RF_Map_Path))
+debug_print(paste("28,RF_Map_Path: ", RF_Map_Path))
 
 ##########  Multi-Variate ENSO Index
 
@@ -658,9 +662,9 @@ debug_print(paste("datetime_str: ", datetime_str))
 
 PATH <- paste0(OUTPUTS_FOLDER, UNIT_N[u], "_", datetime_str)
 PATH_WITH_PROJECT_NAME <- paste0(PATH, "/", UNIT_N[u], "_") 
-debug_print(paste("PDKE 29, PATH:", PATH))
+debug_print(paste("29, PATH:", PATH))
 dir.create(PATH, showWarnings = TRUE, recursive = FALSE)
-debug_print(paste("PDKE 29, PATH_WITH_PROJECT_NAME:", PATH_WITH_PROJECT_NAME))
+debug_print(paste("29, PATH_WITH_PROJECT_NAME:", PATH_WITH_PROJECT_NAME))
 
 #
 # TODO: the above got the following, so add error handling:
@@ -673,7 +677,7 @@ IS <- UNIT_I[u]       # Island
 SH <- UNIT_X[[u]]     # Shape File
 
 ##########   Get Coast for Island
-debug_print("PDKE: 30, Get Coast for Island")
+debug_print("30, Get Coast for Island")
 
 if (IS == "BI") {
   CoastM <- Coast_BI
@@ -720,7 +724,7 @@ LAT <- round(mean(ymin, ymax), 3)
 
 
 ##########   Make a Plot of Shapefile with Island Coast and LAT and LON
-debug_print("PDKE: 31, Make a Plot of Shapefile with Island Coast and LAT and LON")
+debug_print("31, Make a Plot of Shapefile with Island Coast and LAT and LON")
 
 TIT <- paste0(UNIT_Ns[u], " (", Iname, ")")  # Title For Figure
 dpi <- 300
@@ -758,7 +762,7 @@ if (sb > 10 && sb <= 20) {
 sb2 <- sb2 * 1.60934
 
 ############# plot Mokupuni (island)
-debug_print("PDKE: 32, Mokupuni")
+debug_print("32, Mokupuni")
 
 dpi <- 300
 png(
@@ -801,7 +805,7 @@ dev.off()
 # plot(CoastM, add=T, border="brown")
 
 ############# plot Moku
-debug_print("PDKE: 33, Plot Moku")
+debug_print("33, Plot Moku")
 
 
 # find which moku the study area is in
@@ -907,7 +911,7 @@ dev.off()
 
 ########## Plot Ahupuaa
 
-debug_print("PDKE: 34, Plot Ahupuaa")
+debug_print("34, Plot Ahupuaa")
 
 # Clip ahupuaa polygons to HALE polygons (removes all attribute data, use objectid
 # to re-assign attribute data afterwards)
@@ -984,7 +988,7 @@ dev.off()
 
 ##########  Fire Maps
 
-debug_print("PDKE: 35, Fire Maps")
+debug_print("35, Fire Maps")
 
 # Fire history map
 FIRE_CropI <- FIRE_Shape_T
@@ -1079,12 +1083,12 @@ dev.off()
 
 ########### Elevation Extract and Map
 
-debug_print("PDKE: 36, Elevation")
+debug_print("36, Elevation")
 
 ELEV_MaskI <- mask(x = ELEV, mask = CoastM)
-debug_print("PDKE: 36.1")
+debug_print("36.1")
 ELEV_CropI <- crop(x = ELEV_MaskI, y = extent(CoastM))
-debug_print("PDKE: 36.2")
+debug_print("36.2")
 
 #Mask For Geography
 ELEV_Mask <- mask(x = ELEV, mask = UNIT_X[[u]])
@@ -1092,7 +1096,7 @@ ELEV_Crop <- crop(x = ELEV_Mask, y = extent(UNIT_X[[u]]))
 ELEV_Mean <- round(cellStats(ELEV_Crop, 'mean'), 1)
 ELEV_Max <- round(cellStats(ELEV_Crop, 'max'), 1)
 ELEV_Min <- round(cellStats(ELEV_Crop, 'min'), 1)
-debug_print("PDKE: 36.3")
+debug_print("36.3")
 
 Cell.DataCL[u, 2:4] <- c(ELEV_Min, ELEV_Mean, ELEV_Max)
 Cell.DataCL[u, 14] <- Iname
@@ -1100,17 +1104,17 @@ Cell.DataCLR[1:3, 1] <- c("Mean", "Max", "Min")
 Cell.DataCLR[1:3, 2] <- c(ELEV_Mean, ELEV_Max, ELEV_Min)
 Cell.DataCLR[1, 15] <- Iname
 Cell.DataCLR[1, 16] <- UNIT_Ns[u]
-debug_print("PDKE: 36.4")
+debug_print("36.4")
 
 #Cell.DataCL
 #Cell.DataCLR
 
 #BI_brksRH<-round(seq(RHLO, RHUP, length = 9),0)
 colfuncEL <- colorRampPalette(brewer.pal(9, "PuBuGn"))(100)
-debug_print("PDKE: 36.5")
+debug_print("36.5")
 
 SHAPE <- UNIT_X[[u]]
-debug_print("PDKE: 36.6")
+debug_print("36.6")
 
 debug_print(paste0("ELMap: ", PATH_WITH_PROJECT_NAME, "ELMap.png"))
 png(
@@ -1145,7 +1149,7 @@ print(
 dev.off()
 
 ########## Landcover Extraction and Map
-debug_print("PDKE: 37, Landcover")
+debug_print("37, Landcover")
 
 LC_MaskI <- mask(x = LC, mask = CoastM)
 LC_CropI <- crop(x = LC_MaskI, y = extent(CoastM))
@@ -1345,7 +1349,7 @@ dev.off()
 
 ################################################################################
 ########## Water Sources
-debug_print("PDKE: 38, Water Sources")
+debug_print("38, Water Sources")
 
 ### Aquifers
 # AQ1<-as.data.frame(gIntersects(AQU, HALE, byid=T))
@@ -1589,7 +1593,7 @@ dev.off()
 # # get basemap at buffered AOI extent
 # mapBound1 <- c((xmin(HALE)*1.00001), (ymin(HALE)*0.9999), (xmax(HALE)*0.99999), (ymax(HALE)*1.0001))
 # basemap<-ggmap::get_stamenmap(bbox=mapBound1, maptype = "terrain")
-debug_print("PDKE: 39, Streams")
+debug_print("39, Streams")
 
 # subset for feature types
 STRMi <- STRM[which(STRM$fcode == 46003), ]
@@ -1740,7 +1744,7 @@ write.csv(
 
 
 ########## Rainfall Stations near AOI
-debug_print("PDKE: 40, Rain Station Locations")
+debug_print("40, Rain Station Locations")
 
 # load csv of station networks and website links
 sn <- read.csv(paste0(INPUTS_FOLDER, "rain_stations_links.csv"))
@@ -1849,7 +1853,7 @@ ggplot() +
 dev.off()
 
 ########## Mean Climate Extract
-debug_print("PDKE: 41, Mean Climate")
+debug_print("41, Mean Climate")
 
 #Create a climate matrix
 Cell.matrix5 <- matrix(ncol = 14, nrow = 9)
@@ -1883,7 +1887,7 @@ Cell.CL_Year[9, 1] <- "S [W m/2]"
 #Cell.CL_Year
 
 ##########   Solar Radiation
-debug_print("PDKE: 42, Solar Radiation")
+debug_print("42, Solar Radiation")
 
 Jan <- raster(Mean_CLIM[58])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -2032,7 +2036,7 @@ Cell.CL_Year[9, 2:14] <- MEANKD2
 
 
 ##########   Soil Moisture
-debug_print("PDKE: 43, Soil Moisture")
+debug_print("43, Soil Moisture")
 
 Jan <- raster(Mean_CLIM[45])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -2183,7 +2187,7 @@ Cell.CL_Year[8, 2:14] <- MEANSM3
 
 
 ##########   EVAPOTRANSIPRATION
-debug_print("PDKE: 44, EVAPOTRANSIPRATION")
+debug_print("44, EVAPOTRANSIPRATION")
 
 Jan <- raster(Mean_CLIM[19])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -2371,7 +2375,7 @@ Cell.CL_Year[7, 2:14] <- MEANET2
 
 plot(Aug)
 ##########   Cloud Frequency
-debug_print("PDKE: 45, Cloud Frequency")
+debug_print("45, Cloud Frequency")
 
 Jan <- raster(Mean_CLIM[6])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -2521,7 +2525,7 @@ Cell.CL_Year[6, 2:14] <- MEANCF3
 ##########
 
 ##########   MEAN TEMPERATURE
-debug_print("PDKE: 46, MEAN TEMPERATURE")
+debug_print("46, MEAN TEMPERATURE")
 
 Jan <- raster(Mean_CLIM[71])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -2707,7 +2711,7 @@ TaLo <-
 Cell.CL_Year[3, 2:14] <- MEANTA2
 
 ########## MAX TEMPERATURE
-debug_print("PDKE: 47, MAX TEMPERATURE")
+debug_print("47, MAX TEMPERATURE")
 
 Jan <- raster(Mean_CLIM[84])
 crs(Jan) <- crs(EXAMP)
@@ -2909,7 +2913,7 @@ TxLO <-
   )
 
 ##########    MIN TEMPERATURE
-debug_print("PDKE: 48, MIN TEMPERATURE")
+debug_print("48, MIN TEMPERATURE")
 
 Jan <- raster(Mean_CLIM[97])
 crs(Jan) <- crs(EXAMP)
@@ -3110,7 +3114,7 @@ TnLO <-
   )
 
 ##########   RELATIVE HUMIDITY
-debug_print("PDKE: 49, RELATIVE HUMIDITY")
+debug_print("49, RELATIVE HUMIDITY")
 
 Jan <- raster(Mean_CLIM[32])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -3263,7 +3267,7 @@ RHLO <-
 
 
 #########   OTHER CLIMATE VARIABLES
-debug_print("PDKE: 50, OTHER CLIMATE VARIABLES")
+debug_print("50, OTHER CLIMATE VARIABLES")
 
 ### Read in the Annual rasters for each variable only and extract min and max to show spatial range.
 # Have extracted the min max from Annual layers already This next step can be streamlined
@@ -3372,7 +3376,7 @@ WSUP   <- round(cellStats(WS_P_Crop  , 'max'), 1)
 WSLO   <- round(cellStats(WS_P_Crop  , 'min'), 1)
 
 ##########   MEAN RAINFALL Data
-debug_print("PDKE: 51, MEAN RAINFALL Data")
+debug_print("51, MEAN RAINFALL Data")
 
 Jan <- raster(MeanRF_ALL[1])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -3384,7 +3388,7 @@ JanMRF    <- round(cellStats(Jan_CropRF,  'mean'), 1)
 JanMRFx   <- round(cellStats(Jan_CropRF  , 'max'), 1)
 JanMRFn   <- round(cellStats(Jan_CropRF  , 'min'), 1)
 
-debug_print("PDKE: 51A")
+debug_print("51A")
 
 Feb <- raster(MeanRF_ALL[2])
 Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
@@ -3568,7 +3572,7 @@ write.csv(
 )
 Cell.CL_Year
 ##########   CLIMO GRAPHS
-debug_print("PDKE: 52, CLIMO GRAPHS")
+debug_print("52, CLIMO GRAPHS")
 
 #build data frame with temperature and precipitation data
 df <-
@@ -3672,7 +3676,7 @@ axis(
 dev.off()
 
 ### Monthly Rainfall
-debug_print("PDKE: 53, Monthly Rainfall")
+debug_print("53, Monthly Rainfall")
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climograph_RF.png"),
@@ -3778,7 +3782,7 @@ dev.off()
 # Decide on a Break for Rainfall
 
 #Mean Rainfall
-debug_print("PDKE: 53, Figure for Other Cliamte Variables ")
+debug_print("53, Figure for Other Cliamte Variables ")
 
 # Decide on a Break for Rainfall
 RNGERF <- RFUP - RFLO
@@ -3836,7 +3840,7 @@ if (RNGERF < 2 && RNGERF > 0) {
 RNGERF
 
 #Mean Rainfall
-debug_print("PDKE: 53, Mean Rainfall")
+debug_print("53, Mean Rainfall")
 
 # Decide on a Break for Rainfall
 RNGERFA <- ANNUP - ANNLO
@@ -4155,7 +4159,7 @@ spplot(
 dev.off()
 
 ##########  Temperature Maps Figure
-debug_print("PDKE: 54, Temperature Maps Figure ")
+debug_print("54, Temperature Maps Figure ")
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "TA12.png"),
@@ -4408,7 +4412,7 @@ dev.off()
 ##### Hottest and Coldest month maps
 
 # find hottest and coldest months
-debug_print("PDKE: 55, find hottest and coldest months")
+debug_print("55, find hottest and coldest months")
 
 #Cell.CL_Year
 t <- Cell.CL_Year[3, 2:13]
@@ -4573,7 +4577,7 @@ spplot(
 dev.off()
 
 ##########   MEAN ANNUAL Relative Humidity 12-maps
-debug_print("PDKE: 56, MEAN ANNUAL Relative Humidity 12-maps")
+debug_print("56, MEAN ANNUAL Relative Humidity 12-maps")
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "RH12.png"),
@@ -4825,7 +4829,7 @@ dev.off()
 dpi = 300
 ##########   MEAN ANNUAL Rainfall 12-maps
 #BI_brksRF<-round(seq(0, RFUP+0.3, length = 4),0) #For dry areas.
-debug_print("PDKE: 57, MEAN ANNUAL Rainfall 12-maps ")
+debug_print("57, MEAN ANNUAL Rainfall 12-maps ")
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "RF12.png"),
@@ -5076,7 +5080,7 @@ grid.arrange(
 dev.off()
 
 ##### Driest and Wettest month maps
-debug_print("PDKE: 58, Driest and Wettest month maps")
+debug_print("58, Driest and Wettest month maps")
 
 # find driest and wettest months
 #Cell.CL_Year
@@ -5243,7 +5247,7 @@ dev.off()
 
 
 #########   Seasonal Rainfall Maps
-debug_print("PDKE: 59, Seasonal Rainfall Maps ")
+debug_print("59, Seasonal Rainfall Maps ")
 
 DrySeasonRF <-
   (May_CropRF + Jun_CropRF + Jul_CropRF + Aug_CropRF + Sep_CropRF + Oct_CropRF)
@@ -5468,24 +5472,24 @@ grid.arrange(
 dev.off()
 
 ### calculate the seasonal avg. monthly rainfall percentile vs. whole state
-debug_print("PDKE: 59A")
+debug_print("59A")
 #stateRF
 plot(stateRFM)
 #summary(stateRFMd)
-#debug_print(paste("PDKE: 59B", stateRFMd))
+#debug_print(paste("59B", stateRFMd))
 #dput(stateRFMd,file = "") # print out stateRFMd
-debug_print("PDKE: 59C")
+debug_print("59C")
 per <-
   ecdf(stateRFMd$X) # was stateRFMd$layer, but there's no 'layer' in stateRFMd, so switched to 'X'
 #per<-ecdf(stateRFMd$layer)
-debug_print("PDKE: 59D")
+debug_print("59D")
 
 WetSMP <- round(per(WetSMV) * 100)
 DrySMP <- round(per(DrySMV) * 100)
-debug_print("PDKE: 59E")
+debug_print("59E")
 
 P <- data.frame(WetSMP, DrySMP)
-debug_print("PDKE: 59F")
+debug_print("59F")
 
 # write seasonal monthly rainfall percentiles to csv
 write.csv(P,
@@ -5556,7 +5560,7 @@ write.csv(
 
 
 ##########  Downscaling
-debug_print("PDKE: 60, Downscaling")
+debug_print("60, Downscaling")
 
 ##########  Dynamical and Statistical Downscaling
 
@@ -5634,7 +5638,7 @@ DyRF100LO <-
 
 ########## DyDs Temperature 2100
 #Percent Change DyDs RCP 4.5 & 8.5
-debug_print("PDKE: 61, Percent Change DyDs RCP 4.5 & 8.5")
+debug_print("61, Percent Change DyDs RCP 4.5 & 8.5")
 
 #DyDs_files
 DyDs_P_4.5_T_ChgF  <- raster(DyDs_files[37])
@@ -5652,7 +5656,7 @@ Dy8.5A_MT <- mask(x = DyDs_P_8.5_T_ChgF, mask = PWW_T)
 Dy8.5A_CT <- crop(x = Dy8.5A_MT, y = extent(PWW_T))
 
 ###########   Calculate Mean
-debug_print("PDKE: 62, Calculate Mean ")
+debug_print("62, Calculate Mean ")
 
 Dy4.5A_MMT <- round(cellStats(Dy4.5A_CT , 'mean'), 1)
 Cell.Data_DS[7, 1:2] <- c("Dy4.5A_MMT", Dy4.5A_MMT)
@@ -5665,7 +5669,7 @@ Dy4.5A_n <- round(cellStats(Dy4.5A_CT , 'min'), 1)
 Dy8.5A_n <- round(cellStats(Dy8.5A_CT , 'min'), 1)
 
 ##########   StDs Rainfall 2100
-debug_print("PDKE: 63, StDs Rainfall 2100")
+debug_print("63, StDs Rainfall 2100")
 
 ##########   Percent Change StDs RCP 4.5 & 8.5
 
@@ -5732,7 +5736,7 @@ StRF100LO <-
 
 
 ##########   StDs Rainfall 2040-2070
-debug_print("PDKE: 64, StDs Rainfall 2040-2070 ")
+debug_print("64, StDs Rainfall 2040-2070 ")
 
 ##########   Percent Change StDs RCP 4.5 & 8.5
 
@@ -5776,7 +5780,7 @@ St8.5W_MM40 <- round(cellStats(St8.5W_C40 , 'mean'), 0)
 Cell.Data_DS[20, 1:2] <- c("St8.5W_MM40", St8.5W_MM40)
 
 ##########   StDs Temperature 2100 ################################
-debug_print("PDKE: 65, StDs Temperature 2100")
+debug_print("65, StDs Temperature 2100")
 
 ##########   Percent Change StDs RCP 4.5 & 8.5
 
@@ -5859,7 +5863,7 @@ Cell.Data_DS[24, 1:2] <- c("St8.5A_MMT40", St8.5A_MMT40)
 
 #Don't do anything with this data yet
 ########## Percent Change Lulin DyDs 8.5
-debug_print("PDKE: 66, Percent Change Lulin DyDs 8.5")
+debug_print("66, Percent Change Lulin DyDs 8.5")
 
 D2_P_8.5_ANN <- raster(D2_files[13])
 D28.5A_M <- mask(x = D2_P_8.5_ANN, mask = PWW_T)
@@ -5896,7 +5900,7 @@ D2RF100UP <- max(c(D28.5A_x, D28.5D_x, D28.5W_x))
 D2RF100LO <- min(c(D28.5A_n, D28.5D_n, D28.5W_n))
 
 ########## D2Ds Temperature 2100 HERE
-debug_print("PDKE: 67, D2Ds Temperature 2100")
+debug_print("67, D2Ds Temperature 2100")
 
 #Percent Change DyDs RCP 4.5 & 8.5
 #HERE
@@ -5951,7 +5955,7 @@ write.csv(
 )
 
 ##########   FIGURES
-debug_print("PDKE: 68, FIGURES")
+debug_print("68, FIGURES")
 
 ##########   Dynamical and Statistical Downscaling
 
@@ -6095,7 +6099,7 @@ grid.arrange(
 dev.off()
 
 ########## Dynamical and Statistical Downscaling
-debug_print("PDKE: 69, Dynamical and Statistical Downscaling ")
+debug_print("69, Dynamical and Statistical Downscaling ")
 
 ########## Downscaling Compare RF RCP 4.5
 
@@ -6236,7 +6240,7 @@ grid.arrange(
 dev.off()
 
 ########### Statistical 2040-2070
-debug_print("PDKE: 70, Statistical 2040-2070")
+debug_print("70, Statistical 2040-2070")
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "StDsRF2040.png"),
@@ -6327,10 +6331,10 @@ grid.arrange(
 dev.off()
 
 ##########   Downscaling Compare TEMP RCP 8.5 & 4.5 2100
-debug_print("PDKE: 71, Downscaling Compare TEMP RCP 8.5 & 4.5 2100")
+debug_print("71, Downscaling Compare TEMP RCP 8.5 & 4.5 2100")
 
 colfunc3 <- colorRampPalette(brewer.pal(9, "Reds"))(100)
-debug_print("PDKE: 71A1")
+debug_print("71A1")
 BI_brksF = 0  # added declaration as next line was throwing "object 'BI_brksF' not found"
 if (TUnit == "°C") {
   BI_brksF <- round(seq(0, 7 , length = 7), 0)
@@ -6338,14 +6342,14 @@ if (TUnit == "°C") {
 if (TUnit == "°F") {
   BI_brksF <- round(seq(0, 9 , length = 9), 0)
 }
-debug_print("PDKE: 71A")
+debug_print("71A")
 png(
   paste0(PATH_WITH_PROJECT_NAME, "DS_Temp2100.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
 )
-debug_print("PDKE: 71B")
+debug_print("71B")
 
 title4 = textGrob("Changes in Air Temperature by 2100",
                   gp = gpar(
@@ -6353,33 +6357,33 @@ title4 = textGrob("Changes in Air Temperature by 2100",
                     fontface = "bold",
                     fontsize = 15
                   ))
-debug_print("PDKE: 71C")
+debug_print("71C")
 
 # pulled these out of the following loop so I can find the bug, remove these 4 chunks once found
 
 mainList <-
   list(label = paste0("Dynamical 4.5 (", Dy4.5A_MMT, TUnit2, " average)"),
        cex = 0.9)
-debug_print("PDKE: 71C1")
+debug_print("71C1")
 
 colorKeyList <-
   list(space = "right",
        height = 1,
        labels = list(cex = 0.6))
-debug_print("PDKE: 71C2")
+debug_print("71C2")
 
 spLayoutList <- list(UNIT_X[u])
-debug_print("PDKE: 71C3")
+debug_print("71C3")
 
 polylayer <- layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("PDKE: 71C4")
+debug_print("71C4")
 
-#debug_print(paste("PDKE: Dy4.5A_CT", Dy4.5A_CT))
-#debug_print(paste("PDKE: colfunc3", colfunc3))
-#debug_print(paste("PDKE: BI_brksF", BI_brksF))
-#debug_print(paste("PDKE: mainList", mainList))
-#debug_print(paste("PDKE: colorKeyList", colorKeyList))
-#debug_print(paste("PDKE: spLayoutList", spLayoutList))
+#debug_print(paste("Dy4.5A_CT", Dy4.5A_CT))
+#debug_print(paste("colfunc3", colfunc3))
+#debug_print(paste("BI_brksF", BI_brksF))
+#debug_print(paste("mainList", mainList))
+#debug_print(paste("colorKeyList", colorKeyList))
+#debug_print(paste("spLayoutList", spLayoutList))
 
 
 spplot(
@@ -6396,7 +6400,7 @@ spplot(
 )
 # removed + polylayer
 
-debug_print("PDKE: 71C5")
+debug_print("71C5")
 
 
 spplot(
@@ -6419,7 +6423,7 @@ spplot(
   sp.layout = list(UNIT_X[u])
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("PDKE: 71D")
+debug_print("71D")
 
 spplot(
   St4.5A_CT,
@@ -6441,7 +6445,7 @@ spplot(
   sp.layout = list(UNIT_X[u])
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("PDKE: 71E")
+debug_print("71E")
 
 
 spplot(
@@ -6464,7 +6468,7 @@ spplot(
   sp.layout = list(UNIT_X[u])
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("PDKE: 71F")
+debug_print("71F")
 
 spplot(
   St8.5A_CT,
@@ -6486,7 +6490,7 @@ spplot(
   sp.layout = list(UNIT_X[u])
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("PDKE: 71G")
+debug_print("71G")
 
 
 
@@ -6576,13 +6580,13 @@ grid.arrange(
   ) +
     layer(sp.polygons(SHAPE, lwd = 1))
 )
-debug_print("PDKE: 71D")
+debug_print("71D")
 
 dev.off()
 
 
 ######################## AIR TEMP 2040-2070
-debug_print("PDKE: 72, AIR TEMP 2040-2070 ")
+debug_print("72, AIR TEMP 2040-2070 ")
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "StDs_Temp2040.png"),
@@ -6654,7 +6658,7 @@ dev.off()
 
 
 ##########  Create A Monthly Rainfall Time Series
-debug_print("PDKE: 73, Rainfall Extract ")
+debug_print("73, Rainfall Extract ")
 
 #debug_print("Rainfall Extract")
 #debug_print("Frazier et al 2016")
@@ -6723,7 +6727,7 @@ for (i in 1:nfiles)        {
 #tail(Cell.AF_Maps)
 
 ##########   Matty's Maps
-debug_print("PDKE: 74, Matty's Maps")
+debug_print("74, Matty's Maps")
 
 #debug_print("Lucas")
 
@@ -6743,18 +6747,18 @@ Cell.ML_Maps <- data.frame(matrix(nrow = 396, ncol = 4))
 colnames(Cell.ML_Maps) <- c("Date", "Year", "Month", "RF")
 
 for (i in 1:nfiles) {
-  if (i == 1) {
-    debug_print("ML")
-  }
-  if (i == 100) {
-    debug_print(i)
-  } #Just to see where Im at in the process
-  if (i == 200) {
-    debug_print(i)
-  }
-  if (i == 300) {
-    debug_print(i)
-  }
+  # if (i == 1) {
+  #   debug_print("ML")
+  # }
+  # if (i == 100) {
+  #   debug_print(i)
+  # } #Just to see where Im at in the process
+  # if (i == 200) {
+  #   debug_print(i)
+  # }
+  # if (i == 300) {
+  #   debug_print(i)
+  # }
   
   ###########   Open Map as raster and change projection
   
@@ -6827,7 +6831,7 @@ Mx <- max(D_Comp, na.rm = T)
 FNAME <- paste0("RF_Compare_23_", UNIT_Ns[u], ".csv")
 
 ##########   Comparison Figures For the two datasets
-debug_print("PDKE: 75, Comparison Figures For the two datasets")
+debug_print("75, Comparison Figures For the two datasets")
 
 LM1 <- lm(MRF_A3 ~ MRF_N3)
 LM1P <- round(coefficients(summary(LM1))[2, 4], 4)
@@ -6857,7 +6861,7 @@ legend("topleft", c(paste("R2 = ", LM1R), paste("MBE = ", MBE), paste("MAE = ", 
 dev.off()
 
 ##########   Merge Datasets to create full time period (1920 - current)
-debug_print("PDKE: 76, Merge Datasets to create full time period (1920 - current)")
+debug_print("76, Merge Datasets to create full time period (1920 - current)")
 
 nrows <- nrow(Cell.ML_Maps)
 
@@ -7002,7 +7006,7 @@ LM6R <- summary(LM6)$r.squared
 ##########   Aggregate Month to Year
 
 ##########   Aggregate From Monthly to annual Average
-debug_print("PDKE: 77, Aggregate From Monthly to annual Average")
+debug_print("77, Aggregate From Monthly to annual Average")
 
 rm(mean)
 
@@ -7026,7 +7030,7 @@ write.csv(
 
 
 ##########   Plot Annual RF
-debug_print("PDKE: 78, Plot Annual RF")
+debug_print("78, Plot Annual RF")
 
 YrRF.ts <- ts(Mean_Y_RF$RF,
               c(1920),
@@ -7076,7 +7080,7 @@ LM5RY <- round(summary(LM5Y)$r.squared, 2)
 LM6RY <- round(summary(LM6Y)$r.squared, 2)
 
 ##########   Seasonal RF
-debug_print("PDKE: 79, Seasonal RF")
+debug_print("79, Seasonal RF")
 
 # Wet Season
 MRF100a <- MRF100
@@ -7132,7 +7136,7 @@ short.date_Y = strftime(DRY_RF$Ndate, "%Y")
 # colnames(Dry_RF) <- c("Date","RF")
 
 ####### Seasonal Trends ########################
-debug_print("PDKE: 80, Seasonal Trends")
+debug_print("80, Seasonal Trends")
 
 #WET Season
 YrRF.tsW <- ts(WET_RF5, c(1920), end = c(ey), frequency = 1)
@@ -7234,7 +7238,7 @@ png(
 )
 
 ##########   Annual and Seasonal Plot
-debug_print("PDKE: 81, Annual and Seasonal Plot")
+debug_print("81, Annual and Seasonal Plot")
 
 par(mfrow = c(3, 1))
 par(mar = c(4, 4, 4, 2))
@@ -7311,7 +7315,7 @@ ablineclip(
 )
 
 ####### Wet Season ###########
-debug_print("PDKE: 82, Wet Season")
+debug_print("82, Wet Season")
 
 par(mai = c(0.3, 0.6, 0.2, 0.2))
 YLIM <-  min(myts1YW, na.rm = T)
@@ -7377,7 +7381,7 @@ ablineclip(
 )
 
 ########## Dry Season
-debug_print("PDKE: 83, Dry Season")
+debug_print("83, Dry Season")
 
 par(mai = c(0.3, 0.6, 0.2, 0.2))
 YLIM <-  min(myts1YD, na.rm = T)
@@ -7449,7 +7453,7 @@ dev.off()
 
 #############################################################################
 # Count All Drought Events Long-term 12 and Short term 12 and 3.
-debug_print("PDKE: 84, SPI/DROUGHT")
+debug_print("84, SPI/DROUGHT")
 
 
 Cell.SPICNT <- data.frame(matrix(ncol = 4, nrow = 4))
@@ -7485,7 +7489,7 @@ main = paste0("SPI-12 1920-", ey, ": ", UNIT_Ns[u]))
 
 dev.off()
 ##########   Table Metrics SPI 12
-debug_print("PDKE: 85, Table Metrics SPI 12")
+debug_print("85, Table Metrics SPI 12")
 
 Cell.DataSPI <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI) <-
@@ -7498,7 +7502,7 @@ colnames(Cell.DataSPI) <-
 #Cell.DataSPI
 
 ##### Derek's Drought Code from Guam
-debug_print("PDKE: 86, Derek's Drought Code from Guam")
+debug_print("86, Derek's Drought Code from Guam")
 
 # load rainfall dataset created around line 2828 above
 wd <- paste0(PATH, "/")
@@ -7764,7 +7768,7 @@ summary(spi6$peak)
 summary(spi6$months)
 
 ### make table of start and end dates for each drought intensity event
-debug_print("PDKE: 87, make table of start and end dates for each drought intensity event")
+debug_print("87, make table of start and end dates for each drought intensity event")
 
 Cell.DataSPI <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI) <-
@@ -7833,7 +7837,7 @@ write.csv(
 )
 
 ##########   Count Droughts For Figure - Derek's edits
-debug_print("PDKE: 88, Count Droughts For Figure")
+debug_print("88, Count Droughts For Figure")
 
 Cell.DataSPI$`P Intensity` <- as.numeric(Cell.DataSPI$`P Intensity`)
 
@@ -7856,7 +7860,7 @@ Cell.SPICNT[1:4, 2] <- c(D_Cnt, MO_Cnt2, SV_Cnt2, EX_Cnt)
 #Cell.SPICNT
 
 ##########   Remove Postive SPI and make absloute values
-debug_print("PDKE: 89, Remove Postive SPI and make absloute values")
+debug_print("89, Remove Postive SPI and make absloute values")
 
 ### Derek's code
 SPIVEC <- SPI_ALL[which(SPI_ALL$m.scale == 12), ]$SPI
@@ -8013,7 +8017,7 @@ dev.off()
 
 
 ##########################################################################################################################################
-debug_print("PDKE: 90, Short (_S) timescales")
+debug_print("90, Short (_S) timescales")
 
 #Short (_S) timescales - Derek's version
 
@@ -8195,7 +8199,7 @@ summary(spi6$peak)
 summary(spi6$months)
 
 ### make table of start and end dates for each drought intensity event
-debug_print("PDKE: 91, make table of start and end dates for each drought intensity event")
+debug_print("91, make table of start and end dates for each drought intensity event")
 
 Cell.DataSPI3_S <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI3_S) <-
@@ -8265,7 +8269,7 @@ write.csv(
 )
 
 ##########   Count Droughts For Figure - Derek's edits
-debug_print("PDKE: 92, Count Droughts For Figure")
+debug_print("92, Count Droughts For Figure")
 
 Cell.DataSPI3_S$`P Intensity` <-
   as.numeric(Cell.DataSPI3_S$`P Intensity`)
@@ -8282,7 +8286,7 @@ Cell.SPICNT[1:4, 3] <- c(D_Cnt, MO_Cnt2, SV_Cnt2, EX_Cnt)
 #Cell.SPICNT
 
 ##########   Remove Postive SPI and make absolute values
-debug_print("PDKE: 93, Remove Postive SPI and make absolute values")
+debug_print("93, Remove Postive SPI and make absolute values")
 
 ### Derek's Version ###
 
@@ -8408,7 +8412,7 @@ dev.off()
 
 
 
-debug_print("PDKE: 94, SPI-12 short")
+debug_print("94, SPI-12 short")
 
 #### SPI-12 short
 
@@ -8584,7 +8588,7 @@ for (x in events) {
 #summary(spi6$months)
 
 ### make table of start and end dates for each drought intensity event
-debug_print("PDKE: 95, make table of start and end dates for each drought intensity event")
+debug_print("95, make table of start and end dates for each drought intensity event")
 
 Cell.DataSPI12_S <- data.frame(matrix(ncol = 6))
 colnames(Cell.DataSPI12_S) <-
@@ -8650,7 +8654,7 @@ Cell.DataSPI12_S[which(Cell.DataSPI12_S$`P Intensity` > 1.5), ]
 
 
 ##########   Count Droughts For Figure - Derek's edits
-debug_print("PDKE: 96, Count Droughts For Figure")
+debug_print("96, Count Droughts For Figure")
 
 Cell.DataSPI12_S$`P Intensity` <-
   as.numeric(Cell.DataSPI12_S$`P Intensity`)
@@ -8673,7 +8677,7 @@ write.csv(
 )
 
 ##########   Remove Positive SPI and make absolute values
-debug_print("PDKE: 97, Remove Positive SPI and make absolute values")
+debug_print("97, Remove Positive SPI and make absolute values")
 
 ### Derek's Version ###
 
@@ -8796,7 +8800,7 @@ dev.off()
 ##########  MEI
 
 ##########   UNIT
-debug_print("PDKE: 98, MEI")
+debug_print("98, MEI")
 
 Cell.MEI <- data.frame(matrix(nrow = 5, ncol = 9))
 colnames(Cell.MEI) <-
@@ -8812,18 +8816,18 @@ colnames(Cell.MEI) <-
 Cell.MEI[1:5, 1] <-
   c("Strong EL", "Weak EL", "Neutral", "Weak LA", "Strong LA")
 
-debug_print("PDKE: 98.1, MEI")
+debug_print("98.1, MEI")
 
 ##########   All MEI
 #head(MEI)
 #tail(MEI)
 
-debug_print("PDKE: 98.2, MEI")
+debug_print("98.2, MEI")
 #debug_print(MRF100$Year)
 # get last year
 ly <- 1949 + nrow(MEI)
 
-debug_print("PDKE: 98.2.1, MEI")
+debug_print("98.2.1, MEI")
 #debug_print(ly)
 #debug_print(MEI$Year)
 
@@ -8834,7 +8838,7 @@ MEI$Year <- seq(1950, ly, 1)
 # # Truncate the sequence to match the number of rows:
 #MEI$Year <- seq(1950, 1950 + nrow(MEI) - 1)
 
-debug_print("PDKE: 98.3, MEI")
+debug_print("98.3, MEI")
 
 
 #Cell.MEI_All[u:1] <- UNIT_N[u]
@@ -8845,7 +8849,7 @@ MEI_W <- subset(MEI, select = -c(MEI_D))
 MEI_W <- MEI_W[2:nrow(MEI_W), ]
 MEI_D <- subset(MEI, select = -c(MEI_W))
 
-debug_print("PDKE: 98.4, MEI")
+debug_print("98.4, MEI")
 
 # ## Can read in the csv from above to start script here
 # MRF100<-read.csv(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u],"_Monthly Rainfall_in.csv"))
@@ -8853,7 +8857,7 @@ debug_print("PDKE: 98.4, MEI")
 #head(MRF100)
 #tail(MRF100)
 
-debug_print("PDKE: 98.5, MEI")
+debug_print("98.5, MEI")
 
 # # If starting this section from monthly rainfall csv and only want up to 2012
 # Cell.AF_Maps<-MRF100[which(MRF100$Year<2013),]
@@ -8867,14 +8871,14 @@ MRF = MRF100[361:nrow(MRF100), ]
 #head(MRF)
 #tail(MRF)
 
-debug_print("PDKE: 98.6, MEI")
+debug_print("98.6, MEI")
 
 ##########  Need to remove Rows to get seasons correct
 # first row always starts on May 1950
 MRF2 =  MRF[-c(1:4), ]
 #head(MRF2)
 
-debug_print("PDKE: 98.7, MEI")
+debug_print("98.7, MEI")
 
 # last row changes depending on dataset end point
 # get last row in dataset
@@ -8886,7 +8890,7 @@ yc <- nrow(MRF2[which(MRF2$Year == yc), ])
 
 # get row number of April or October of last year
 mrn <- data.frame(which(MRF2$Year == lr$Year))
-debug_print("PDKE: 98.8, MEI")
+debug_print("98.8, MEI")
 
 if (nrow(mrn > 4)) {
   arn <- mrn[4, ]
@@ -8910,7 +8914,7 @@ if (yc > 10) {
 
 MRF3 <- MRF2
 MRF3$Month <- as.numeric(MRF3$Month)
-debug_print("PDKE: 98.9, MEI")
+debug_print("98.9, MEI")
 
 ### for each consecutive 6 months, aggregate ANOM by season and keep maximum
 # make list of values 6 values apart
@@ -8924,7 +8928,7 @@ seasons <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
                     c("Year", "RF", "season"))
 #head(seasons)
 #head(MRF3)
-debug_print("PDKE: 98.10, MEI")
+debug_print("98.10, MEI")
 
 # loop through consecutive months and aggregate season oni2 values
 
@@ -8945,7 +8949,7 @@ for (y in rows) {
   
   n <- n + 1
 }
-debug_print("PDKE: 98.11, MEI")
+debug_print("98.11, MEI")
 
 #head(seasons, 10)
 #tail(seasons)
@@ -8960,19 +8964,19 @@ summary(seasons$RF)
 
 
 ##########   Bind MEI and Data
-debug_print("PDKE: 98.12, Bind MEI and Data")
+debug_print("98.12, Bind MEI and Data")
 
 DryRF <- seasons[which(seasons$season == "dry"), ]
 debug_print(nrow(DryRF))
-debug_print("PDKE: 98.12.1, Bind MEI and Data")
+debug_print("98.12.1, Bind MEI and Data")
 #DryRF
-debug_print("PDKE: 98.12.2, Bind MEI and Data")
+debug_print("98.12.2, Bind MEI and Data")
 
 L0_D <- cbind(DryRF, MEI_D[which(!is.na(MEI_D$MEI_D)), ])
-debug_print("PDKE: 98.12.3, Bind MEI and Data")
+debug_print("98.12.3, Bind MEI and Data")
 
 #L0_D
-debug_print("PDKE: 98.12.4, Bind MEI and Data")
+debug_print("98.12.4, Bind MEI and Data")
 
 WetRF <- seasons[which(seasons$season == "wet"), ]
 
@@ -8988,17 +8992,17 @@ common_years <- intersect(WetRF_years, MEI_W_years)
 WetRF <- WetRF[WetRF$Year %in% common_years, ]
 MEI_W <- MEI_W[MEI_W$Year %in% common_years, ]
 
-debug_print("PDKE: 98.12.5, Bind MEI and Data")
+debug_print("98.12.5, Bind MEI and Data")
 
 L0_W <- cbind(WetRF, MEI_W[which(!is.na(MEI_W$MEI_W)), ])
 
-debug_print("PDKE: 98.12.6, Bind MEI and Data")
+debug_print("98.12.6, Bind MEI and Data")
 
 #L0_W
 
 ##########   Wet Season
 ##########   Separate by ENSO Phase
-debug_print("PDKE: 98.13, Wet Season")
+debug_print("98.13, Wet Season")
 
 ELN_W  <- subset(L0_W, MEI_W > 0.5)
 LAN_W  <- subset(L0_W, MEI_W < -0.5)
@@ -9006,19 +9010,19 @@ NUT_Wx <- subset(L0_W, MEI_W > -0.5)
 NUT_W  <- subset(NUT_Wx, MEI_W < 0.5)
 
 ##########   Strong and Weak EL Wet Season
-debug_print("PDKE: 98.14, Strong and Weak EL Wet Season")
+debug_print("98.14, Strong and Weak EL Wet Season")
 
 ELN_W_Weak <- subset(ELN_W , MEI_W  <= 1.5)
 ELN_W_Strong <- subset(ELN_W , MEI_W  > 1.5)
 
 ##########   Strong and Weak La Wet Season
-debug_print("PDKE: 98.15, Strong and Weak La Wet Season")
+debug_print("98.15, Strong and Weak La Wet Season")
 
 LAN_W_Weak <- subset(LAN_W , MEI_W  >= -1.5)
 LAN_W_Strong <- subset(LAN_W , MEI_W  < -1.5)
 
 ##########   DRY Season
-debug_print("PDKE: 98.16, Dry Season")
+debug_print("98.16, Dry Season")
 
 ELN_D <- subset(L0_D, MEI_D > 0.5)
 LAN_D <- subset(L0_D, MEI_D < -0.5)
@@ -9026,7 +9030,7 @@ NUT_Dx <- subset(L0_D, MEI_D > -0.5)
 NUT_D  <- subset(NUT_Dx, MEI_D < 0.5)
 
 ##########   Strong and Weak EL Dry Season
-debug_print("PDKE: 98.17, Strong and Weak EL Dry Season")
+debug_print("98.17, Strong and Weak EL Dry Season")
 
 ELN_D_Weak <- subset(ELN_D , MEI_D  <= 1.5)
 #ELN_D_Weak
@@ -9034,13 +9038,13 @@ ELN_D_Strong <- subset(ELN_D , MEI_D  > 1.5)
 #ELN_D_Strong
 
 ##########   Strong and Weak La Dry Season
-debug_print("PDKE: 98.18, Strong and Weak La Dry Season")
+debug_print("98.18, Strong and Weak La Dry Season")
 
 LAN_D_Weak <- subset(LAN_D , MEI_D  >= -1.5)
 LAN_D_Strong <- subset(LAN_D , MEI_D  < -1.5)
 
 ##########   Extract RF values
-debug_print("PDKE: 98.19, Extract RF values")
+debug_print("98.19, Extract RF values")
 
 EL_W_S <- ELN_W_Strong[, 2]
 EL_W_W <- ELN_W_Weak[, 2]
@@ -9055,7 +9059,7 @@ LA_D_W <- LAN_D_Weak[, 2]
 NU_D <- NUT_D[, 2]
 
 ##########   Counting the number in each phase
-debug_print("PDKE: 98.20, Counting the number in each phase")
+debug_print("98.20, Counting the number in each phase")
 
 C_EL_W_S <- sum(!is.na(EL_W_S))
 C_EL_W_W <- sum(!is.na(EL_W_W))
@@ -9074,7 +9078,7 @@ Cell.MEI[1:5, 9] <-
   c(C_EL_D_S, C_EL_D_W, C_NU_D, C_LA_D_W, C_LA_D_S)
 #Cell.MEI
 ##########   Mean RF values for each season-phase
-debug_print("PDKE: 98.21, Mean RF values for each season-phase")
+debug_print("98.21, Mean RF values for each season-phase")
 
 Me_EL_W_S <- round(mean(EL_W_S, na.rm = T), 1)
 Me_EL_W_W <- round(mean(EL_W_W, na.rm = T), 1)
@@ -9093,7 +9097,7 @@ Cell.MEI[1:5, 3] <-
   c(Me_EL_D_S, Me_EL_D_W, Me_NU_D, Me_LA_D_W, Me_LA_D_S)
 
 ##########   MAX
-debug_print("PDKE: 98.22, MAX")
+debug_print("98.22, MAX")
 
 Mx_EL_W_S <- round(max(EL_W_S, na.rm = T), 1)
 Mx_EL_W_W <- round(max(EL_W_W, na.rm = T), 1)
@@ -9112,7 +9116,7 @@ Cell.MEI[1:5, 5] <-
   c(Mx_EL_D_S, Mx_EL_D_W, Mx_NU_D, Me_LA_D_W, Mx_LA_D_S)
 
 ##########   MIN
-debug_print("PDKE: 98.23, MIN")
+debug_print("98.23, MIN")
 
 Mn_EL_W_S <- round(min(EL_W_S, na.rm = T), 1)
 Mn_EL_W_W <- round(min(EL_W_W, na.rm = T), 1)
@@ -9148,7 +9152,7 @@ Cell.MEI[1:5, 7] <-
 #Cell.MEI
 
 ##########   DRY SEASON
-debug_print("PDKE: 99, MEI, DRY SEASON")
+debug_print("99, MEI, DRY SEASON")
 
 ##########   Scaler
 MAXA <- max(c(Mx_EL_D_S, Mx_EL_D_W, Mx_LA_D_S, Mx_LA_D_W, Mx_NU_D))
@@ -9220,7 +9224,7 @@ dev.off()
 
 ##########   Wet Season
 ##########   Scaler
-debug_print("PDKE: 100, MEI, Wet SEASON")
+debug_print("100, MEI, Wet SEASON")
 
 MAXA <- max(c(Mx_EL_W_S, Mx_EL_W_W, Mx_LA_W_S, Mx_LA_W_W, Mx_NU_W))
 MAXB <- MAXA * 0.05
@@ -9293,7 +9297,7 @@ write.csv(Cell.MEI,
 
 #####################################################
 ##### ENSO rainfall barplots (Derek's addition)
-debug_print("PDKE: 101, ENSO rainfall barplots")
+debug_print("101, ENSO rainfall barplots")
 
 
 # Average Monthly Rainfall by ENSO Phase and Season barplot
@@ -9411,7 +9415,7 @@ write.csv(cc, paste0(PATH_WITH_PROJECT_NAME, "MEI_S.csv"))
 
 #####################################################
 ##### Air temperature graph
-debug_print("PDKE: 102, Air temperature graph")
+debug_print("102, Air temperature graph")
 
 ########## Month Year Air Temperature Maps
 #AT_Map_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/")
@@ -9468,7 +9472,7 @@ for (i in years) {
 summary(table$min)
 
 ###### Monthly air temperature time series
-debug_print("PDKE: 103, Monthly air temperature time series")
+debug_print("103, Monthly air temperature time series")
 
 dat <- table
 
@@ -9503,7 +9507,7 @@ ic <- unique(dat[which(dat$full == "N"), ]$year)
 #tail(dat)
 #############################
 ### Annual air temp trend
-debug_print("PDKE: 104, Annual air temp trend")
+debug_print("104, Annual air temp trend")
 
 
 # aggregate monthly to annual air temp
@@ -9663,7 +9667,7 @@ dev.off()
 
 ######## Air Temp Anomalies ########
 #setwd("F:/PDKE/CCVD/MINI_Phase2/")
-debug_print("PDKE: 105, Air Temp Anomalies")
+debug_print("105, Air Temp Anomalies")
 
 setwd(WORKING_DIR)
 

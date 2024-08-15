@@ -63,7 +63,7 @@ for (package in packages) {
 }
 
 
-print("1")
+print("In CCVD_portfolio_ppt.R")
 BASE_DIR <- "/Users/jgeis/Work/PDKE"
 #BASE_DIR <- "/srv/shiny-server"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
@@ -95,7 +95,7 @@ PROJECT_WITH_DATE = paste0(SNameF, "_", date_time_str)
 
 debug_print <- function(content) {
   #cat(file = stderr(), PROJECT_WITH_DATE, ": ", content, "\n")
-  print(paste0(PROJECT_WITH_DATE, ": ", content))
+  print(paste0(PROJECT_WITH_DATE, ", PDKE_PT2: ", content))
   #print(paste0(content,))
 }
 
@@ -103,22 +103,22 @@ debug_print(paste0("date_time_str: ", date_time_str))
 debug_print(paste0("PROJECT_WITH_DATE: ", PROJECT_WITH_DATE))
 debug_print(paste0("args: ", length(args)))
 debug_print("3")
-debug_print(paste0("PDKE: 3, email: ", email))
-debug_print(paste0("PDKE: 3, R_FOLDER: ", R_FOLDER))
-debug_print(paste0("PDKE: 3, NameF: ", NameF))
-debug_print(paste0("PDKE: 3, SNameF: ", SNameF))
-debug_print(paste0("PDKE: 3, PROJECT_NAME: ", PROJECT_NAME))
+debug_print(paste0("3, email: ", email))
+debug_print(paste0("3, R_FOLDER: ", R_FOLDER))
+debug_print(paste0("3, NameF: ", NameF))
+debug_print(paste0("3, SNameF: ", SNameF))
+debug_print(paste0("3, PROJECT_NAME: ", PROJECT_NAME))
 
 #debug_print(file = stderr(), "R_FOLDER: ", R_FOLDER, "\n")
 PROJECT_FILE_BASE <- paste0(R_FOLDER, "/", NameF, "_")
 debug_print(paste0("PROJECT_FILE_BASE: ", PROJECT_FILE_BASE))
 #Unit Name (should be PROJECT_NAME, but kept because it's a pain to change everywhere due to SNameF)
 #NameF <- PROJECT_NAME
-#debug_print(paste("PDKE: 3,NameF: ", NameF))
+#debug_print(paste("3,NameF: ", NameF))
 
-debug_print(paste("PDKE: 1,I_FOLDER: ", I_FOLDER))
-debug_print(paste("PDKE: 1,R_FOLDER: ", R_FOLDER))
-debug_print(paste("PDKE: 1,P_FOLDER: ", P_FOLDER))
+debug_print(paste("1,I_FOLDER: ", I_FOLDER))
+debug_print(paste("1,R_FOLDER: ", R_FOLDER))
+debug_print(paste("1,P_FOLDER: ", P_FOLDER))
 
 
 ### SET SITE FOLDER AND VERSION ###
@@ -145,7 +145,7 @@ ELUnit2 = "ft"
 
 ############################ LOGOS
 ## Read in images from the Image folder
-debug_print("PDKE: 1")
+debug_print("1")
 
 PDKE_Short <- paste0(I_FOLDER, "PDKE_Logo_Color_Rounded_Type-03.jpg")
 PDKE_Short
@@ -373,21 +373,21 @@ D_HLDimg <- external_img(src = D_HLDfile ,
 
 ######
 
-debug_print("PDKE: 2")
+debug_print("2")
 
 #for(f in 1:NF) {
 #for(f in 79:82) {
 
-#debug_print(paste("PDKE: 3,RANL[f]: ", RANL[f]))
+#debug_print(paste("3,RANL[f]: ", RANL[f]))
 
 #create path to folder
 #RAN_F <- paste0(R_FOLDER,RANL[f],"/")
-#debug_print(paste("PDKE: 3,RAN_F: ", RAN_F))
+#debug_print(paste("3,RAN_F: ", RAN_F))
 
 # list the output from Code 1
 #RANL2 <- list.files(RAN_F)
 #RANL2 <- list.files(R_FOLDER)
-#debug_print(paste("PDKE: 3,RANL2: ", RANL2))
+#debug_print(paste("3,RANL2: ", RANL2))
 
 
 
@@ -395,9 +395,9 @@ debug_print("PDKE: 2")
 ##### Read in CSV Files
 ## Read in Mean Climate File
 CLIM_FILE <- paste0(PROJECT_FILE_BASE, "MEAN Climate.csv")
-debug_print(paste("PDKE: 3,CLIM_FILE: ", CLIM_FILE))
+debug_print(paste("3,CLIM_FILE: ", CLIM_FILE))
 CLIM <- read.csv(CLIM_FILE, sep = ",")
-debug_print("PDKE: 4,CLIM")
+debug_print("4,CLIM")
 
 #CLIM
 debug_print(paste0("PDKE, SNameF: ", SNameF))
@@ -517,7 +517,7 @@ SUB <-
 #debug_print(paste("PDKE, SUB: ", SUB))
 
 ################ Slide 2 PDKE
-debug_print("PDKE SLIDE 2")
+debug_print("SLIDE 2")
 
 # start slide/page numbers
 p <- 1
@@ -582,7 +582,7 @@ The PDKE program was piloted in November of 2019 with funding from the Pacific I
 fp_HDKE <- fpar(ftext(HDKE, fp_TxBs))
 
 ################ Slide 3 PART 1
-debug_print("PDKE SLIDE 2 PART 1")
+debug_print("SLIDE 2 PART 1")
 
 p <- p + 1
 p2 <- p
@@ -614,7 +614,7 @@ FIG_1 <-
 
 
 ################ Slide 4 Hawaiian Land Divisions
-debug_print("PDKE SLIDE 4 Hawaiian Land Divisions")
+debug_print("SLIDE 4 Hawaiian Land Divisions")
 
 p <- p + 1
 p3 <- p
@@ -773,7 +773,7 @@ ft1 <-
   )))
 
 ###############   Slide 5 Elevation
-debug_print("PDKE Slide 5 Elevation")
+debug_print("Slide 5 Elevation")
 
 p <- p + 1
 p4 <- p
@@ -843,7 +843,7 @@ ft2 <-
 
 
 ############### Slide 6.1 (NEW) Landcover
-debug_print("PDKE Slide 6.1 (NEW) Landcover")
+debug_print("Slide 6.1 (NEW) Landcover")
 
 p <- p + 1
 p5 <- p
@@ -912,7 +912,7 @@ ft3 <-
   )))
 
 ################ Slide 7.1 Water Sources - Aquifers
-debug_print("PDKE Slide 7.1 Water Sources - Aquifers")
+debug_print("Slide 7.1 Water Sources - Aquifers")
 
 p <- p + 1
 p6 <- p
@@ -974,7 +974,7 @@ ft3.1 <-
   )))
 
 ################ Slide 7.2 Water Sources - Streams
-debug_print("PDKE Slide 7.2 Water Sources - Streams")
+debug_print("Slide 7.2 Water Sources - Streams")
 
 p <- p + 1
 p7 <- p
@@ -983,14 +983,14 @@ S6.2_TIT <- block_list(fpar(ftext("Water Sources", FTXTT), fp_p = fp_par(text.al
 
 #Hydrologic features spreadsheet
 HYDRO_FILE <- paste0(PROJECT_FILE_BASE, "Hydro_features.csv")
-debug_print(paste0("PDKE: HYDRO_FILE: ", HYDRO_FILE))
+debug_print(paste0("HYDRO_FILE: ", HYDRO_FILE))
 HF <- try(read.csv(HYDRO_FILE, sep = ","))
-#debug_print(paste0("PDKE: HF: ", HF))
-#debug_print(paste0("PDKE: HF[1]: ", HF[1]))
+#debug_print(paste0("HF: ", HF))
+#debug_print(paste0("HF[1]: ", HF[1]))
 
 # this was throwing errors as it fails when the df has data in it.  Removing for now until I can figure out why it's needed.
 #if (HF[1] == "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : \n  first five rows are empty: giving up\n") {
-#    debug_print("PDKE: In loop")
+#    debug_print("In loop")
 #    HF<-data.frame()
 #}
 
@@ -1057,7 +1057,7 @@ FIG_6.b <- block_list(fpar(ftext(
 
 
 ################ Slide 7 PART 1
-debug_print("PDKE Slide 7 PART 1")
+debug_print("Slide 7 PART 1")
 
 p <- p + 1
 p8 <- p
@@ -1084,7 +1084,7 @@ fp_PART1 <- fpar(ftext(PART1, fp_Tx))
 #NameF_I <- fp_text(italic = TRUE, color = "darkblue", font.size = 20)
 
 ###############   Rainfall Stations Slide 8a
-debug_print("PDKE Slide 8a Rainfall Stations")
+debug_print("Slide 8a Rainfall Stations")
 
 p <- p + 1
 p9 <- p
@@ -1096,7 +1096,7 @@ S8.0_TIT <- block_list(fpar(
 
 ### Bring in table of stations and network links
 RAIN_FILE <- paste0(PROJECT_FILE_BASE, "rain_stations.csv")
-debug_print(paste("PDKE: RAIN_FILE: ", RAIN_FILE))
+debug_print(paste("RAIN_FILE: ", RAIN_FILE))
 RS <- read.csv(RAIN_FILE, sep = ",")
 RS_T <- flextable(RS)
 RS_T <- bold(RS_T, bold = TRUE, part = "header")
@@ -1163,11 +1163,11 @@ FIG_6.a <- block_list(fpar(ftext(
 
 # get map of stations and AOI
 RSfile <- paste0(PROJECT_FILE_BASE, "rf_stations.png")
-debug_print(paste0("PDKE: RSfile: ", RSfile))
+debug_print(paste0("RSfile: ", RSfile))
 RSimg <- external_img(src = RSfile)
 
 ###############   Slide 6 Mean Climate
-debug_print("PDKE Slide 6 Mean Climate")
+debug_print("Slide 6 Mean Climate")
 
 p <- p + 1
 p10 <- p
@@ -1279,7 +1279,7 @@ WSimg <- external_img(src = WSfile,
 
 si <- 1.65
 ###############   Slide 8 Average monthly rainfall
-debug_print("PDKE Slide 8 Average monthly rainfall")
+debug_print("Slide 8 Average monthly rainfall")
 
 p <- p + 1
 p11 <- p
@@ -1370,7 +1370,7 @@ RFDimg <- external_img(src = RFDfile,
   width = 3)
 
 ###############   Slide 9 Average monthly air temperature
-debug_print("PDKE Slide 9 Average monthly air temperature")
+debug_print("Slide 9 Average monthly air temperature")
 
 p <- p + 1
 p12 <- p
@@ -1474,7 +1474,7 @@ TAHimg <- external_img(src = TAHfile,
   height = 3,
   width = 3)
 ###############   Slide 8 TA And RF
-debug_print("PDKE Slide 8 TA And RF")
+debug_print("Slide 8 TA And RF")
 
 p <- p + 1
 p13 <- p
@@ -1513,7 +1513,7 @@ FIG_6 <- block_list(fpar(ftext(
 )))
 
 ###############   Slide 9 Seasonal Rainfall
-debug_print("PDKE Slide 9 Seasonal Rainfall")
+debug_print("Slide 9 Seasonal Rainfall")
 
 p <- p + 1
 p14 <- p
@@ -1606,7 +1606,7 @@ SEAimg <- external_img(src = SEAfile,
 
 
 ###############   Slide 10  Average Climate Table
-debug_print("PDKE Slide 10  Average Climate Table")
+debug_print("Slide 10  Average Climate Table")
 
 p <- p + 1
 p15 <- p
@@ -1641,7 +1641,7 @@ TAB1 <- block_list(fpar(ftext(
 
 
 ################ Slide 12
-debug_print("PDKE Slide 12")
+debug_print("Slide 12")
 
 p <- p + 1
 p16 <- p
@@ -1695,7 +1695,7 @@ ft4 <-
   )))
 
 ################ Slide 13 Seasonal Rainfall and ENSO
-debug_print("PDKE Slide 13 Seasonal Rainfall and ENSO")
+debug_print("Slide 13 Seasonal Rainfall and ENSO")
 
 p <- p + 1
 p17 <- p
@@ -1769,7 +1769,7 @@ FIG_14.1 <- block_list(fpar(ftext(
 )))
 
 #################### Slide 14 ###############################
-debug_print("PDKE Slide 14")
+debug_print("Slide 14")
 
 p <- p + 1
 p18 <- p
@@ -1827,7 +1827,7 @@ FIG_9 <- block_list(fpar(ftext(
 
 
 #################### Slide 14 (NEW) Air Temperature Monthly and Annual #########################
-debug_print("PDKE Slide 14 (NEW) Air Temperature Monthly and Annual")
+debug_print("Slide 14 (NEW) Air Temperature Monthly and Annual")
 
 p <- p + 1
 p19 <- p
@@ -1839,10 +1839,10 @@ S14_TIT <- block_list(fpar(
 
 # use monthly air temperature data to figure out values for text
 AT_FILE <- paste0(PROJECT_FILE_BASE, "monthly_airtemp.csv")
-debug_print(paste("PDKE: AT_FILE: ", AT_FILE))
+debug_print(paste("AT_FILE: ", AT_FILE))
 
 AT <- read.csv(AT_FILE, sep = ",")
-#debug_print(paste("PDKE: AT: ", AT))
+#debug_print(paste("AT: ", AT))
 
 # get average annual air temperature values
 AT2 <- aggregate(mean ~ year, AT, mean)
@@ -1876,7 +1876,7 @@ ra <- round(mean(AT$range), 1)
 
 # find month-year with hottest temp
 ATd_FILE <- paste0(PROJECT_FILE_BASE, "daily_airtemp.csv")
-debug_print(paste("PDKE: ATd_FILE: ", ATd_FILE))
+debug_print(paste("ATd_FILE: ", ATd_FILE))
 
 ATd <- read.csv(ATd_FILE, sep = ",")
 #head(ATd)
@@ -1964,14 +1964,14 @@ AirTrend2 <-
 fp_AirTrend2 <- fpar(ftext(AirTrend2, fp_Tx))
 
 Trendfile1 <- paste0(PROJECT_FILE_BASE, "monthly_airtemp.png")
-debug_print(paste("PDKE: Trendfile1: ", Trendfile1))
+debug_print(paste("Trendfile1: ", Trendfile1))
 
 Trendimg1 <- external_img(src = Trendfile1,
   height = 1,
   width = 2)
 
 Trendfile2 <- paste0(I_FOLDER, "airtemp_legend2.jpg")
-debug_print(paste("PDKE: Trendfile2: ", Trendfile2))
+debug_print(paste("Trendfile2: ", Trendfile2))
 Trendimg2 <- external_img(src = Trendfile2,
   height = 1,
   width = 1)
@@ -1999,7 +1999,7 @@ ft5 <-
   )))
 
 ################ Slide 15 PART 4 Drought and Fire Occurrence ###############
-debug_print("PDKE Slide 15 PART 4 Drought and Fire Occurrence")
+debug_print("Slide 15 PART 4 Drought and Fire Occurrence")
 
 #Today,
 #increased wildland fire activity,
@@ -2026,7 +2026,7 @@ fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 
 
 ####################  SLIDE 16 FIVE TYPES OF DROUght######################################
-debug_print("PDKE Slide 16 FIVE TYPES OF DROUght")
+debug_print("Slide 16 FIVE TYPES OF DROUght")
 
 p <- p + 1
 p21 <- p
@@ -2048,7 +2048,7 @@ fp_Tx <- fp_text(italic = TRUE,
 fp_D_t <- fpar(ftext(D_t, fp_Tx))
 
 #################### Slide 17 ###############################
-debug_print("PDKE Slide 17")
+debug_print("Slide 17")
 
 p <- p + 1
 p22 <- p
@@ -2096,7 +2096,7 @@ FIG_12 <- block_list(fpar(ftext(
 
 
 #################### Slide 18 ###############################
-debug_print("PDKE Slide 18")
+debug_print("Slide 18")
 
 p <- p + 1
 p23 <- p
@@ -2225,7 +2225,7 @@ FIG_13 <- block_list(fpar(ftext(
 
 
 #################### Slide 20 ###############################
-debug_print("PDKE Slide 20")
+debug_print("Slide 20")
 
 p <- p + 1
 p24 <- p
@@ -2450,7 +2450,7 @@ SPI3v12.3 <- block_list(fpar(ftext(paste0(spi12CT), fp_Txa)))
 # "would prevent a misinterpretation that a drought might be over."), fp_Txa)))
 
 #################### Slide 21 ###############################
-debug_print("PDKE Slide 21")
+debug_print("Slide 21")
 
 p <- p + 1
 p25 <- p
@@ -2489,7 +2489,7 @@ FIG_16 <- block_list(fpar(ftext(
 
 
 ################ Slide 22 PART 5 Downscaling ###############
-debug_print("PDKE Slide 22 PART 5 Downscaling")
+debug_print("Slide 22 PART 5 Downscaling")
 
 p <- p + 1
 p26 <- p
@@ -2549,7 +2549,7 @@ fp_Part4.4 <- fpar(ftext(Part4.4, fp_Tx))
 
 
 #################### Slide 23 ###############################
-debug_print("PDKE Slide 23")
+debug_print("Slide 23")
 
 p <- p + 1
 p27 <- p
@@ -2643,7 +2643,7 @@ FIG_18 <- block_list(fpar(ftext(
 
 
 ##################### Slide 24 #################################################
-debug_print("PDKE Slide 24")
+debug_print("Slide 24")
 
 p <- p + 1
 p28 <- p
@@ -2837,7 +2837,7 @@ FIG_17 <- block_list(fpar(ftext(
 
 
 #################### Slide 25 Temperature 2040
-debug_print("PDKE Slide 25 Temperature 2040")
+debug_print("Slide 25 Temperature 2040")
 
 p <- p + 1
 p29 <- p
@@ -2923,7 +2923,7 @@ FIG_20 <- block_list(fpar(ftext(
 )))
 
 #################### Slide 25 Temperature 2100
-debug_print("PDKE Slide 26")
+debug_print("Slide 26")
 
 p <- p + 1
 p30 <- p
@@ -3099,7 +3099,7 @@ FIG_19 <- block_list(fpar(ftext(
 
 
 ################ Slide 27 Summary and Conclusions ###############
-debug_print("PDKE Slide 27 Summary and Conclusions")
+debug_print("Slide 27 Summary and Conclusions")
 
 p <- p + 1
 p31 <- p
@@ -3293,7 +3293,7 @@ fp_RES <-  block_list(
 #             ph_label = "Content Placeholder 2", href = "https://cran.r-project.org")
 
 ################ Slide 29 Acknowledgements ###############
-debug_print("PDKE Slide 29 Acknowledgements")
+debug_print("Slide 29 Acknowledgements")
 
 p <- p + 1
 p33 <- p
@@ -3345,7 +3345,7 @@ Draft <- block_list(fpar(
 ))
 
 ############## Slide 30 Works Cited ###########
-debug_print("PDKE Slide 30 Works Cited")
+debug_print("Slide 30 Works Cited")
 
 p <- p + 1
 p34 <- p
@@ -3360,7 +3360,7 @@ Worksimg <- external_img(src = Worksfile ,
 
 
 ############### Slide 31 ANNEX I ###############
-debug_print("PDKE Slide 31 ANNEX I")
+debug_print("Slide 31 ANNEX I")
 
 p <- p + 1
 p35 <- p
@@ -3397,7 +3397,7 @@ FIG_A1 <- block_list(fpar(ftext(
 
 
 ################ Slide 32 ANNEX II #############
-debug_print("PDKE Slide 32 ANNEX II")
+debug_print("Slide 32 ANNEX II")
 
 p <- p + 1
 p36 <- p
@@ -3422,7 +3422,7 @@ fp_DownA <- fpar(ftext(DownA, fp_Tx))
 
 
 #################### History of Drought Events table
-debug_print("PDKE History of Drought Events table")
+debug_print("History of Drought Events table")
 
 p <- p + 1
 p37 <- p
@@ -5115,11 +5115,13 @@ mypowerpoint <- read_pptx() %>%
 
   # Define the request body
   # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
+  ppt_link = paste0('http://149.165.154.114:3838/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+  shp_link = paste0('http://149.165.154.114:3838/shapefile/', SHAPEFILE)
   req <- list(
     "recepients" = c(email), # add hcdp@hawaii.edu
     "type" = "Info",
     "source" = "PDKE",
-    "message" = paste0("Your data is ready at: ", final_filename, ".  You may also download the shapefile of the target area here: ", SHAPEFILE)
+    "message" = paste0("Your data is ready at: \n", final_filename, "\n\nYou may also download the shapefile of the target area here: \n", shp_link)
   )
   req_json <- toJSON(req, unbox = my_unbox)
   debug_print(req_json)  # Print the JSON string
