@@ -1,4 +1,3 @@
-# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Kaa_2024_07_25_08_21_36 Kaa Kaa
 # Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Hamakuapoko_2024_07_25_11_06_12 Hamakuapoko Hamakuapoko /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp 
 
 # library(magrittr)
@@ -35,7 +34,9 @@ packages <-
     "imager",
     "pdftools",
     "jsonlite",
-    "httr"
+    "httr",
+    "stringr",
+    "zip"
   )
 for (package in packages) {
   print(paste("pkgTest: ", package))
@@ -94,9 +95,8 @@ date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\
 PROJECT_WITH_DATE = paste0(SNameF, "_", date_time_str)
 
 debug_print <- function(content) {
-  #cat(file = stderr(), PROJECT_WITH_DATE, ": ", content, "\n")
-  print(paste0(PROJECT_WITH_DATE, ", PDKE_PT2: ", content))
-  #print(paste0(content,))
+  cat(file = stderr(), PROJECT_WITH_DATE, ", PDKE_PT2: ", content, "\n")
+  #print(paste0(PROJECT_WITH_DATE, ", PDKE_PT2: ", content))
 }
 
 debug_print(paste0("date_time_str: ", date_time_str))
@@ -5112,16 +5112,82 @@ mypowerpoint <- read_pptx() %>%
       return(x)
     }
   }
+  
+  # Function to create a zip file containing all files with the specified base name
+  create_zip_for_base_name <- function(directory, base_name, zip_file_name) {
+    # Get a list of all files in the directory
+    all_files <- list.files(directory, full.names = TRUE)
+    
+    # Use regex to match files with the specified base name
+    pattern <- paste0("^", base_name, "\\.")
+    matched_files <- all_files[grepl(pattern, basename(all_files))]
+    
+    # Print matched files for verification
+    if (length(matched_files) == 0) {
+      print("No files found with the specified base name.")
+      return()
+    }
+    
+    print("Files to be zipped:")
+    print(matched_files)
+    
+    # Create a unique temporary directory to avoid conflicts
+    temp_dir <- file.path(tempdir(), "zip_temp")
+    dir.create(temp_dir, showWarnings = FALSE)
+    
+    # Clear any existing files in the temp directory to avoid any mix-up
+    file.remove(list.files(temp_dir, full.names = TRUE))
+    
+    # Copy each matched file to the temporary directory with just its base name
+    for (file in matched_files) {
+      file.copy(from = file, to = file.path(temp_dir, basename(file)), overwrite = TRUE)
+    }
+    
+    # Debugging: List files in the temporary directory to ensure they are there
+    temp_files <- list.files(temp_dir, full.names = TRUE)
+    print("Files in temporary directory:")
+    print(temp_files)
+    
+    # Create the zip file with files from the temporary directory
+    tryCatch({
+      # Use the files from the temp directory explicitly
+      zip(zip_file_name, files = basename(temp_files), root = temp_dir)
+      # Confirm the zip file creation
+      print(paste("Zip file created:", zip_file_name))
+    }, error = function(e) {
+      print("An error occurred while creating the zip file.")
+      print(e)
+    })
+    
+    # Clean up the temporary directory
+    unlink(temp_dir, recursive = TRUE)
+  }
+  # Define the regex pattern to extract the path before the file name
+  pattern <- ".*/"
+  # Use str_extract to get the desired substring
+  shp_path <- str_extract(SHAPEFILE, pattern)
+  debug_print(paste0("shp_path: ", shp_path))
+  #zip_file_name <- paste0(PROJECT_WITH_DATE, ".zip")  # Name of the zip file
+  zip_file_name <- file.path(shp_path, paste0(PROJECT_WITH_DATE, ".zip"))  # Name of the zip file
+  
+  debug_print(paste0("zip_file_name: ", zip_file_name))
+  
+  # Create the zip file
+  create_zip_for_base_name(shp_path, PROJECT_WITH_DATE, zip_file_name)
 
   # Define the request body
   # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
   ppt_link = paste0('http://149.165.154.114:3838/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
-  shp_link = paste0('http://149.165.154.114:3838/shapefile/', SHAPEFILE)
+  pattern2 <- "(?<=Shapefiles/).*"
+  shp_path2 <- str_extract(shp_path, pattern2)
+  debug_print(paste0("shp_path2: ", shp_path2))
+  
+  shp_link = paste0('http://149.165.154.114:3838/shapefile/', shp_path2, zip_file_name)
   req <- list(
     "recepients" = c(email), # add hcdp@hawaii.edu
     "type" = "Info",
     "source" = "PDKE",
-    "message" = paste0("Your data is ready at: \n", final_filename, "\n\nYou may also download the shapefile of the target area here: \n", shp_link)
+    "message" = paste0("Your data is ready at: \n", ppt_link, "\n\nYou may also download the shapefile of the target area here: \n", shp_link)
   )
   req_json <- toJSON(req, unbox = my_unbox)
   debug_print(req_json)  # Print the JSON string
