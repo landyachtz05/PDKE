@@ -5180,14 +5180,15 @@ mypowerpoint <- read_pptx() %>%
   ppt_link = paste0('http://149.165.154.114:3838/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
   pattern2 <- "(?<=Shapefiles/).*"
   shp_path2 <- str_extract(shp_path, pattern2)
+  
   debug_print(paste0("shp_path2: ", shp_path2))
   
-  shp_link = paste0('http://149.165.154.114:3838/shapefile/', shp_path2, zip_file_name)
+  shp_link = paste0('http://149.165.154.114:3838/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
   req <- list(
     "recepients" = c(email), # add hcdp@hawaii.edu
     "type" = "Info",
     "source" = "PDKE",
-    "message" = paste0("Your data is ready at: \n", ppt_link, "\n\nYou may also download the shapefile of the target area here: \n", shp_link)
+    "message" = paste0("Your data is ready at: \n", URLencode(ppt_link, reserved = FALSE), "\n\nYou may also download the shapefile of the target area here: \n", URLencode(shp_link, reserved = FALSE))
   )
   req_json <- toJSON(req, unbox = my_unbox)
   debug_print(req_json)  # Print the JSON string
