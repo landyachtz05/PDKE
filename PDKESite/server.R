@@ -19,7 +19,7 @@ environ <- "dev"
 #environ <- "prod"
 # prod, default if environ is not dev
 rscript_path = "/bin/Rscript" 
-PDKE_dir = "/home/exouser/workflow/"
+PDKE_dir = "/srv/shiny-server/"
 if (environ == "dev") {
   rscript_path = "/Rscript"
   PDKE_dir = "/Users/jgeis/Work/PDKE/"
@@ -115,8 +115,8 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   # this works, gets temporarily commented out so I can test w/o invoking the other stuff
   system(full_run_string, wait = FALSE)
 
-  showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
-
+  #showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
+  
   # Disable the save button to prevent a re-submission.
   #updateActionButton(session, "save_button", disabled = TRUE)
   
@@ -160,7 +160,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_polygon_name, {
     showModal(modalDialog(
       title = "Polygon Name Information",
-      "This is where you enter the full name of the polygon.",
+      "The full name of the location you have selected, sans Island name, ex: 'Waikiki Watershed'.  This will be in the title of the resulting powerpoint.  Do not include the island name, as that will already be automatically inserted into the title.  If you selected a pre-defined shape, this will be filled in for you, but you can edit it if you wish.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -170,7 +170,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_polygon_short_name, {
     showModal(modalDialog(
       title = "Polygon Short Name Information",
-      "This is where you enter a shorter version of the polygon name, typically a few characters.",
+      "A short name of the location you have selected, sans Island name, ex: 'Waikiki' instead of 'Waikiki Watershed'.  This will be used in the text of many slides in the resulting powerpoint.  If you selected a pre-defined shape, this will be filled in for you, but you can edit it if you wish.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -216,11 +216,11 @@ server <- function(input, output, session) {
                         opacity = 0.5 # Set line opacity to a lower value
     )
     
-    # Enable layers control for toggling drawn shapes and island boundaries
-    leaf <- addLayersControl(leaf,
-                             overlayGroups = c("drawnFeatures", "Islands"),
-                             options = layersControlOptions(collapsed = FALSE)
-    )
+    # # Enable layers control for toggling drawn shapes and island boundaries
+    # leaf <- addLayersControl(leaf,
+    #                          overlayGroups = c("drawnFeatures", "Islands"),
+    #                          options = layersControlOptions(collapsed = FALSE)
+    # )
 
     # Check if drawing is enabled and add drawing tools if it is
     if (drawing_enabled()) {
@@ -306,6 +306,11 @@ server <- function(input, output, session) {
   # Render the selected shapefile on the map
   observe({
     cat("observe 2\n")
+    
+    # clear any existing status message
+    output$status_messages <- renderText({
+      ""
+    })
 
     shapefile <- selected_shapefile()
     if (!is.null(shapefile)) {
@@ -468,11 +473,11 @@ server <- function(input, output, session) {
             polygon_coords_matrix <- do.call(rbind, polygon_coords)
             sf_object <- sf::st_sfc(sf::st_polygon(list(polygon_coords_matrix)), crs = 4326)
           } else {
-            showNotification("Invalid Polygon coordinates. Please draw a valid shape.", type = "error")
+            showNotification("Invalid shape. Please draw a fully enclosed shape", type = "error")
             return
           }
         } else {
-          showNotification("Unsupported geometry type. Please draw a valid shape.", type = "error")
+          showNotification("Unsupported geometry type. Please draw a fully enclosed shape", type = "error")
           return
         }
         
@@ -490,12 +495,19 @@ server <- function(input, output, session) {
         
         # Write the sf object to a shapefile
         sf::st_write(sf_object, full_filename)
-        showNotification(paste("The selected area has been saved as:", full_filename), type = "message")
+        #showNotification(paste("The selected area has been saved as:", full_filename), type = "message")
         
         # call the other script asynchronously to do the processing
         run_ccvd(sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
+        # Render the confirmation message when the submit button is clicked
+        output$status_messages <- renderText({
+          "Your request has been submitted. When the results are ready, you will receive an email with a link to the download."
+        })
+        
+        # Disable the save button to prevent a re-submission.
+        updateActionButton(session, "save_button", disabled = TRUE)
       } else {
-        showNotification("No area selected to save as shapefile.", type = "warning")
+        showNotification("You first need to select an area.", type = "warning")
       }
     # user selected a specific polygon from a pre-defined shapefile
     } else if (!is.null(selected_polygon())) {
@@ -516,12 +528,20 @@ server <- function(input, output, session) {
         
         # Save the selected polygon as a shapefile
         sf::st_write(sf_object, full_filename)
-        showNotification(paste("The selected polygon has been saved as:", full_filename), type = "message")
+        #showNotification(paste("The selected polygon has been saved as:", full_filename), type = "message")
 
         run_ccvd(sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
+        # Render the confirmation message when the submit button is clicked
+        output$status_messages <- renderText({
+          "Your request has been submitted. When the results are ready, you will receive an email with a link to the download."
+        })
+        
+        # Disable the save button to prevent a re-submission.
+        updateActionButton(session, "save_button", disabled = TRUE)
+        
       }, error = function(e) {
         print(paste("Error:", e))
-        showNotification("An error occurred while saving the selected polygon.", type = "error")
+        showNotification("An error occurred during submission, please contact hcdp@hawaii.edu.", type = "error")
       })
     # user selected a pre-defined shapefile, really, this was early on and should never happen now.  
     # All predefined shapefiles have multiple polygons now.
@@ -533,7 +553,6 @@ server <- function(input, output, session) {
       full_filename <- sub(".*PDKESite/", "", selected_shapefile_path())
       filename <- sub(".*/(.*)\\.shp$", "\\1", selected_shapefile_path())
       run_ccvd(selected_shapefile(), island_boundaries, full_filename, polygon_name, polygon_short_name, email)
-      
       #cat(file=stderr(), "selected_shapefile2: ", selected_shapefile_path(), "\n")
     } 
     # reset all values so user starts from scratch

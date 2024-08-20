@@ -89,7 +89,10 @@ ui <- fluidPage(
       leafletOutput("map", height = 600),
       
       # Add a button to save the selected area as a shapefile
-      actionButton("save_button", "Use Selected Area")
+      actionButton("save_button", "Use Selected Area"),
+      
+      # Placeholder for submission confirmation message
+      textOutput("status_messages")
     )
   ),
   
