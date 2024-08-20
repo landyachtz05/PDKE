@@ -38,13 +38,7 @@ ui <- fluidPage(
   sidebarLayout(
     # Sidebar panel for inputs
     sidebarPanel(
-      # Text input for email address
-      textInput("email", "Your email address:", value = "", placeholder = "your.email@example.com"),
-      # Warning message for email validation
-      tags$div(id = "email_warning", style = "color: red; margin-top: 12px;",
-        tags$p("An email address is required since results will be emailed to you once generated.  The submit button will not be enabled until a shape is selected or drawn and all values are provided.")
-      ),
-      
+
       # Dropdown menu to select a shapefile
       uiOutput("shapefile_select"),
       
@@ -58,6 +52,12 @@ ui <- fluidPage(
         style = "display: flex; align-items: center;",
         textInput("polygon_short_name", "Location short name:", ""),
         div(id = "info_polygon_short_name", class = "info-circle", "?")
+      ),
+      # Text input for email address
+      textInput("email", "Your email address:", value = "", placeholder = "your.email@example.com"),
+      # Warning message for email validation
+      tags$div(id = "email_warning", style = "color: red; margin-top: 12px;",
+        tags$p("An email address is required since results will be emailed to you once generated.  The submit button will not be enabled until a shape is selected or drawn and all values are provided.")
       ),
       
       # JavaScript code snippet to handle email validation
