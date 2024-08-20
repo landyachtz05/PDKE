@@ -114,16 +114,7 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   
   # this works, gets temporarily commented out so I can test w/o invoking the other stuff
   system(full_run_string, wait = FALSE)
-  
-  # system(paste0(Sys.getenv("R_HOME"),
-  #   run_string, " ",
-  #   shQuote(email), " ",
-  #   shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)), " ",
-  #   shQuote(polygon_name), " ",
-  #   shQuote(polygon_short_name), " ",
-  #   shQuote(island_full_name), " ",
-  #   shQuote(island_short_name)
-  # ), wait = FALSE)
+
   showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
 
   # Disable the save button to prevent a re-submission.
@@ -255,8 +246,8 @@ server <- function(input, output, session) {
   # Create a dropdown menu of shapefile names
   output$shapefile_select <- renderUI({
     cat("renderUI\n")
-    shapefile_choices <- c("Select a pre-defined shapefile", shapefile_paths)
-    selectInput("shapefile", "Select a shapefile:", choices = shapefile_choices)
+    shapefile_choices <- c("Select from pre-defined locations", shapefile_paths)
+    selectInput("shapefile", "Select a location:", choices = shapefile_choices)
   })
   
   # Observe changes in email input
@@ -268,7 +259,7 @@ server <- function(input, output, session) {
   observe({
     cat("observe 1\n")
     req(input$shapefile)
-    if (input$shapefile != "Select a pre-defined shapefile") {
+    if (input$shapefile != "Select from pre-defined locations") {
       cat(" shapefile selected from menu\n")
       
       selected_shapefile_path(normalizePath(shapefile_paths[match(input$shapefile, shapefile_paths)]))
