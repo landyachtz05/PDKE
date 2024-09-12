@@ -25,14 +25,32 @@ ui <- fluidPage(
         margin-left: 5px;
         cursor: pointer;
       }
+      .inline-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .inline-container img {
+        margin-right: 15px;
+      }
+      .inline-container h1 {
+        margin: 0;
+      }
     "))
   ),
-  
+
   # Display an image above the main content
-  img(src = "logo-PDKE_Color_Horizontal_Type-05.png", height = "200px", alt = "PDKE Logo", align="center"),
+  #img(src = "logo-PDKE_Logo_Color_Rounded_Type-03.jpg", height = "200px", alt = "PDKE Logo", align = "center"),
   
   # Application title
-  #titlePanel("Leaflet Map with Shapefile Selector"),
+  #titlePanel("Hawaiʻi Climate Portfolios"),
+
+  # Container for the inline image and title
+  div(
+    class = "inline-container",
+    img(src = "logo-PDKE_Logo_Color_Rounded_Type-03.jpg", height = "60px", alt = "PDKE Logo"),
+    h1("Hawaiʻi Climate Portfolios")
+  ),
   
   # Sidebar layout with input and output definitions
   sidebarLayout(
