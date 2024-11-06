@@ -15,8 +15,8 @@ library(leaflet)
 library(leaflet.extras)
 library(sf)
 
-environ <- "dev"
-#environ <- "prod"
+#environ <- "dev"
+environ <- "prod"
 # prod, default if environ is not dev
 rscript_path = "/bin/Rscript" 
 PDKE_dir = "/srv/shiny-server/"
@@ -246,10 +246,22 @@ server <- function(input, output, session) {
   # Create a dropdown menu of shapefile names
   output$shapefile_select <- renderUI({
     cat("renderUI\n")
-    shapefile_choices <- c("Select from pre-defined locations", shapefile_paths)
-    selectInput("shapefile", "Select a location:", choices = shapefile_choices)
+
+    # Create another list with the paths and '.shp' extension stripped
+    shapefile_names <- sub("\\.shp$", "", basename(shapefile_paths))
+    cat("shapefile_names: ", shapefile_names, "\n")
+    
+    # Merge shapefile_names and shapefile_choices into one list
+    shapefile_list <- setNames(c("Select a pre-defined location", shapefile_paths), 
+      c("Select a pre-defined location", shapefile_names))
+    cat("shapefile_list: ", shapefile_list, "\n")
+    
+    selectInput(
+      inputId = "shapefile", 
+      label = "Select a pre-defined location", 
+      choices = shapefile_list)
   })
-  
+
   # Observe changes in email input
   observe({
     update_submit_button(session, valid_text_inputs(), polygon_selected())
@@ -259,11 +271,26 @@ server <- function(input, output, session) {
   observe({
     cat("observe 1\n")
     req(input$shapefile)
-    if (input$shapefile != "Select from pre-defined locations") {
+    if (input$shapefile != "Select a pre-defined location") {
       cat(" shapefile selected from menu\n")
+      
+      #orig_selected_shapefile = selected_shapefile()
+      #cat("orig_selected_shapefile: ", orig_selected_shapefile(), "\n")
+
+      #shapefile <- selected_shapefile()
+      #first_attribute <- colnames(shapefile)[1]
+      # cat("first_attribute: ", shapefile[[first_attribute]], "\n")
+      
       
       selected_shapefile_path(normalizePath(shapefile_paths[match(input$shapefile, shapefile_paths)]))
       selected_shapefile(sf::st_read(shapefile_paths[match(input$shapefile, shapefile_paths)]))
+      #polygon_name <- input$polygon_name
+      #if (orig_selected_shapefile != selected_shapefile) {
+      #  cat(" no match, so wiping text fields\n")
+      #  updateTextInput(session, "polygon_name", value = "")
+      #  updateTextInput(session, "polygon_short_name", value = "")
+      #}
+      
       
       # Update button label
       #updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
@@ -489,7 +516,7 @@ server <- function(input, output, session) {
         # Generate the filename using the current date and time
         datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
         #filename <- paste0("Shapefiles/UserDefinedPolygon/selected_area_", datetime_str, ".shp")
-        filename <- paste0(polygon_name, "_", datetime_str)
+        filename <- paste0(polygon_short_name, "_", datetime_str)
         full_filename <- paste0("Shapefiles/UserDefinedPolygon/", filename, ".shp")
         #full_filepath <- paste0(PDKE_dir, "PDKESite/", "Shapefiles/UserDefinedPolygon/", filename, ".shp")
         
