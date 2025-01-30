@@ -109,10 +109,10 @@ Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 13),]
 Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))                      
 
 ############################################################
-NP_ALL <- readOGR("F:/PDKE/CCVD/sites/makaha_ahupuaa.shp")
+NP_ALL <- readOGR("F:/PDKE/CCVD/sites/honouliuli_national_historic_site.shp")
 HALE <- NP_ALL
-NM <- "Makaha Ahupuaa"
-NM_s <- "Makaha"
+NM <- "Honouliuli National Historic Site"
+NM_s <- "HONO"
 ILE<-"Oahu"
 ILE_s<-"OA"
 
@@ -211,9 +211,9 @@ ShortNm <- sum(!is.na(UNIT_Ns))
 # UNIT_Shape
 # UNIT_Island
 
-# ##########  Mean Rainfall DATA   
-# 
-# MeanRF_ALL = dir(paste0(IFOLDER,"Mean_RF_Data/StateMaps/"), pattern="*x.adf", recursive=T, full.names=T)
+##########  Mean Rainfall DATA
+
+MeanRF_ALL = dir(paste0(IFOLDER,"Mean_RF_Data/StateMaps/"), pattern="*x.adf", recursive=T, full.names=T)
 # 
 # ## Find state-wide mean monthly rainfall stats (min, mean, max, percentiles)
 # #loop through month maps and calculate stats, also make average monthly rainfall map
@@ -588,11 +588,29 @@ colnames(AI2)<-"ObjectID"
 
 # subset ahupuaa for study area
 AI3<-AHU[AI2$ObjectID,]
-plot(AI3)
+plot(HALE, col = "red")
+plot(AI3, add=T)
+
+# clip polygons and calculate areas
+AI3_sf<-st_as_sf(AI3)
+HALE_sf<-st_as_sf(HALE)
+
+HALE_area_m <- st_area(HALE_sf)  # Total area of HALE in square meters
+
+AI3_clipped <- st_intersection(AI3_sf, HALE_sf)
+plot(AI3_clipped[2])
+
+AI3_clipped$area_m <- st_area(AI3_clipped)
+AI3_clipped
 
 # get subsetted ahupuaa as a dataframe for text labels
-AId<-as(AI3, "data.frame")
-write.csv(data.frame(AId), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Ahupuaa.csv"),row.names = F)
+AId<-as.data.frame(AI3_clipped)
+AId
+
+AI3_clipped_df <- st_drop_geometry(AI3_clipped)
+
+
+write.csv(data.frame(AI3_clipped_df), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Ahupuaa.csv"),row.names = F)
 
 # get extent of Ahupuaa
 xm<-xmin(AI3)
@@ -899,24 +917,46 @@ colnames(AI2)<-"ObjectID"
 # subset aquifers for study area
 AQ3<-AQU[AI2$ObjectID,]
 plot(AQ3)
+plot(HALE, add=T)
 
 
 AQ3<-raster::intersect(AQU,HALE)
+plot(AQ3)
+AQ3
+
+# clip polygons and calculate centroid coordinates
+AQ3_sf<-st_as_sf(AQ3)
+
+AQ3_clipped <- st_intersection(AQ3_sf, HALE_sf)
+plot(AQ3_clipped[2])
+AQ3_clipped
+
+AQ3_centroids <- st_centroid(AQ3_clipped)
+
+  # Extract latitude and longitude from centroids
+  centroid_coords <- st_coordinates(AQ3_centroids)
+  AQ3_clipped <- AQ3_clipped %>%
+    mutate(
+      cent_long = centroid_coords[, 1],
+      cent_lat = centroid_coords[, 2]
+    )
 
 # subset for hydrology
 AQb<-AQ3[which(AQ3$typea1 == 1),]
-AQh<-AQ3[which(AQ3$typea1 == 2),]
+AQh<-AQ3[which(AQ3$typea1 == 2),]  
 
 # make data frame and only keep relevant columns
-AQd<-as(AQ3, "data.frame")
+# AQd<-as.data.frame(AQ3_clipped)
+AQd<-as.data.frame(AQ3)
+AQd<-as.data.frame(AQ3_clipped)
 AQd<-subset(AQd, select = c("objectid","doh_aquife","typea1","typea3","stata1","strata3","cent_lat","cent_long"))
+AQd
 
 # translate type and status codes to text
 AQd$Hydrology<-NA
 AQd$Geology<-NA
 AQd$Salinity<-NA
 AQd$Use<-NA
-
 
 for (i in 1:nrow(AQd)) {
   
@@ -944,9 +984,10 @@ AQd
 # trim it down to the final table
 AQe<-subset(AQd, select = c("doh_aquife", "Hydrology", "Geology", "Salinity", "Use"))
 colnames(AQe)[1] = "DOH Aquifer"
+AQe
 write.csv(data.frame(AQe), paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Aquifer.csv"),row.names = F)
 
-# get extent of Aquifrs
+# get extent of Aquifers
 xm<-xmin(AQ3)
 xma<-xmax(AQ3)
 ym<-ymin(AQ3)*0.999
@@ -2567,12 +2608,13 @@ colfuncKD <-colorRampPalette(brewer.pal(9,"OrRd"))(50)
 }
 if((KDUP - KDLO)<9){
   BI_brksKD<-round(seq(KDLO, KDUP, length = (KDUP - KDLO)),0)
-  colfuncKD <-colorRampPalette(brewer.pal(1,"OrRd"))(50)
+  colfuncKD <-colorRampPalette(brewer.pal(3,"OrRd"))(50)
 }
-
 if((KDUP - KDLO)<=1){
-  BI_brksKD<-round(seq(KDLO, KDUP, length = (KDUP - KDLO)),0)
-  colfuncKD <-colorRampPalette(brewer.pal(1,"OrRd"))(50)
+  KDUP<-KDLO+1
+  KDLO<-KDLO-1
+  BI_brksKD<-round(seq(KDLO, KDUP, length = 2),0)
+  colfuncKD <-colorRampPalette(brewer.pal(3,"OrRd"))(50)
 }
 
 #For CF
@@ -2622,8 +2664,6 @@ png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_RH.png"),width=5*dpi,h
            sp.layout = list(UNIT_X[u])) +
       layer(sp.polygons(SHAPE,lwd=1))
   dev.off()
-
-  plot(KD_P_Crop)
   
 png(paste0(RFOLDER,UNIT_N[u],"/",UNIT_N[u]," Climate_less_SM.png"),width=5*dpi,height=5*dpi,res=dpi)    
   spplot(SM_P_Crop, col.regions = colfuncSM, equal=FALSE,
@@ -4478,6 +4518,43 @@ print("SPI FIG 12")
 RF <- as.numeric(MRF100$RF)
 RFDATA <- cbind(MRF100[,c(2,3)])
 
+
+# ####### FOR SPI GRAPH/TABLE ######
+# # Convert the Date column to Date format (if not already in Date format)
+# MRF100$Ndate <- as.Date(MRF100$Ndate)
+# 
+# head(MRF100)
+# 
+# # Filter for the desired date range
+# MRF100_filtered <- MRF100[which(MRF100$Year>=2000),]
+# 
+# # Create a time series object for rainfall
+# rainfall_ts <- ts(MRF100_filtered$RF, start = c(2000, 1), frequency = 12)
+# 
+# # Calculate SPI for a 3-month interval
+# spi_3 <- spi(rainfall_ts, scale = 12)
+# 
+# spi_table <- data.frame(
+#   Date = MRF100_filtered$Ndate,
+#   SPI_3 = as.numeric(spi_3$fitted)
+# )
+# 
+# ggplot(spi_table, aes(x = Date, y = SPI_3)) +
+#   geom_line(color = "blue") +
+#   geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+#   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +  # Breaks every year, labeled with the year
+#   labs(title = "Molokai Irrigation Svc. Area 12-Month SPI (2000-2024)", x = "Year", y = "SPI") +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate labels for better readability
+# 
+# # View the first few rows of the SPI table
+# head(spi_table)
+# 
+# # Export SPI table as a CSV file
+# getwd()
+# write.csv(spi_table, "Molokai_Irrigation_svcarea_SPI_12_Month_2000_2024.csv", row.names = FALSE)
+
+##################################
 #SPI-12 Calculation
 SPI12 <- spi(RF, scale = 12, distribution = 'Gamma')
 #SPI-3 Calculation
@@ -4542,16 +4619,18 @@ Cell.DataSPI
     m
     
     # make extra rows so the last year is complete
+    if(m != 0){
     extra<-data.frame(matrix(ncol = 3, nrow = m))
     colnames(extra)<-c("spi","date","m.scale")
+    max(SPI_ALL$date)
     extra$date<-max(SPI_ALL$date)
     extra[1:(m/2),]$m.scale <- 3
     extra[((m/2)+1):nrow(extra),]$m.scale <- 12
-
-    extra
-    head(SPI_ALL)
     # add extra rows to dataset
     SPI_ALL<-rbind(SPI_ALL, extra)
+    }
+
+    head(SPI_ALL)
  
     # sort by year
     SPI_ALL<-SPI_ALL[order(SPI_ALL$date, SPI_ALL$m.scale),]
@@ -5509,8 +5588,11 @@ summary(seasons$RF)
 DryRF<-seasons[which(seasons$season == "dry"),]
 
 MEI_D
+MEI_Dly<-max(MEI_D$Year)
+
 DryRF
-L0_D<-cbind(DryRF,MEI_D[which(!is.na(MEI_D$MEI_D)),])
+DryRFly<-DryRF[which(DryRF$Year<=MEI_Dly),]
+L0_D<-cbind(DryRFly,MEI_D[which(!is.na(MEI_D$MEI_D)),])
 L0_D
 
 MEI_W
@@ -5909,7 +5991,7 @@ for(i in y){
 tail(dat, 20)
 
 ic<-unique(dat[which(dat$full == "N"),]$year)
-ic
+
 
 # dat<-dat[which(dat$full == "Y"),]
 head(dat)
@@ -5932,8 +6014,10 @@ dat.y$max<-round((aggregate(max ~ year, dat, max))$max, digits=2)
 dat.y
 
 # remove stats from incomplete year
+if(length(ic)!=0){
 dat.y<-dat.y[which(dat.y$year < ic),]
 dat.y[(nrow(dat.y)+1),]$year<-ic
+}
 
 # make date column
 dat.y$date<-as.Date(paste0(dat.y$year,"-01-01"))

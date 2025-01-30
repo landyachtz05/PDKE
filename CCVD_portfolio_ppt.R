@@ -12,6 +12,7 @@ library(mschart)
 library(purrr)
 library(imager)
 library(pdftools)
+library(magick)
 
 setwd("F://PDKE/CCVD/MINI_Phase2/")
 #Path = "C:/Users/BUNNY1/Documents/Work From Home/PAPERS/Beef_Production/Specific Ranch/"
@@ -24,18 +25,18 @@ NF <- length(RANL)
 ### SET SITE FOLDER AND VERSION ###
 RANL
 # LOOP 
-f<-86
+f<-50
 RANL[f]
 
 # VERSION
-ver<-5.2
+ver<-5.3
 
 # UNITS
 TUnit = "\u00B0F"
 TUnit2 = " \u00B0F"
 RFUnit = " in"
 RFUnit2 = "in"
-RFUnit3 = "°F"
+RFUnit3 = "in"
 ELUnit = " ft"
 ELUnit2 = "ft"
 
@@ -351,9 +352,11 @@ This portfolio provides a brief description of ",SNameF," in context of traditio
   AHc<-length(unique(AHU$ahupuaa))
   unique(AHU$ahupuaa)
   
-  if(AHc==1) {AHa<-paste0(unique(AHU$ahupuaa)[1],".")}
-  if(AHc==2) {AHa<-paste0(unique(AHU$ahupuaa)[1]," and ",unique(AHU$ahupuaa)[2],".")}
-  if(AHc>2) {AHa<-paste0(unique(AHU$ahupuaa)[1],"; ",unique(AHU$ahupuaa)[2],"; and ",unique(AHU$ahupuaa)[3],".")}
+  AHU_sorted <- AHU[order(-AHU$area_m), ]
+  
+  if(AHc==1) {AHa<-paste0(unique(AHU$ahupuaa2)[1],".")}
+  if(AHc==2) {AHa<-paste0(unique(AHU$ahupuaa2)[1]," and ",unique(AHU$ahupuaa2)[2],".")}
+  if(AHc>2) {AHa<-paste0(unique(AHU$ahupuaa2)[1],"; ",unique(AHU$ahupuaa2)[2],"; and ",unique(AHU$ahupuaa2)[3],".")}
   AHa
 
   # Figure text
@@ -475,18 +478,63 @@ S6.2_TIT<- block_list(
 #Aquifer spreadsheet
 AQ <- read.csv(paste0(R_FOLDER,NameF,"/",NameF," Aquifer.csv"),sep=",")
 AQc<-nrow(AQ)
+AQc
 
-AQ_T<-flextable(AQ)
-AQ_T<-bold(AQ_T, bold=TRUE, part="header")
-AQ_T<-fontsize(AQ_T, size=12)
-AQ_T<-autofit(AQ_T)
-AQ_T
+
+# split table up into smaller pieces
+if(AQc <=15) {AQ1<-AQ}
+if(AQc >15) {AQ1<-AQ[1:15,]}
+if(AQc > 15) {AQ2<-AQ[16:nrow(AQ),]}
+if(AQc > 30) {AQ2<-AQ2[1:15,]}
+if(AQc > 30) {AQ3<-AQ2[16:nrow(AQ2),]}
+if(AQc > 45) {AQ3<-AQ3[1:15,]}
+AQ1
+
+AQT_T1 <- flextable(AQ1)
+AQT_T1 <- bg(AQT_T1, bg = "lightblue", part = "header")
+AQT_T1<-bold(AQT_T1, bold=TRUE, part="header")
+AQT_T1 <- autofit(AQT_T1)
+# Adjust padding (top and bottom) to reduce row height
+AQT_T1 <- padding(AQT_T1, padding.top = 1, padding.bottom = 1, part = "all")  # smaller padding for shorter rows
+# Set a fixed width and height for the table
+# AQT_T1 <- width(AQT_T1, width = 4)  # Adjust to desired width
+AQT_T1 <- height_all(AQT_T1, height = .3)  # Adjust to desired height for all rows
+AQT_T1
+
+if(exists("AQ2")) {AQT_T2 <- flextable(AQ2);
+AQT_T2 <- bg(AQT_T2, bg = "lightblue", part = "header");
+AQT_T2<-bold(AQT_T2, bold=TRUE, part="header");
+AQT_T2 <- autofit(AQT_T2);
+AQT_T2 <- padding(AQT_T2, padding.top = 1, padding.bottom = 1, part = "all");  # smaller padding for shorter rows
+AQT_T2 <- height_all(AQT_T2, height = .3)}  # Adjust to desired height for all rows
+
+if (exists("AQ3") && is.data.frame(AQ3)) {
+  AQT_T3 <- flextable(AQ3)
+  AQT_T3 <- bg(AQT_T3, bg = "lightblue", part = "header")
+  AQT_T3 <- bold(AQT_T3, bold = TRUE, part = "header")
+  AQT_T3 <- autofit(AQT_T3)
+  AQT_T3 <- padding(AQT_T3, padding.top = 1, padding.bottom = 1, part = "all")  # Smaller padding for shorter rows
+  AQT_T3 <- height_all(AQT_T3, height = 0.3)  # Adjust to desired height for all rows
+}
+
+if(AQc > 45) {AQT_end<-paste0("Record stops at 45 aquifers. Contact PDKE for
+                              complete record")}
+# 
+# 
+# AQ_T<-flextable(AQ)
+# AQ_T<-bold(AQ_T, bold=TRUE, part="header")
+# AQ_T<-fontsize(AQ_T, size=12)
+# AQ_T<-autofit(AQ_T)
+# AQ_T
 
 #Body text
-AQ_Tt<- paste0("There are ",AQc," aquifers in ",SNameF,", their characteristics are listed below.
+AQ_Tt<- paste0("Aquifers in Hawai‘i are critical sources of fresh water for the islands, supplying the majority of drinking water and irrigation needs. 
+
+There are ",AQc," aquifers in ",SNameF,". See Annex III for a complete list of aquifers and their characteristics.
 
 In general, basal aquifers are more susceptible to saltwater intrusion than high level aquifers.")
 AQ_Tt
+
 
 M_AQ <-  block_list(
   fpar(ftext(AQ_Tt, fp_Tx)))
@@ -495,11 +543,26 @@ M_AQ
 # map
 AQmapfile <- paste0(R_FOLDER,NameF,"/",NameF," Aquifers.png")
 AQmapimg <- external_img(src = AQmapfile)
+AQmapimg <- image_read(AQmapfile)
+plot(AQmapimg)
+
+# fix aspect ratio
+img_info<-image_info(AQmapimg)
+original_width<-img_info$width
+original_height<-img_info$height
+
+desired_width <- 4.3  # Your desired width
+aspect_ratio <- original_height / original_width
+desired_height <- desired_width * aspect_ratio  # Calculate height to maintain aspect ratio
+
+# Save the AQmapimg as a temporary file (PNG format)
+tmp_file <- tempfile(fileext = ".png")
+image_write(AQmapimg, path = tmp_file)
 
 # Figure caption
 FIG_5.b <- block_list(
-  fpar(ftext(paste0("Figure 5. Department of Health aquifer mapping labeled by DOH Aquifer number ",
-                    "and colored by hydrology type. ",SNameF," outlined in red."), fp_Fig)))
+  fpar(ftext(paste0("Figure 5. Department of Health aquifer mapping labeled by DOH Aquifer number. ",
+                    "Basal aquifers are blue, and high level aquifers are gray. ",SNameF," outlined in red."), fp_Fig)))
 FIG_5.b
 
 # Table caption
@@ -596,7 +659,6 @@ RS_T <- bold(RS_T, bold = TRUE, part = "header")
 RS_T <- fontsize(RS_T, size = 12)
 #Creates a table for the PPT
 RS_T <- autofit(RS_T)
-RS_T
 
 # get closest station and network
 s1<-RS[1,1]
@@ -1215,7 +1277,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                  "of Moderate (SPI > 1), Severe (SPI > 1.5), and Extreme (SPI > 2) drought.") 
                  
   DHist2 <- paste0("A total of ",CNTDRT," droughts were observed over the entire record ",
-                   "with a total of ", SoG, " drought events of severe strength or greater. The longest drought lasted for a total of ",LongD," months (see Annex III).")
+                   "with a total of ", SoG, " drought events of severe strength or greater. The longest drought lasted for a total of ",LongD," months (see Annex IV).")
  
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18)
   
@@ -1880,20 +1942,41 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
   fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
   fp_DownA <- fpar(ftext(DownA, fp_Tx))
   
+  #################### Aquifers table
+  
+  p<-p+1
+  p37<-p
+  
+  # AQ_TIT<- block_list(
+  #   fpar(
+  #     ftext(paste0("Aquifers", FTXTT),fp_p = fp_par(text.align = "center")),
+  #   fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center"))))
+  # 
+  # AQ_TIT
+  
+  AQ_TIT<- block_list(
+    fpar(ftext(paste0("Aquifers"), FTXTT),fp_p = fp_par(text.align = "center")),
+    fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center")))
+  AQ_TIT
+  
+  TAB3.1 <- block_list(
+    fpar(ftext(paste0("Table A1. Aquifer characteristics for ",SNameF,"."), fp_Fig)))
 
   
   #################### History of Drought Events table
 
   p<-p+1
-  p37<-p
+  if(AQc>15) {p<-p+1}
+  if(AQc>30) {p<-p+1}
+  p38<-p
   
   DT_TIT<- block_list(
     fpar(ftext(paste0("Drought Events (1920-",yr,")"), FTXTT),fp_p = fp_par(text.align = "center")),
     fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center")))
-  
+  DT_TIT
   
   TAB3 <- block_list(
-    fpar(ftext(paste0("Table A1. SPI-12 drought characteristics at ",NameF, " identified in the SPI-12 timeseries. Duration is the number of months the drought persisted; ",
+    fpar(ftext(paste0("Table A2. SPI-12 drought characteristics at ",NameF, " identified in the SPI-12 timeseries. Duration is the number of months the drought persisted; ",
                       "Average Intensity is the average absolute SPI; Peak Intensity is the highest SPI value calculated during the drought ", 
                       "Magnitude is sum of absolute SPI values during the drought."), fp_Fig)))
   
@@ -2006,19 +2089,17 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
       ph_with(value = ft3, location = ph_location(label = "my_name",
                                                   left = 0.5, top = 5.73, width = 4, height = 3)) %>%
 
-  #Slide 7.1 Aquifers
-  add_slide("Two Content","Office Theme") %>%
-  ph_with(S6.2_TIT,       ph_location_type("title")) %>%
-  ph_with(value = AQ_T, location = ph_location(label = "my_name", left = 0.6, top = 4, width = 3.5, height = 3)) %>%
+  # Slide 7.1 Aquifers
+  add_slide("Two Content", "Office Theme") %>%
+  ph_with(S6.2_TIT, ph_location_type("title")) %>%
   ph_with(value = p6, location = ph_location_type(type = "sldNum")) %>%
-  ph_with(value = M_AQ, location = ph_location(label = "my_name", left = 0.5, top = 0.8, width = 5.5, height = 4)) %>%
-  ph_with(value = AQmapimg, location = ph_location(label = "my_name", left = 6.2, top = 2.3, width = 3.2)) %>%
-  ph_with(value = FIG_5.b, location = ph_location(label = "my_name",
-                                                  left = 6.5, top = 5.9, width = 3.2, height = 1.3))%>%
-  ph_with(value = TAB_0, location = ph_location(label = "my_name",
-                                                  left = 0.5, top = 6, width = 3.5, height = 1.4))%>%
-  # ph_with(value = ft3, location = ph_location(label = "my_name",
-  #                                             left = 0.5, top = 5.73, width = 4, height = 3)) %>%
+  ph_with(value = M_AQ, location = ph_location(label = "my_name", left = 0.7, top = 1.2, width = 4.5, height = 5)) %>%
+  
+  # Use ph_with to insert the image from the file path
+  ph_with(value = external_img(tmp_file), location = ph_location(label = "my_name", left = 5.4, top = 1.7, width = desired_width, height = desired_height)) %>%
+  
+  ph_with(value = FIG_5.b, location = ph_location(label = "my_name", left = 6, top = 5.7, width = 3.2, height = 1.3)) %>%
+
   
   #Slide 7.2 Streams
   add_slide("Two Content","Office Theme") %>%
@@ -2047,7 +2128,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
     ph_with(S8.0_TIT,           ph_location_type("title")) %>%
   
     ph_with(value = RS_T, location = ph_location(label = "my_name",
-                                                   left = 0.6, top = 4.9, width = 3, height = 1.4))%>%
+                                                   left = 0.6, top = 4.9, width = 6, height = 1.4))%>%
     ph_with(value = RSimg, location = ph_location(label = "my_name",
                                                     left = 5.3, top = 1.5, width = 4.3, height = 3.2))%>%
     ph_with(value = fp_RS1, ph_location_type("body",position_right = FALSE)) %>%
@@ -2057,6 +2138,7 @@ SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most wid
                                                     left = 0.5, top = 6.3, width = 7, height = 1.4))%>%
     ph_with(value = p9, location = ph_location_type(type = "sldNum")) %>%
     
+  
 #Slide 6 
   add_slide("Two Content","Office Theme") %>%
     ph_with(S6_TIT,           ph_location_type("title")) %>%
@@ -2441,25 +2523,55 @@ add_slide("Two Content","Office Theme") %>%
                                                     left = 3.5, top = 5, width = 3, height = 2)) %>%
   
     #Slide 32 ############### Annex III
-
+    
     add_slide("Title and Content","Office Theme") %>%
-    ph_with(paste0("Annex III: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
+    ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
     ph_with(value = p37, location = ph_location_type(type = "sldNum"))%>% 
+    ph_with(value = AQT_T1, ph_location(label = "my_name",
+                                        left = 1.5, top = 1.8))%>%
+    ph_with(value = TAB3.1, location = ph_location(label = "my_name",
+                                                 left = 7.6, top = 4, width = 2, height = 4)) %>%
+    
+    {if(AQc>15) add_slide(.,"Title and Content", "Office Theme") %>% 
+        ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
+        ph_with(value = (p37+1), location = ph_location_type(type = "sldNum"))%>%
+        ph_with(value = AQT_T2, ph_location(label = "my_name",
+                                            left = 1.5, top = 1.8))%>%
+        ph_with(value = TAB3.1, location = ph_location(label = "my_name",
+                                                       left = 7.6, top = 4, width = 2, height = 4)) else .} %>%
+    
+    {if(AQc>30) add_slide(.,"Title and Content", "Office Theme") %>% 
+        ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
+        ph_with(value = (p37+2), location = ph_location_type(type = "sldNum"))%>%
+        ph_with(value = AQT_T3, ph_location(label = "my_name",
+                                            left = 1.5, top = 1.8))%>%
+        ph_with(value = TAB3.1, location = ph_location(label = "my_name",
+                                                       left = 7.6, top = 4, width = 2, height = 4)) else .} %>%
+    {if(AQc>45) ph_with(value = AQT_end, 
+                        location = ph_location(label = "my_name",
+                                               left = 1, top = 6, width = 5)) else .} %>%
+    
+    
+    #Slide 32 ############### Annex IV
+    
+    add_slide("Title and Content","Office Theme") %>%
+    ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
+    ph_with(value = p38, location = ph_location_type(type = "sldNum"))%>% 
     ph_with(value = DrotT_T1, ph_location_type("body")) %>%
     ph_with(value = TAB3, location = ph_location(label = "my_name",
                                                  left = 7.85, top = 2.5, width = 2, height = 4)) %>%
     
     {if(Drot_ct>12) add_slide(.,"Title and Content", "Office Theme") %>% 
-        ph_with(paste0("Annex III: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
-        ph_with(value = (p37+1), location = ph_location_type(type = "sldNum"))%>%
+        ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
+        ph_with(value = (p38+1), location = ph_location_type(type = "sldNum"))%>%
         ph_with(value = DrotT_T2, ph_location_type("body"))%>%
         ph_with(value = TAB3,
                 location = ph_location(label = "my_name",
                                        left = 7.85, top = 2.5, width = 2, height = 4)) else .} %>%
     
     {if(Drot_ct>24) add_slide(.,"Title and Content", "Office Theme") %>% 
-        ph_with(paste0("Annex III: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
-        ph_with(value = (p37+2), location = ph_location_type(type = "sldNum"))%>%
+        ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
+        ph_with(value = (p38+2), location = ph_location_type(type = "sldNum"))%>%
         ph_with(value = DrotT_T3, ph_location_type("body"))%>%
         ph_with(value = TAB3,
                 location = ph_location(label = "my_name",
