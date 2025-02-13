@@ -547,17 +547,27 @@ server <- function(input, output, session) {
         polygon_short_name <- input$polygon_short_name
         print(paste0("polygon_name: ", polygon_name))
         print(paste0("polygon_short_name: ", polygon_short_name))
-        
+
         # Generate the filename using the current date and time
         datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
         filename <- paste0(polygon_name, "_" , datetime_str)
         full_filename <- paste0("Shapefiles/SelectedPolygon/", filename, ".shp")
-        
+
         # Save the selected polygon as a shapefile
         sf::st_write(sf_object, full_filename)
         #showNotification(paste("The selected polygon has been saved as:", full_filename), type = "message")
 
+        # verify the CRS of the two spatial objects match
+        if (st_crs(sf_object) != st_crs(island_boundaries)) {
+          # reproject one of the objects so that it has the same CRS as the other.
+          island_boundaries <- st_transform(island_boundaries, st_crs(sf_object)) # Transform island_boundaries to the CRS of sf_object
+        }
+        
+        # need this because was getting "Error: Error in wk_handle.wk_wkb(wkb, s2_geography_writer(oriented = oriented, : Loop 0 is not valid: Edge 1865 is degenerate (duplicate vertex)\n"
+        sf_object <- st_make_valid(sf_object)
+        
         run_ccvd(sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
+
         # Render the confirmation message when the submit button is clicked
         output$status_messages <- renderText({
           "Your request has been submitted. When the results are ready, you will receive an email with a link to the download."
