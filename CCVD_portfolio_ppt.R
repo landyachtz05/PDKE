@@ -1,4 +1,7 @@
-# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Hamakuapoko_2024_07_25_11_06_12 Hamakuapoko Hamakuapoko /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp 
+# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Hamakuapoko_2024_07_25_11_06_12 Hamakuapoko Hamakuapoko /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp
+# /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_ppt.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Molokai_2025_02_04_09_31_29' 'Molokai' 'Molokai' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Molokai_2025_02_04_09_31_29.shp' 
+# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Honouliuli National Historic Site' Honouliuli HONO /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp
+# /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_ppt.R 'jgeis26@gmail.com' '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Waimea, Waikoloa_2025_02_12_15_18_36' 'Waimea, Waikoloa' 'Waimea, Waikoloa' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waimea, Waikoloa_2025_02_12_15_18_36.shp'
 
 # library(magrittr)
 # library(tidyverse)
@@ -34,6 +37,7 @@ packages <-
     "imager",
     "pdftools",
     "jsonlite",
+    "magick",
     "httr",
     "stringr",
     "zip"
@@ -63,18 +67,25 @@ for (package in packages) {
   }
 }
 
+#setwd("F://PDKE/CCVD/MINI_Phase2/")
+#Path = "C:/Users/BUNNY1/Documents/Work From Home/PAPERS/Beef_Production/Specific Ranch/"
+#I_FOLDER <- "F://PDKE/CCVD/IMAGE/"        # Folder with images
+#R_FOLDER <- "F://PDKE/CCVD/MINI_Phase2/"  # File with your site specific folders
+#P_FOLDER <- "F://PDKE/CCVD/MINI_PPT/"     # Output folder
+#RANL <- list.files(R_FOLDER)
+#NF <- length(RANL)
 
 print("In CCVD_portfolio_ppt.R")
-#BASE_DIR <- "/Users/jgeis/Work/PDKE"
-BASE_DIR <- "/srv/shiny-server"
+BASE_DIR <- "/Users/jgeis/Work/PDKE"
+#BASE_DIR <- "/srv/shiny-server"
+print(paste0("BASE_DIR: ", BASE_DIR))
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images
 #R_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")  # Folder with your site specific folders
 datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
 PROJECT_NAME <- paste0("polygon", datetime_str)
-R_FOLDER <-
-  paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/", PROJECT_NAME, "/")  # Folder with your site specific files
+R_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/", PROJECT_NAME, "/")  # Folder with your site specific files
 P_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_PPT/")     # Output folder
 print("2")
 NameF <- "default_name"
@@ -124,22 +135,18 @@ debug_print(paste("1,P_FOLDER: ", P_FOLDER))
 ### SET SITE FOLDER AND VERSION ###
 #RANL
 # LOOP
-#f<-93
-#f<-2 # JEN: not sure what's going on here.
-# They had 93, but I'm not sure why.  To match the other file, this needed to be the waikiki watershed,
-# but it's clearly going to change with where the user selects.
-# TODO: change this so it makes sense and matches the selected shape area
+#f<-50
 #RANL[f]
 
 # VERSION
-ver <- 5.1
+ver <- 5.3
 
 # UNITS
 TUnit = "\u00B0F"
 TUnit2 = " \u00B0F"
 RFUnit = " in"
 RFUnit2 = "in"
-RFUnit3 = "°F"
+RFUnit3 = "in"
 ELUnit = " ft"
 ELUnit2 = "ft"
 
@@ -378,19 +385,13 @@ debug_print("2")
 #for(f in 1:NF) {
 #for(f in 79:82) {
 
-#debug_print(paste("3,RANL[f]: ", RANL[f]))
-
 #create path to folder
-#RAN_F <- paste0(R_FOLDER,RANL[f],"/")
-#debug_print(paste("3,RAN_F: ", RAN_F))
-
+#RAN_F <- paste0(R_FOLDER, RANL[f], "/")
 # list the output from Code 1
 #RANL2 <- list.files(RAN_F)
 #RANL2 <- list.files(R_FOLDER)
-#debug_print(paste("3,RANL2: ", RANL2))
-
-
-
+#Unit Name
+#NameF <- basename(RAN_F)
 
 ##### Read in CSV Files
 ## Read in Mean Climate File
@@ -398,29 +399,24 @@ CLIM_FILE <- paste0(PROJECT_FILE_BASE, "Mean Climate.csv")
 debug_print(paste("3,CLIM_FILE: ", CLIM_FILE))
 CLIM <- read.csv(CLIM_FILE, sep = ",")
 debug_print("4,CLIM")
-
 #CLIM
-debug_print(paste0("PDKE, SNameF: ", SNameF))
+
+debug_print(paste0("SNameF: ", SNameF))
 
 ## Read in landcover file
 LAND <-
   read.csv(paste0(PROJECT_FILE_BASE, "Landcover.csv"), sep = ",")
-#debug_print(paste0("PDKE, LAND: ", LAND))
+#debug_print(paste0("LAND: ", LAND))
 
 ## Hawaiian land division files
 MOKU <- read.csv(paste0(PROJECT_FILE_BASE, "Moku.csv"), sep = ",")
-#debug_print(paste("PDKE, MOKU: ", MOKU))
-
-# TODO: JEN: Find out why AHU and AHU5 point to the same file and if one can go away
-AHU <- read.csv(paste0(PROJECT_FILE_BASE, "Ahupuaa.csv"), sep = ",")
-#debug_print(paste("PDKE, AHU: ", AHU))
-
-AHU5 <- read.csv(paste0(PROJECT_FILE_BASE, "Ahupuaa.csv"), sep = ",")
-#debug_print(paste("PDKE, AHU5: ", AHU5))
-
+AHU_file <- paste0(PROJECT_FILE_BASE, "Ahupuaa.csv")
+debug_print(paste0("AHU_file: ", AHU_file))
+AHU <- read.csv(AHU_file, sep = ",")
+summary(AHU)
 
 #Font styles
-#Suggetions Type_Color_Size  ex B_DR_40
+#Suggestions Type_Color_Size  ex B_DR_40
 
 fp_BR <-
   fp_text(bold = TRUE,
@@ -616,77 +612,64 @@ FIG_1 <-
 ################ Slide 4 Hawaiian Land Divisions
 debug_print("SLIDE 4 Hawaiian Land Divisions")
 
-p <- p + 1
-p3 <- p
+p<-p+1
+p3<-p
 
-S4a_TIT <- block_list(fpar(
-  ftext("Hawaiian Land Divisions", FTXTT),
-  fp_p = fp_par(text.align = "center")
-))
+S4a_TIT<- block_list(
+  fpar(ftext("Hawaiian Land Divisions", FTXTT),
+  fp_p = fp_par(text.align = "center"))
+)
 
-HLD1 <-
-  paste0(
-    "There are three types of traditional Hawaiian landscape divisions available as GIS layers and ",
-    "presented here for ",
-    SNameF,
-    ". The land divisions are shown in red and ",
-    SNameF,
-    " is shown in blue."
-  )
+HLD1<- paste0("There are three types of traditional Hawaiian landscape divisions available as GIS layers and ",
+  "presented here for ",SNameF,". The land divisions are shown in red and ",SNameF," is shown in blue.")
 
-fp_Tx <- fp_text(italic = TRUE,
-  color = "black",
-  font.size = 19)
+fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 19) 
 fp_HLD1 <- fpar(ftext(HLD1, fp_Tx))
 
 # Make moku label based on how many moku there are
-#MOKU
-MO <- MOKU[1, ]$moku
-if (nrow(MOKU) == 1) {
-  MO1 <- MO
-}
-if (nrow(MOKU) == 2) {
-  MO1 <- paste0(MO, " and ", MOKU[2, ]$moku)
-}
-if (nrow(MOKU) > 2) {
-  MO1 <- paste0(MO, ", ", MOKU[2, ]$moku, " and ", MOKU[3, ]$moku)
-}
-if (nrow(MOKU) > 3) {
-  MO1 <-
-    paste0(MO, ", ", MOKU[2, ]$moku, ", ", MOKU[3, ]$moku, ", and ", MOKU[4, ]$moku)
-}
-if (nrow(MOKU) > 4) {
-  MO1 <-
-    paste0(MO,
-      ", ",
-      MOKU[2, ]$moku,
-      ", ",
-      MOKU[3, ]$moku,
-      ", ",
-      MOKU[4, ]$moku,
-      ", and ",
-      MOKU[5, ]$moku)
-}
-#MO1
+MOKU
+MO<-unique(MOKU$moku)[1]
+MO
+
+if(length(unique(MOKU$moku))==1) {MO1<-MO}
+if(length(unique(MOKU$moku))==2) {MO1<-paste0(MO, " and ",unique(MOKU$moku)[2])}
+if(length(unique(MOKU$moku))>2) {MO1<-paste0(MO,", ",unique(MOKU$moku)[2]," and ",unique(MOKU$moku)[3])}
+if(length(unique(MOKU$moku))>3) {MO1<-paste0(MO,", ",unique(MOKU$moku)[2],", ",unique(MOKU$moku)[3],", and ",unique(MOKU$moku)[4])}
+if(length(unique(MOKU$moku))>4) {MO1<-paste0(MO,", ",unique(MOKU$moku)[2],", ",unique(MOKU$moku)[3],", ",unique(MOKU$moku)[4],", and ",unique(MOKU$moku)[5])}
+debug_print("printing MO1")
+MO1
 
 # Ahupuaa count and names
-AHc <- nrow(AHU)
+debug_print("printing AHU")
+AHU
+AHc<-nrow(AHU)
+AHc<-length(unique(AHU$ahupuaa))
+unique(AHU$ahupuaa)
+
+# failed
+# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Molokai_2025_02_04_09_31_29' 'Molokai' 'Molokai' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Molokai_2025_02_04_09_31_29.shp' 
+
+# worked
+# Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Honouliuli National Historic Site' Honouliuli HONO /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp
+AHU_sorted <- AHU[order(-AHU$area_m), ]
+
 if (AHc == 1) {
-  AHa <- paste0(AHU5[1, ]$ahupuaa2, ".")
+  AHa <- paste0(unique(AHU$ahupuaa2)[1], ".")
 }
 if (AHc == 2) {
-  AHa <- paste0(AHU5[1, ]$ahupuaa2, " and ", AHU5[2, ]$ahupuaa2, ".")
+  AHa <- paste0(unique(AHU$ahupuaa2)[1], " and ", unique(AHU$ahupuaa2)[2], ".")
 }
 if (AHc > 2) {
-  AHa <-
-    paste0(AHU5[1, ]$ahupuaa2,
-      "; ",
-      AHU5[2, ]$ahupuaa2,
-      "; and ",
-      AHU5[3, ]$ahupuaa2,
-      ".")
+  AHa <- paste0(
+    unique(AHU$ahupuaa2)[1],
+    "; ",
+    unique(AHU$ahupuaa2)[2],
+    "; and ",
+    unique(AHU$ahupuaa2)[3],
+    "."
+  )
 }
-#AHa
+AHa
 
 # Figure text
 MP <- block_list(fpar(ftext(
@@ -748,13 +731,13 @@ if (AHc > 2) {
       SNameF,
       " is situated within ",
       AHc,
-      " ahupuaa - primarily ",
+      " ahupuaa including ",
       AHa
     ),
     fp_Fig5
   )))
 }
-#AH
+AH
 
 # Load land division maps
 MPmfile <- paste0(PROJECT_FILE_BASE, "Mokupuni.png")
@@ -922,44 +905,138 @@ S6.2_TIT <- block_list(fpar(ftext("Water Sources", FTXTT), fp_p = fp_par(text.al
 #Aquifer spreadsheet
 AQ <- read.csv(paste0(PROJECT_FILE_BASE, "Aquifer.csv"), sep = ",")
 AQc <- nrow(AQ)
+AQc
 
-AQ_T <- flextable(AQ)
-AQ_T <- bold(AQ_T, bold = TRUE, part = "header")
-AQ_T <- fontsize(AQ_T, size = 12)
-AQ_T <- autofit(AQ_T)
-#AQ_T
+# split table up into smaller pieces
+if (AQc <= 15) {
+  AQ1 <- AQ
+}
+if (AQc > 15) {
+  AQ1 <- AQ[1:15, ]
+}
+if (AQc > 15) {
+  AQ2 <- AQ[16:nrow(AQ), ]
+}
+if (AQc > 30) {
+  AQ2 <- AQ2[1:15, ]
+}
+if (AQc > 30) {
+  AQ3 <- AQ2[16:nrow(AQ2), ]
+}
+if (AQc > 45) {
+  AQ3 <- AQ3[1:15, ]
+}
+AQ1
+
+AQT_T1 <- flextable(AQ1)
+AQT_T1 <- bg(AQT_T1, bg = "lightblue", part = "header")
+AQT_T1 <- bold(AQT_T1, bold = TRUE, part = "header")
+AQT_T1 <- autofit(AQT_T1)
+# Adjust padding (top and bottom) to reduce row height
+AQT_T1 <- padding(
+  AQT_T1,
+  padding.top = 1,
+  padding.bottom = 1,
+  part = "all"
+)  # smaller padding for shorter rows
+# Set a fixed width and height for the table
+# AQT_T1 <- width(AQT_T1, width = 4)  # Adjust to desired width
+AQT_T1 <- height_all(AQT_T1, height = .3)  # Adjust to desired height for all rows
+AQT_T1
+
+if (exists("AQ2")) {
+  AQT_T2 <- flextable(AQ2)
+  
+  AQT_T2 <- bg(AQT_T2, bg = "lightblue", part = "header")
+  
+  AQT_T2 <- bold(AQT_T2, bold = TRUE, part = "header")
+  
+  AQT_T2 <- autofit(AQT_T2)
+  
+  AQT_T2 <- padding(
+    AQT_T2,
+    padding.top = 1,
+    padding.bottom = 1,
+    part = "all"
+  )
+  # smaller padding for shorter rows
+  AQT_T2 <- height_all(AQT_T2, height = .3)
+}  # Adjust to desired height for all rows
+
+if (exists("AQ3") && is.data.frame(AQ3)) {
+  AQT_T3 <- flextable(AQ3)
+  AQT_T3 <- bg(AQT_T3, bg = "lightblue", part = "header")
+  AQT_T3 <- bold(AQT_T3, bold = TRUE, part = "header")
+  AQT_T3 <- autofit(AQT_T3)
+  AQT_T3 <- padding(
+    AQT_T3,
+    padding.top = 1,
+    padding.bottom = 1,
+    part = "all"
+  )  # Smaller padding for shorter rows
+  AQT_T3 <- height_all(AQT_T3, height = 0.3)  # Adjust to desired height for all rows
+}
+
+if (AQc > 45) {
+  AQT_end <- paste0("Record stops at 45 aquifers. Contact PDKE for
+                              complete record")
+}
+#
+#
+# AQ_T<-flextable(AQ)
+# AQ_T<-bold(AQ_T, bold=TRUE, part="header")
+# AQ_T<-fontsize(AQ_T, size=12)
+# AQ_T<-autofit(AQ_T)
+# AQ_T
 
 #Body text
-AQ_Tt <-
-  paste0(
-    "There are ",
-    AQc,
-    " aquifers in ",
-    SNameF,
-    ", their characteristics are listed below.
+AQ_Tt <- paste0(
+  "Aquifers in Hawai‘i are critical sources of fresh water for the islands, supplying the majority of drinking water and irrigation needs.
+
+There are ",
+  AQc,
+  " aquifers in ",
+  SNameF,
+  ". See Annex III for a complete list of aquifers and their characteristics.
 
 In general, basal aquifers are more susceptible to saltwater intrusion than high level aquifers."
-  )
-#AQ_Tt
+)
+AQ_Tt
+
 
 M_AQ <-  block_list(fpar(ftext(AQ_Tt, fp_Tx)))
-#M_AQ
+M_AQ
 
 # map
 AQmapfile <- paste0(PROJECT_FILE_BASE, "Aquifers.png")
 AQmapimg <- external_img(src = AQmapfile)
+AQmapimg <- image_read(AQmapfile)
+plot(AQmapimg)
+
+# fix aspect ratio
+img_info <- image_info(AQmapimg)
+original_width <- img_info$width
+original_height <- img_info$height
+
+desired_width <- 4.3  # Your desired width
+aspect_ratio <- original_height / original_width
+desired_height <- desired_width * aspect_ratio  # Calculate height to maintain aspect ratio
+
+# Save the AQmapimg as a temporary file (PNG format)
+tmp_file <- tempfile(fileext = ".png")
+image_write(AQmapimg, path = tmp_file)
 
 # Figure caption
 FIG_5.b <- block_list(fpar(ftext(
   paste0(
-    "Figure 5. Department of Health aquifer mapping labeled by DOH Aquifer number ",
-    "and colored by hydrology type. ",
+    "Figure 5. Department of Health aquifer mapping labeled by DOH Aquifer number. ",
+    "Basal aquifers are blue, and high level aquifers are gray. ",
     SNameF,
     " outlined in red."
   ),
   fp_Fig
 )))
-#FIG_5.b
+FIG_5.b
 
 # Table caption
 TAB_0 <- block_list(fpar(ftext(
@@ -988,11 +1065,9 @@ HF <- try(read.csv(HYDRO_FILE, sep = ","))
 #debug_print(paste0("HF: ", HF))
 #debug_print(paste0("HF[1]: ", HF[1]))
 
-# this was throwing errors as it fails when the df has data in it.  Removing for now until I can figure out why it's needed.
-#if (HF[1] == "Error in read.table(file = file, header = header, sep = sep, quote = quote,  : \n  first five rows are empty: giving up\n") {
-#    debug_print("In loop")
-#    HF<-data.frame()
-#}
+if (typeof(HF) == "character") {
+  HF <- data.frame()
+}
 
 HFc <- nrow(HF)
 
@@ -1103,7 +1178,6 @@ RS_T <- bold(RS_T, bold = TRUE, part = "header")
 RS_T <- fontsize(RS_T, size = 12)
 #Creates a table for the PPT
 RS_T <- autofit(RS_T)
-#RS_T
 
 # get closest station and network
 s1 <- RS[1, 1]
@@ -1490,6 +1564,7 @@ TAimg <- external_img(src = TAfile ,
   width = 3)
 
 RFFfile <- paste0(PROJECT_FILE_BASE, "RF12.png")
+debug_print(paste0("RFFfile: ", RFFfile))
 RFFimg <- external_img(src = RFFfile ,
   height = 3,
   width = 3)
@@ -1579,7 +1654,7 @@ SEA <-
     " and ",
     D_RF_P,
     " percentiles for rainfall across the whole state, respectively.
-
+  
 Management plans should anticipate and minimize negative impacts of these seasonal rainfall variations."
   )
 
@@ -1613,19 +1688,21 @@ p15 <- p
 
 ACLIM <-
   read.csv(paste0(PROJECT_FILE_BASE, "Annual Climate.csv"), sep = ",")
+ACLIM
 ACLIM2 <- ACLIM[, 1:13]
+ACLIM2
 ACLIM_T <- flextable(ACLIM)
 ACLIM_T <- bg(ACLIM_T, bg = "yellow", part = "header")
 ACLIM_T <- fontsize(ACLIM_T, size = 10)
 #Creates a table for the PPT
 ACLIM_T <- autofit(ACLIM_T)
-
+#ACLIM_T
 
 S10_TIT <- block_list(fpar(
   ftext("Average Monthly Climate Table", FTXTT),
   fp_p = fp_par(text.align = "center")
 ),
-  fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center")))
+  fpar(ftext(SNameF, FTXTT3), fp_p = fp_par(text.align = "center")))
 
 
 TAB1 <- block_list(fpar(ftext(
@@ -1872,7 +1949,7 @@ airchange2 <- paste0(abs(round(pred[[2]] - pred[[1]])), "°F.")
 
 # calculate average annual range (hottest - coldest month)
 AT$range <- AT$max - AT$min
-ra <- round(mean(AT$range), 1)
+ra <- round(mean(AT$range, na.rm = TRUE), 1)
 
 # find month-year with hottest temp
 ATd_FILE <- paste0(PROJECT_FILE_BASE, "daily_airtemp.csv")
@@ -1880,7 +1957,7 @@ debug_print(paste("ATd_FILE: ", ATd_FILE))
 
 ATd <- read.csv(ATd_FILE, sep = ",")
 #head(ATd)
-mt <- max(ATd$max.x)
+mt <- max(ATd$max.x, na.rm = T)
 mt2 <- round(mt, 1)
 
 hot <- ATd[which(ATd$max.x == mt), ]
@@ -1928,7 +2005,7 @@ if (hot$month == 12) {
 
 AirTrend <-
   paste0(
-    "Trends in air temperature have been calculated over a ",
+    "Trends in monthly air temperature have been calculated over a ",
     yrs,
     "-year record at ",
     SNameF,
@@ -1952,7 +2029,7 @@ AirTrend2 <-
   paste0(
     "At this site there is an average range of ",
     ra,
-    "°F between the hottest and coldest months ",
+    "°F between the highest and lowest temperatures experienced ",
     "within a single year. The highest monthly temperature of ",
     mt2,
     "°F was recorded in ",
@@ -2025,8 +2102,8 @@ fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 
 
 
-####################  SLIDE 16 FIVE TYPES OF DROUght######################################
-debug_print("Slide 16 FIVE TYPES OF DROUght")
+####################  SLIDE 16 FIVE TYPES OF DROUGHT ######################################
+debug_print("Slide 16 FIVE TYPES OF DROUGHT")
 
 p <- p + 1
 p21 <- p
@@ -2082,14 +2159,7 @@ SPIimg <- external_img(src = SPIfile,
   width = 2)
 
 FIG_12 <- block_list(fpar(ftext(
-  paste0(
-    "Figure 20. SPI-12 time series (1920-",
-    yr,
-    ") at ",
-    SNameF ,
-    ". Positive SPI (blue) indicate wet periods, negative ",
-    "SPI (red) indicate dry periods."
-  ),
+  paste0("Figure 20. SPI-12 time series (1920-", yr, ") at ", SNameF , "."),
   fp_Fig
 )))
 
@@ -2196,7 +2266,7 @@ DHist2 <-
     SoG,
     " drought events of severe strength or greater. The longest drought lasted for a total of ",
     LongD,
-    " months (see Annex III)."
+    " months (see Annex IV)."
   )
 
 fp_Tx <- fp_text(italic = TRUE,
@@ -2232,6 +2302,7 @@ p24 <- p
 
 SPI_NA <-
   read.csv(paste0(PROJECT_FILE_BASE, "SPI_NEGS_ALL.csv"), sep = ",")
+#SPI_NA
 SPI_NA <- SPI_NA[which(!is.na(SPI_NA$date)), ]
 SPICNT <-
   read.csv(paste0(PROJECT_FILE_BASE, "Drought Count.csv"), sep = ",")
@@ -2316,10 +2387,13 @@ if (RFC$Month == 12) {
 }
 
 ### determine current drought status
+debug_print("  determine current drought status")
 # SPI3
 # spi3A<-read.csv(paste0(PROJECT_FILE_BASE,"SPI_3.csv"),sep = ",")
 #head(SPI_NA, 20)
 spi3A <- SPI_NA[which(SPI_NA$m.scale == 3), ]
+head(spi3A)
+spi3A <- spi3A[which(!is.na(spi3A$SPI)), ]
 spi3C <- round(spi3A[nrow(spi3A), ]$spi_negs, 1)
 #spi3C
 #tail(spi3A, 30)
@@ -2370,13 +2444,17 @@ if (is.na(spi3HC$End)) {
       "."
     )
 }
-#spi3CT
 
 # SPI12
 # spi12A<-read.csv(paste0(PROJECT_FILE_BASE,"SPI_12.csv"),sep = ",")
 spi12A <- SPI_NA[which(SPI_NA$m.scale == 12), ]
-spi12C <- round(spi12A[nrow(spi12A), ]$spi_negs, 1)
+#head(spi12A)
 #tail(spi12A, 20)
+
+spi12A_narm <- spi12A[which(!is.na(spi12A$SPI)), ]
+#tail(spi12A_narm)
+spi12C <- round(spi12A_narm[nrow(spi12A_narm), ]$spi_negs, 1)
+#spi12C
 
 spi12H <-
   read.csv(paste0(PROJECT_FILE_BASE, "Drought History.csv"), sep = ",")
@@ -2708,11 +2786,9 @@ RF100_4.5a <- round(RFA * (RF100_min * 0.01), 0)
 RF100_8.5a <- round(RFA * (RF100_max * 0.01), 0)
 #RF100_8.5a
 # choose whether text says "increase" or "decrease"
-ifelse(RF100_min >= 0, RF100_4.5t <-
-    "increase", RF100_4.5t <- "decrease")
+ifelse(RF100_min >= 0, RF100_4.5t <- "increase", RF100_4.5t <- "decrease")
 #RF100_4.5t
-ifelse(RF100_max >= 0, RF100_8.5t <-
-    "increase", RF100_8.5t <- "decrease")
+ifelse(RF100_max >= 0, RF100_8.5t <- "increase", RF100_8.5t <- "decrease")
 
 # choose whether change value has + or - before it
 ifelse(RF100_min >= 0,
@@ -2922,7 +2998,7 @@ FIG_20 <- block_list(fpar(ftext(
   fp_Fig
 )))
 
-#################### Slide 25 Temperature 2100
+#################### Slide 26 Temperature 2100
 debug_print("Slide 26")
 
 p <- p + 1
@@ -3256,7 +3332,7 @@ fp_RES <-  block_list(
   fpar(
     ftext("https://www.hawaii.edu/climate-data-portal/", fp_NM3a)
   ),
-  fpar(ftext("                    ",   fp_Fig2)),
+  fpar(ftext("                    ", fp_Fig2)),
   fpar(ftext(
     "ENSO Current Phase and Discussion" , fp_NM6a
   )),
@@ -3419,23 +3495,49 @@ fp_Tx <- fp_text(italic = TRUE,
   font.size = 18)
 fp_DownA <- fpar(ftext(DownA, fp_Tx))
 
+#################### Aquifers table
 
+p <- p + 1
+p37 <- p
+
+# AQ_TIT<- block_list(
+#   fpar(
+#     ftext(paste0("Aquifers", FTXTT),fp_p = fp_par(text.align = "center")),
+#   fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center"))))
+#
+# AQ_TIT
+
+AQ_TIT <- block_list(fpar(ftext(paste0("Aquifers"), FTXTT), fp_p = fp_par(text.align = "center")), fpar(ftext(SNameF, FTXTT3), fp_p = fp_par(text.align = "center")))
+AQ_TIT
+
+TAB3.1 <- block_list(fpar(ftext(
+  paste0("Table A1. Aquifer characteristics for ", SNameF, "."),
+  fp_Fig
+)))
 
 #################### History of Drought Events table
 debug_print("History of Drought Events table")
 
 p <- p + 1
-p37 <- p
+if (AQc > 15) {
+  p <- p + 1
+}
+if (AQc > 30) {
+  p <- p + 1
+}
+p38 <- p
 
 DT_TIT <- block_list(fpar(ftext(
   paste0("Drought Events (1920-", yr, ")"), FTXTT
-), fp_p = fp_par(text.align = "center")),
-  fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center")))
-
+),
+  fp_p = fp_par(text.align = "center")),
+  fpar(ftext(SNameF, FTXTT3),
+  fp_p = fp_par(text.align = "center")))
+DT_TIT
 
 TAB3 <- block_list(fpar(ftext(
   paste0(
-    "Table A1. SPI-12 drought characteristics at ",
+    "Table A2. SPI-12 drought characteristics at ",
     NameF,
     " identified in the SPI-12 timeseries. Duration is the number of months the drought persisted; ",
     "Average Intensity is the average absolute SPI; Peak Intensity is the highest SPI value calculated during the drought ",
@@ -3456,6 +3558,8 @@ TAB3 <- block_list(fpar(ftext(
 ###############
 debug_print("SLIDE DECK")
 
+#Look up office themes for R PPT
+
 # Check if the MINI_PPT directory exists
 if (!file.exists(P_FOLDER)) {
   # If the directory does not exist, create it
@@ -3464,8 +3568,6 @@ if (!file.exists(P_FOLDER)) {
 } else {
   debug_print(paste0("Directory already exists: ", P_FOLDER))
 }
-
-#Look up office themes for R PPT
 
 #Slide 1
 mypowerpoint <- read_pptx() %>%
@@ -3504,6 +3606,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
+  
   #Slide 2
   add_slide("Title and Content", "Office Theme") %>%
   #ph_with(S2_TIT, ph_location_type("title",position_left = TRUE)) %>%
@@ -3525,8 +3628,8 @@ mypowerpoint <- read_pptx() %>%
   
   #Slide 3
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S3_TIT,         ph_location_type("title")) %>%
-  # ph_with(fp_CCVD,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(S3_TIT, ph_location_type("title")) %>%
+  # ph_with(fp_CCVD, ph_location_type("body",position_right = FALSE)) %>%
   ph_with(
     value = fp_CCVD,
     location = ph_location(
@@ -3656,8 +3759,8 @@ mypowerpoint <- read_pptx() %>%
   
   #Slide 5
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S5_TIT,       ph_location_type("title")) %>%
-  ph_with(M_Elev,        ph_location_type("body", position_right = FALSE)) %>%
+  ph_with(S5_TIT, ph_location_type("title")) %>%
+  ph_with(M_Elev, ph_location_type("body", position_right = FALSE)) %>%
   ph_with(value = p4, location = ph_location_type(type = "sldNum")) %>%
   ph_with(
     value = Elevimg,
@@ -3692,8 +3795,8 @@ mypowerpoint <- read_pptx() %>%
   
   #Slide 6.1
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S6.1_TIT,       ph_location_type("title")) %>%
-  # ph_with(M_LAND,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(S6.1_TIT, ph_location_type("title")) %>%
+  # ph_with(M_LAND, ph_location_type("body",position_right = FALSE)) %>%
   ph_with(
     value = M_LAND,
     location = ph_location(
@@ -3726,8 +3829,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   ph_with(value = LCmapimg,
-    location = ph_location(label = "my_name",
-      left = 5.5, top = 3.2)) %>%
+    location = ph_location(label = "my_name", left = 5.5, top = 3.2)) %>%
   ph_with(
     value = FIG_3.1,
     location = ph_location(
@@ -3759,59 +3861,47 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  
-  #Slide 7.1 Aquifers
+  # Slide 7.1 Aquifers
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S6.2_TIT,       ph_location_type("title")) %>%
-  ph_with(
-    value = AQ_T,
-    location = ph_location(
-      label = "my_name",
-      left = 0.6,
-      top = 4,
-      width = 3.5,
-      height = 3
-    )
-  ) %>%
+  ph_with(S6.2_TIT, ph_location_type("title")) %>%
   ph_with(value = p6, location = ph_location_type(type = "sldNum")) %>%
   ph_with(
     value = M_AQ,
     location = ph_location(
       label = "my_name",
-      left = 0.5,
-      top = 0.8,
-      width = 5.5,
-      height = 4
+      left = 0.7,
+      top = 1.2,
+      width = 4.5,
+      height = 5
     )
   ) %>%
-  ph_with(value = AQmapimg,
-    location = ph_location(label = "my_name", left = 6, top = 2.3)) %>%
+  
+  # Use ph_with to insert the image from the file path
+  ph_with(
+    value = external_img(tmp_file),
+    location = ph_location(
+      label = "my_name",
+      left = 5.4,
+      top = 1.7,
+      width = desired_width,
+      height = desired_height
+    )
+  ) %>%
+  
   ph_with(
     value = FIG_5.b,
     location = ph_location(
       label = "my_name",
-      left = 6.5,
-      top = 5.9,
+      left = 6,
+      top = 5.7,
       width = 3.2,
       height = 1.3
     )
   ) %>%
-  ph_with(
-    value = TAB_0,
-    location = ph_location(
-      label = "my_name",
-      left = 0.5,
-      top = 6,
-      width = 3.5,
-      height = 1.4
-    )
-  ) %>%
-  # ph_with(value = ft3, location = ph_location(label = "my_name",
-  #                                             left = 0.5, top = 5.73, width = 4, height = 3)) %>%
   
-  #Slide 8 (7.2) Streams
+  #Slide 7.2 Streams
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S6.2_TIT,       ph_location_type("title")) %>%
+  ph_with(S6.2_TIT, ph_location_type("title")) %>%
   ph_with(
     value = M_HF,
     location = ph_location(
@@ -3833,8 +3923,15 @@ mypowerpoint <- read_pptx() %>%
       height = 1.9
     )
   ) %>%
-  ph_with(value = HFmapimg,
-    location = ph_location(label = "my_name", left = 5.8, top = 2.3)) %>%
+  ph_with(
+    value = HFmapimg,
+    location = ph_location(
+      label = "my_name",
+      left = 6.2,
+      top = 2.3,
+      width = 3.2
+    )
+  ) %>%
   ph_with(
     value = FIG_6.b,
     location = ph_location(
@@ -3846,7 +3943,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 9 (7 PART 2)
+  #Slide 7  PART 2
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(P1_TIT, ph_location_type("title", position_left = TRUE)) %>%
   ph_with(fp_PART1, ph_location_type("body")) %>%
@@ -3882,9 +3979,9 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 10 (8a)
+  #Slide 8a
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S8.0_TIT,           ph_location_type("title")) %>%
+  ph_with(S8.0_TIT, ph_location_type("title")) %>%
   
   ph_with(
     value = RS_T,
@@ -3892,7 +3989,7 @@ mypowerpoint <- read_pptx() %>%
       label = "my_name",
       left = 0.6,
       top = 4.9,
-      width = 3,
+      width = 6,
       height = 1.4
     )
   ) %>%
@@ -3929,9 +4026,10 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   ph_with(value = p9, location = ph_location_type(type = "sldNum")) %>%
   
-  #Slide 11
+  
+  #Slide 6
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S6_TIT,           ph_location_type("title")) %>%
+  ph_with(S6_TIT, ph_location_type("title")) %>%
   ph_with(
     value = M_ANNCLIM,
     location = ph_location(
@@ -4049,9 +4147,9 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 12
+  #Slide 8
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S7_TIT,          ph_location_type("title")) %>%
+  ph_with(S7_TIT, ph_location_type("title")) %>%
   ph_with(
     value = RFBimg,
     location = ph_location(
@@ -4113,9 +4211,9 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 13
+  #Slide 9
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S8a_TIT,          ph_location_type("title")) %>%
+  ph_with(S8a_TIT, ph_location_type("title")) %>%
   ph_with(
     value = TALimg,
     location = ph_location(
@@ -4177,7 +4275,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 14
+  #Slide 9
   add_slide("Two Content", "Office Theme") %>%
   ph_with(S8_TIT, ph_location_type("title")) %>%
   ph_with(value = RFFimg, ph_location_type("body", position_right = FALSE)) %>%
@@ -4205,10 +4303,11 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   ph_with(my_pres, value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt")) %>%
   
-  #Slide 15
+  #Slide 10
+  
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S9_TIT,      ph_location_type("title")) %>%
-  ph_with(fp_SEA,        ph_location_type("body", position_right = FALSE)) %>%
+  ph_with(S9_TIT, ph_location_type("title")) %>%
+  ph_with(fp_SEA, ph_location_type("body", position_right = FALSE)) %>%
   ph_with(value = p14, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = SEAimg, ph_location_type("body", position_right = TRUE)) %>%
   ph_with(
@@ -4223,10 +4322,11 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   ph_with(value = "Giambelluca et al. (2013)", location = ph_location_type(type = "dt")) %>%
   
-  
-  #Slide 16
+  #################PROBLEM###################
+
+  #Slide 10
   add_slide("Title and Content", "Office Theme") %>%
-  ph_with(S10_TIT,      ph_location_type("title")) %>%
+  ph_with(S10_TIT, ph_location_type("title")) %>%
   ph_with(value = p15, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = ACLIM_T, ph_location_type("body")) %>%
   ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt")) %>%
@@ -4251,7 +4351,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 17
+  #Slide 12.1
   add_slide("Two Content", "Office Theme") %>%
   ph_with(P2_TIT, ph_location_type("title", position_left = TRUE)) %>%
   ph_with(
@@ -4306,7 +4406,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 18
+  #Slide 12.2
   add_slide("Two Content", "Office Theme") %>%
   ph_with(EN_TIT, ph_location_type("title")) %>%
   ph_with(
@@ -4341,9 +4441,9 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 19
+  #Slide 14
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S13_TIT,         ph_location_type("title")) %>%
+  ph_with(S13_TIT, ph_location_type("title")) %>%
   ph_with(
     value = fp_Trend,
     location = ph_location(
@@ -4397,16 +4497,16 @@ mypowerpoint <- read_pptx() %>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022); See Annex I", location = ph_location_type(type = "dt")) %>%
   ph_with(value = p18, location = ph_location_type(type = "sldNum")) %>%
   
-  #Slide 20 (NEW - Air Temp)
+  #Slide 14 (NEW - Air Temp)
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S14_TIT,         ph_location_type("title")) %>%
+  ph_with(S14_TIT, ph_location_type("title")) %>%
   
   ph_with(
     value = fp_AirTrend,
     location = ph_location(
       label = "my_name",
       left = 0.5,
-      top = 0.05,
+      top = 0,
       width = 6,
       height = 5
     )
@@ -4416,7 +4516,7 @@ mypowerpoint <- read_pptx() %>%
     location = ph_location(
       label = "my_name",
       left = 0.5,
-      top = 2.5,
+      top = 2.7,
       width = 3,
       height = 5
     )
@@ -4464,7 +4564,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 21 #Part 3
+  #Slide 15 #Part 3
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(P3_TIT, ph_location_type("title", position_left = TRUE)) %>%
   ph_with(fp_Part3, ph_location_type("body")) %>%
@@ -4490,7 +4590,7 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  ###  Slide 22
+  ###  Slide 16
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(TIT_D, ph_location_type("title", position_left = TRUE)) %>%
   
@@ -4518,10 +4618,10 @@ mypowerpoint <- read_pptx() %>%
   
   ph_with(value = p21, location = ph_location_type(type = "sldNum")) %>%
   
-  #Slide 23
+  #Slide 17
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S15_TIT,       ph_location_type("title")) %>%
-  ph_with(fp_SPI,        ph_location_type("body", position_right = FALSE)) %>%
+  ph_with(S15_TIT, ph_location_type("title")) %>%
+  ph_with(fp_SPI, ph_location_type("body", position_right = FALSE)) %>%
   ph_with(value = p22, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = SPIimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(
@@ -4547,10 +4647,10 @@ mypowerpoint <- read_pptx() %>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022)", location = ph_location_type(type = "dt")) %>%
   
   
-  #Slide 24
+  #Slide 18
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S16_TIT,         ph_location_type("title")) %>%
-  ph_with(fp_DHist,        ph_location_type("body", position_right = FALSE)) %>%
+  ph_with(S16_TIT, ph_location_type("title")) %>%
+  ph_with(fp_DHist, ph_location_type("body", position_right = FALSE)) %>%
   ph_with(value = p23, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = DHistimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(
@@ -4575,7 +4675,7 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022)", location = ph_location_type(type = "dt")) %>%
   
-  #Slide 25
+  #Slide 19
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(SP_TIT, ph_location_type("title", position_left = TRUE)) %>%
   #ph_with(value = "Lucas et al. (2022)", location = ph_location_type(type = "dt")) %>%
@@ -4661,10 +4761,10 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 26
+  #Slide 20
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S18_TIT,  ph_location_type("title")) %>%
-  ph_with(fp_Fire,        ph_location_type("body", position_right = FALSE)) %>%
+  ph_with(S18_TIT, ph_location_type("title")) %>%
+  ph_with(fp_Fire, ph_location_type("body", position_right = FALSE)) %>%
   ph_with(value = p25, location = ph_location_type(type = "sldNum")) %>%
   # ph_with(value = FireMimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(
@@ -4689,7 +4789,7 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (2022)", location = ph_location_type(type = "dt")) %>%
   
-  #Slide 27 #Part 4
+  #Slide 21 #Part 4
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(P4_TIT, ph_location_type("title", position_left = TRUE)) %>%
   ph_with(fp_Part4, ph_location_type("body")) %>%
@@ -4732,10 +4832,10 @@ mypowerpoint <- read_pptx() %>%
   # ph_with(value = M_Down, location = ph_location(label = "my_name",
   #                                                    left = 0.5, top = 4.5, width = 6.3, height = 2)) %>%
   
-  #Slide 28
+  #Slide 22
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S21_TIT,         ph_location_type("title")) %>%
-  # ph_with(RF_Down4,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(S21_TIT, ph_location_type("title")) %>%
+  # ph_with(RF_Down4, ph_location_type("body",position_right = FALSE)) %>%
   ph_with(RF_Down4,
     location = ph_location(
       label = "my_name",
@@ -4768,10 +4868,10 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 29
+  #Slide 23
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S20_TIT,   ph_location_type("title")) %>%
-  # ph_with(RF_Down,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(S20_TIT, ph_location_type("title")) %>%
+  # ph_with(RF_Down, ph_location_type("body",position_right = FALSE)) %>%
   ph_with(RF_Down,
     location = ph_location(
       label = "my_name",
@@ -4804,10 +4904,10 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 30
+  #Slide 24
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S23_TIT,         ph_location_type("title")) %>%
-  # ph_with(TA_Down4,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(S23_TIT, ph_location_type("title")) %>%
+  # ph_with(TA_Down4, ph_location_type("body",position_right = FALSE)) %>%
   ph_with(TA_Down4,
     location = ph_location(
       label = "my_name",
@@ -4840,10 +4940,10 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 31
+  #Slide 25
   add_slide("Two Content", "Office Theme") %>%
-  ph_with(S22_TIT,       ph_location_type("title")) %>%
-  # ph_with(TA_Down,        ph_location_type("body",position_right = FALSE)) %>%
+  ph_with(S22_TIT, ph_location_type("title")) %>%
+  # ph_with(TA_Down, ph_location_type("body",position_right = FALSE)) %>%
   ph_with(TA_Down,
     location = ph_location(
       label = "my_name",
@@ -4876,13 +4976,13 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 32 #Summary
+  #Slide 26 #Summary
   add_slide("Title and Content", "Office Theme") %>%
-  ph_with(S24_TIT,   ph_location_type("title", position_left = TRUE)) %>%
+  ph_with(S24_TIT, ph_location_type("title", position_left = TRUE)) %>%
   ph_with(fp_Summary, ph_location_type("body")) %>%
   ph_with(value = p31, location = ph_location_type(type = "sldNum")) %>%
   
-  #Slide 33 #External Resources
+  #Slide 27 #External Resources
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(S25_TIT, ph_location_type("title", position_left = TRUE)) %>%
   # ph_with(fp_RES, ph_location_type("body")) %>%
@@ -4900,7 +5000,7 @@ mypowerpoint <- read_pptx() %>%
   # ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
   #                                              left = 7.3, top = 1.9, width = 2.3, height = 2.83)) %>%
   
-  #Slide 34 #Acknowledgements
+  #Slide 28 #Acknowledgements
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(S26_TIT, ph_location_type("title", position_left = TRUE)) %>%
   ph_with(fp_Ack,
@@ -4956,9 +5056,9 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   
   
-  #Slide 35  ########## References
+  #Slide 29  ########## References
   add_slide("Title Only", "Office Theme") %>%
-  ph_with(S27_TIT,  ph_location_type("title", position_left = TRUE)) %>%
+  ph_with(S27_TIT, ph_location_type("title", position_left = TRUE)) %>%
   ph_with(
     value = Worksimg,
     location = ph_location(
@@ -4971,10 +5071,10 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   ph_with(value = p34, location = ph_location_type(type = "sldNum")) %>%
   
-  #Slide 36  ############## Annex I
+  #Slide 30  ############## Annex I
   add_slide("Two Content", "Office Theme") %>%
   ph_with("Annex I: 100+ Year Rainfall ", ph_location_type("title")) %>%
-  ph_with(fp_RF100,        ph_location_type("body", position_right = FALSE)) %>%
+  ph_with(fp_RF100, ph_location_type("body", position_right = FALSE)) %>%
   #ph_with(value = p33, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = SCAimg, ph_location_type("body", position_right = TRUE)) %>%
   ph_with(
@@ -4989,12 +5089,11 @@ mypowerpoint <- read_pptx() %>%
   ) %>%
   ph_with(my_pres, value = "Frazier et al., 2016; Lucas et al., (2022)", location = ph_location_type(type = "dt")) %>%
   
-  
-  #Slide 37  ############## Annex II
+  #Slide 31  ############## Annex II
   add_slide("Title and Content", "Office Theme") %>%
   ph_with("Annex II: Climate Downscaling in Hawaii ",
     ph_location_type("title")) %>%
-  ph_with(fp_DownA,        ph_location_type("body", position_right = FALSE)) %>%
+  ph_with(fp_DownA, ph_location_type("body", position_right = FALSE)) %>%
   ph_with(value = p36, location = ph_location_type(type = "sldNum")) %>%
   ph_with(
     value = Downimg,
@@ -5007,11 +5106,90 @@ mypowerpoint <- read_pptx() %>%
     )
   ) %>%
   
-  #Slide 38 ############### Annex III
+  #Slide 32 ############### Annex III
   add_slide("Title and Content", "Office Theme") %>%
-  ph_with("Annex III: Drought Events (1920 - 2022)",
+  ph_with(paste0("Annex III: Aquifers"),
     ph_location_type("title")) %>%
   ph_with(value = p37, location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = AQT_T1, ph_location(label = "my_name", left = 1.5, top = 1.8)) %>%
+  ph_with(
+    value = TAB3.1,
+    location = ph_location(
+      label = "my_name",
+      left = 7.6,
+      top = 4,
+      width = 2,
+      height = 4
+    )
+  ) %>%
+  
+  {
+    if (AQc > 15)
+      add_slide(., "Title and Content", "Office Theme") %>%
+      ph_with(paste0("Annex III: Aquifers"), ph_location_type("title")) %>%
+      ph_with(value = (p37 + 1),
+        location = ph_location_type(type = "sldNum")) %>%
+      ph_with(value = AQT_T2, ph_location(
+        label = "my_name",
+        left = 1.5,
+        top = 1.8
+      )) %>%
+      ph_with(
+        value = TAB3.1,
+        location = ph_location(
+          label = "my_name",
+          left = 7.6,
+          top = 4,
+          width = 2,
+          height = 4
+        )
+      )
+    else
+      .
+  } %>%
+  
+  {
+    if (AQc > 30)
+      add_slide(., "Title and Content", "Office Theme") %>%
+      ph_with(paste0("Annex III: Aquifers"), ph_location_type("title")) %>%
+      ph_with(value = (p37 + 2),
+        location = ph_location_type(type = "sldNum")) %>%
+      ph_with(value = AQT_T3, ph_location(
+        label = "my_name",
+        left = 1.5,
+        top = 1.8
+      )) %>%
+      ph_with(
+        value = TAB3.1,
+        location = ph_location(
+          label = "my_name",
+          left = 7.6,
+          top = 4,
+          width = 2,
+          height = 4
+        )
+      )
+    else
+      .
+  } %>%
+  {
+    if (AQc > 45)
+      ph_with(value = AQT_end,
+        location = ph_location(
+          label = "my_name",
+          left = 1,
+          top = 6,
+          width = 5
+        ))
+    else
+      .
+  } %>%
+  
+  #Slide 32 ############### Annex IV
+  add_slide("Title and Content", "Office Theme") %>%
+  ph_with(paste0("Annex IV: Drought Events (1920 - ", yr, ")"),
+    ph_location_type("title")) %>%
+  ph_with(value = p38, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = DrotT_T1, ph_location_type("body")) %>%
   ph_with(
     value = TAB3,
@@ -5026,11 +5204,10 @@ mypowerpoint <- read_pptx() %>%
   
   {
     if (Drot_ct > 12)
-      #Slide 39
       add_slide(., "Title and Content", "Office Theme") %>%
-      ph_with("Annex III: Drought Events (1920 - 2022)",
+      ph_with(paste0("Annex IV: Drought Events (1920 - ", yr, ")"),
         ph_location_type("title")) %>%
-      ph_with(value = (p37 + 1),
+      ph_with(value = (p38 + 1),
         location = ph_location_type(type = "sldNum")) %>%
       ph_with(value = DrotT_T2, ph_location_type("body")) %>%
       ph_with(
@@ -5049,11 +5226,10 @@ mypowerpoint <- read_pptx() %>%
   
   {
     if (Drot_ct > 24)
-      #Slide 40
       add_slide(., "Title and Content", "Office Theme") %>%
-      ph_with("Annex III: Drought Events (1920 - 2022)",
+      ph_with(paste0("Annex IV: Drought Events (1920 - ", yr, ")"),
         ph_location_type("title")) %>%
-      ph_with(value = (p37 + 2),
+      ph_with(value = (p38 + 2),
         location = ph_location_type(type = "sldNum")) %>%
       ph_with(value = DrotT_T3, ph_location_type("body")) %>%
       ph_with(
@@ -5070,7 +5246,7 @@ mypowerpoint <- read_pptx() %>%
       .
   } %>%
   
-  #Slide 41 (or whatever the last slide is)  ############## PDKE
+  #Slide 33 (or whatever the last slide is)  ############## PDKE
   add_slide("Title and Content", "Office Theme") %>%
   ph_with(
     value = PDKE_S,
@@ -5097,7 +5273,6 @@ mypowerpoint <- read_pptx() %>%
   debug_print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
   debug_print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
   debug_print(paste0("Execution time: ", end_time - start_time))
-  
   
   # ######### send email saying the file is ready #########
   
@@ -5174,7 +5349,7 @@ mypowerpoint <- read_pptx() %>%
   
   # Create the zip file
   create_zip_for_base_name(shp_path, PROJECT_WITH_DATE, zip_file_name)
-
+  
   # Define the request body
   # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
   ppt_link = paste0('http://149.165.154.114:3838/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
@@ -5190,13 +5365,15 @@ mypowerpoint <- read_pptx() %>%
     "source" = "PDKE",
     "message" = paste0("Your data is ready at: \n", URLencode(ppt_link, reserved = FALSE), "\n\nYou may also download the shapefile of the target area here: \n", URLencode(shp_link, reserved = FALSE))
   )
+  debug_print("pre json")
   req_json <- toJSON(req, unbox = my_unbox)
   debug_print(req_json)  # Print the JSON string
+  debug_print("post json")
   
   json_data <- fromJSON(paste0(BASE_DIR,"/credentials.json"))
   # Parse out the value for "bearer"
   bearer_value <- paste0("Bearer ", json_data$bearer)
-  
+
   response <- POST(
     url = "https://api.hcdp.ikewai.org/notify",
     body = req_json,
@@ -5206,7 +5383,7 @@ mypowerpoint <- read_pptx() %>%
       "Authorization" = bearer_value),
     config(ssl_verifypeer = FALSE)
   )
-  
+
   # Check for success
   if (status_code(response) == 200) {
     debug_print("Notification sent successfully!")
@@ -5219,7 +5396,6 @@ mypowerpoint <- read_pptx() %>%
     ))
   }
   
-
 # ### Save to powerpoint
 #
 # office_shot <- function( file, wd = getwd() ){
@@ -5232,4 +5408,3 @@ mypowerpoint <- read_pptx() %>%
 #   pdf_file
 # }
 # office_shot(file = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v",ver,".pptx"))
-

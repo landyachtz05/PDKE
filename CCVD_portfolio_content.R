@@ -4,11 +4,23 @@
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waiawa_2024_07_25_13_00_08.shp Waiawa Waiawa Oahu OA
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waianae_2024_07_25_17_43_41.shp Waianae Waianae Oahu OA
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp Hamakuapoko Hamakuapoko Maui MN
+
+#  /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Molokai_2025_02_04_09_31_29.shp' 'Molokai' 'Molokai' 'Molokai' 'MO'"
+
 # for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
 start_time <- Sys.time()
 
-#Sys.setenv(PROJ_LIB = "/opt/anaconda3/share/proj/")
-Sys.setenv(PROJ_LIB = "/usr/share/proj/")
+
+#environ <- "dev"
+environ <- "prod"
+Sys.setenv(PROJ_LIB = "/opt/anaconda3/share/proj/")
+BASE_DIR <- "/srv/shiny-server"
+RSCRIPT_PATH = paste0("/usr/bin/Rscript") # where to find Rscript, prod
+if (environ == "dev") {
+  Sys.setenv(PROJ_LIB = "/usr/share/proj/")
+  BASE_DIR <- "/Users/jgeis/Work/PDKE"
+  RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript, dev
+}
 
 PROJ_DEBUG = 3
 #install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
@@ -54,7 +66,8 @@ packages <-
     "terrainr",
     "ggmap",
     "ggthemes",
-    "zoo"
+    "zoo",
+    "classInt"
   )
 for (package in packages) {
   # First attempt to install the package
@@ -113,17 +126,13 @@ for (package in packages) {
 print("In CCVD_portfolio_content.R")
 
 # non-user provided values
-#BASE_DIR <- "/Users/jgeis/Work/PDKE"
-BASE_DIR <- "/srv/shiny-server"
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")
+print(WORKING_DIR)
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 INPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")       # INPUT FOLDER
 OUTPUTS_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/")       # OUTPUT FOLDER
-#RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript, dev
-RSCRIPT_PATH = paste0("/usr/bin/Rscript") # where to find Rscript, prod
-
 MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
-#phase2_dir = paste0(BASE_DIR,"/CCVD/MINI_Phase2/")
+
 #datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
 
 # Get the command-line arguments passed from the main script
@@ -135,8 +144,9 @@ NM_s <- args[4];
 ILE <- args[5];
 ILE_s <- args[6];
 
-date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", NP_FILE)
-PROJECT_WITH_DATE = paste0(NM_s, "_", date_time_str)
+# Extract the date and time string from the passed-in shape file using a regular expression
+datetime_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", NP_FILE)
+PROJECT_WITH_DATE = paste0(NM_s, "_", datetime_str)
 
 options(warn = -1)  # Suppress all warnings
 #options(warn = 0)  # Re-enable warnings
@@ -152,10 +162,6 @@ debug_print(paste("1,BASE_DIR: ", BASE_DIR))
 debug_print(paste("1,WORKING_DIR: ", WORKING_DIR))
 debug_print(paste("1,INPUTS_FOLDER: ", INPUTS_FOLDER))
 debug_print(paste("1,OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
-
-# Extract the date and time string from the passed-in shape file using a regular expression
-datetime_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", NP_FILE)
-debug_print(paste0("datetime_str: ", datetime_str))
 
 # user provided values
 #NP_DIR <- paste0(INPUTS_FOLDER, "waikiki_watershed/")
@@ -200,7 +206,7 @@ ELUnit2 = "ft"
 ############################################################################################################################
 
 ##########   Mean Climate Data and EXAMPLE RASTER To Set Spatial Extent
-
+debug_print("define Mean_CLIM")
 Mean_CLIM = dir(
   paste0(INPUTS_FOLDER, "Mean Climate"),
   pattern = "*x.adf",
@@ -213,15 +219,14 @@ plot(EXAMP)
 
 ############################################################################################################################
 ##########   Coastal Shape Files
-
+debug_print("Coastal Shape Files")
 
 Coast <- readOGR(COAST_PATH)
 debug_print(paste("1,COAST_PATH", COAST_PATH))
 plot(Coast[which(Coast$COAST_GEO_ == 10), ])
 
 # ALL ISLANDS
-Coast_Crop <-
-  crop(Coast , extent(-160.0,-154.8066, 18.91069, 22.23))
+Coast_Crop <- crop(Coast , extent(-160.0, -154.8066, 18.91069, 22.23))
 Coast_Crop_T <- spTransform(Coast_Crop, crs(EXAMP))
 # BIG ISLAND
 Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 14), ]
@@ -235,7 +240,6 @@ Coast_MO <- spTransform(Coast_Crop, crs(EXAMP))
 #Lanai
 Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 11), ]
 Coast_LA <- spTransform(Coast_Crop, crs(EXAMP))
-plot(Coast_LA)
 #Oahu
 Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 5), ]
 Coast_OA <- spTransform(Coast_Crop, crs(EXAMP))
@@ -244,22 +248,107 @@ Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 2), ]
 Coast_KA <- spTransform(Coast_Crop, crs(EXAMP))
 #Kahoolawe
 Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 13), ]
-Coast_KO <-
-  spTransform(Coast_Crop, crs(EXAMP))
+Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
 
 ############################################################
 
 debug_print(paste("1,NP_FILE", NP_FILE))
-#debug_print(file.exists(NP_FILE))
-# these all work, once I had all the files, not just the shp file
+debug_print(file.exists(NP_FILE))
+
+#NP_ALL <- readOGR("F:/PDKE/CCVD/sites/honouliuli_national_historic_site.shp")
 NP_ALL <- readOGR(NP_FILE)
+
+# these all get passed in via command line or GUI, do not hard-code
+#HALE <- NP_ALL
+#NM <- "Honouliuli National Historic Site"
+#NM_s <- "HONO"
+#ILE <- "Oahu"
+#ILE_s <- "OA"
 
 debug_print("1")
 
 HALE <- NP_ALL
 
 plot(HALE)
-debug_print("2")
+
+##########   Calculate area of AOI and buffer if it's too small
+debug_print("Calculate area of AOI and buffer if it's too small")
+
+HALE_planar <- spTransform(HALE, CRS("+proj=utm +zone=4 +datum=WGS84 +units=m +no_defs"))
+HALE_planar$area_m2 <- gArea(HALE_planar, byid = TRUE)
+HALE_planar$area_acres <- HALE_planar$area_m2 / 4046.85642
+HALE_planar$area_acres
+
+if (HALE_planar$area_acres < 100) {
+  # Calculate buffer distance for a square buffer of 50 acres
+  desired_area_acres <- 100
+  desired_area_m2 <- desired_area_acres * 4046.85642
+  
+  # Get the centroid of the HALE polygon
+  centroid <- gCentroid(HALE_planar)
+  
+  # Convert 50 acres to square meters (1 acre = 4046.85642 m²)
+  buffer_size_m2 <- 100 * 4046.85642
+  
+  # Calculate the length of one side of the square
+  side_length <- sqrt(buffer_size_m2)
+  
+  # Create a square around the centroid
+  square_coords <- rbind(
+    c(
+      centroid@coords[1] - side_length / 2,
+      centroid@coords[2] - side_length / 2
+    ),
+    c(
+      centroid@coords[1] + side_length / 2,
+      centroid@coords[2] - side_length / 2
+    ),
+    c(
+      centroid@coords[1] + side_length / 2,
+      centroid@coords[2] + side_length / 2
+    ),
+    c(
+      centroid@coords[1] - side_length / 2,
+      centroid@coords[2] + side_length / 2
+    ),
+    c(
+      centroid@coords[1] - side_length / 2,
+      centroid@coords[2] - side_length / 2
+    )  # Closing the polygon
+  )
+  
+  # Create the square polygon
+  square_buffer <-
+    SpatialPolygons(list(Polygons(list(
+      Polygon(square_coords)
+    ), ID = "1")))
+  
+  # Assign the same projection to the square
+  proj4string(square_buffer) <- CRS("+proj=utm +zone=4 +datum=WGS84 +units=m +no_defs")
+  
+  HALE <- square_buffer
+  
+  # Plot the square buffer first
+  plot(
+    square_buffer,
+    col = 'red',
+    border = 'darkred',
+    main = "HALE and Square Buffer"
+  )
+  
+  # Then plot the HALE polygon on top
+  plot(
+    HALE_planar,
+    col = 'blue',
+    add = TRUE,
+    border = 'darkblue'
+  )
+}
+
+
+
+##########   Set island boundary
+debug_print("Set island boundary")
 
 if (ILE_s == "BI") {
   plot(Coast_BI, main = ILE) + plot(HALE , add = T, col = "red")
@@ -283,10 +372,9 @@ if (ILE_s == "KA") {
   plot(Coast_KA, main = ILE) + plot(HALE , add = T, col = "red")
 }
 
-debug_print("3")
-
 ##################################################
 ##########   Define Units
+debug_print("Define Units")
 
 ##########   Assign AOI shapefile coordinates
 HALE <- spTransform(HALE, crs(EXAMP))
@@ -305,15 +393,16 @@ UNIT_N <- as.vector(as.character(c(NM, NM)))
 UNIT_Ns <- as.vector(as.character(c(NM_s, NM_s)))
 
 #20,24,-26 34
-debug_print("4")
 
 
 ##########   COUNT INPUTS
+debug_print("COUNT INPUTS")
 
-#UNIT_Shape <- sum(!is.na(UNIT_X))
+UNIT_Shape <- sum(!is.na(UNIT_X))
 UNIT_C <- sum(!is.na(UNIT_N))  # This will mark the end of the Loop
-#UNIT_Island <- sum(!is.na(UNIT_I))
-#ShortNm <- sum(!is.na(UNIT_Ns))
+UNIT_Island <- sum(!is.na(UNIT_I))
+ShortNm <- sum(!is.na(UNIT_Ns))
+
 
 ##########   CONFIRM INPUTS ARE THE SAME
 
@@ -323,118 +412,95 @@ UNIT_C <- sum(!is.na(UNIT_N))  # This will mark the end of the Loop
 # UNIT_Island
 
 ##########  Mean Rainfall DATA
+debug_print("Define MeanRF_ALL")
 
-MeanRF_ALL <-
-  dir(
-    paste0(INPUTS_FOLDER, "Mean_RF_Data/StateMaps/"),
-    pattern = "*x.adf",
-    recursive = T,
-    full.names = T
-  )
-#debug_print(paste0("5:", MeanRF_ALL))
-
+Mean_RF_Data_dir <- paste0(INPUTS_FOLDER, "Mean_RF_Data/StateMaps/")
+MeanRF_ALL = dir(
+  Mean_RF_Data_dir,
+  pattern = "*x.adf",
+  recursive = T,
+  full.names = T
+)
+#
 # ### Find state-wide mean monthly rainfall stats (min, mean, max, percentiles)
 # # loop through month maps and calculate stats, also make average monthly rainfall map
 # n<-1
 # fq<-data.frame(quantile(c(0:0)))
-# debug_print("6")
-
+#
 # sm<-stack()
-# debug_print("7")
-
+#
 # for (i in MeanRF_ALL[1:12]) {
 #   m<-raster(i)
-#   debug_print(paste0("8", i))
-#   debug_print(paste0("m", m))
-
+#
 #   # convert mm to inches
 #   if(RFUnit == " in") {m  <- m  * 0.0393701}
-#   debug_print("9")
-
+#
 #   # calculate quantiles and put in dataframe
-#   quant<-quantile(m)
-#   debug_print("10")
-
-#   mq<-data.frame(quant)
-#   debug_print("11")
-
+#   mq<-data.frame(quantile(m))
 #   colnames(mq)<-n
 #   fq<-cbind(fq,mq)
 #   n<-n+1
-
+#
 #   # add raster to stack
 #   sm<-stack(sm, m)
-#   debug_print("12")
 # }
 # sm
-# debug_print("13")
-
+#
 # rm(mean)
-# debug_print("14")
+#
+# fq<-round(fq[2:ncol(fq)], 2)
+# fq
+# write.csv(fq, paste0(INPUTS_FOLDER,"Mean_RF_Data/stateRFM_quantiles_input.csv"))
 
-#fq<-round(fq[2:ncol(fq)], 2)
-#stateRF<-rowMeans(fq)
+# TODO: Move this stuff to where it's actually getting used (around line 5816)
+# import static data table of statewide monthly rainfall quantiles
+Mean_RF_Data_file <- paste0(Mean_RF_Data_dir, "stateRFM_quantiles_input.csv")
+debug_print(paste0("Mean_RF_Data_file: ", Mean_RF_Data_file))
+fq <- data.frame(read.csv(
+  Mean_RF_Data_file,
+  header = TRUE
+))
+stateRF <- rowMeans(fq[2:ncol(fq)])
 # stateRFM<-calc(sm, mean, na.rm=TRUE)
-# debug_print("15")
-stateRFM <-
-  read.csv(paste0(INPUTS_FOLDER, "Mean_RF_Data/StateMaps/stateRFMd_input.csv"))
-#stateRFM<-read.csv(paste0(INPUTS_FOLDER,"Mean_RF_Data/StateMaps/stateRFM_quantiles_input.csv"))
+# stateRFM
 
+# # make dataframe from average monthly rainfall map
+# stateRFMd<-as.data.frame(stateRFM, na.rm=T)
+# stateRFMd<-data.frame(stateRFMd[1])
+# write.csv(stateRFMd, "stateRFMd_input.csv")
 
-# make dataframe from average monthly rainfall map
-stateRFMd <- as.data.frame(stateRFM, na.rm = T)
-stateRFMd <- data.frame(stateRFMd[1])
+# read in static state-wide rainfall raster values table
+stateRFMd_file <- paste0(Mean_RF_Data_dir, "stateRFMd_input.csv")
+debug_print(paste0("stateRFMd_file: ", stateRFMd_file))
+stateRFMd <- read.csv(stateRFMd_file)
 
 u <- 1
-debug_print("16")
 
 ##########   FIRE OCCURRENCE AND RISK
 #Fire Occurrence Shape 2022 (From Clay)
 #FIRE_Shape <- readOGR(paste0(INPUTS_FOLDER,"StateFire_1999/fires_1999_2022/fires_1999_2022.shp"))
-FIRE_Shape_File <-
-  paste0(INPUTS_FOLDER, "fires_1999_2022/fires_1999_2022.shp")
+FIRE_Shape_File <- paste0(INPUTS_FOLDER, "StateFire_1999/fires_1999_2022/fires_1999_2022.shp")
 debug_print(paste("17,FIRE_Shape_File", FIRE_Shape_File))
 FIRE_Shape <- readOGR(FIRE_Shape_File)
-debug_print("18")
 FIRE_Shape_T <- spTransform(FIRE_Shape, crs(EXAMP))
-debug_print("19")
 crs(FIRE_Shape_T) <- CRS(proj4string(EXAMP))
-debug_print("20")
 
 # Fire_Mask <- mask(x = FIRE_Shape_T, mask = UNIT_X[[u]])
 # Fire_Crop <- crop(x = FIRE_Shape_T, y = extent(UNIT_X[[u]]))
 
-#Fire risk categories 2023 (From Clay)
-FRISK <-
-  raster(
-    paste0(
-      INPUTS_FOLDER,
-      "FireRisk/Avg_Landscape_Fire_Risk_Hawaii_2023/Avg_Landscape_Fire_Risk_Hawaii_fire_risk_categories_2023.tif"
-    )
-  )
-crs(FRISK) <- "+proj=longlat +datum=WGS84 +no_defs"
-debug_print("21")
-
-FRISK_Shape <-
-  readOGR(
-    paste0(
-      INPUTS_FOLDER,
-      "FireRisk/Avg_Landscape_Fire_Risk_Hawaii_2023/fire_risk_polygons.shp"
-    )
-  )
-FRISK_Shape_T <- spTransform(FRISK_Shape, crs(EXAMP))
-crs(FRISK_Shape_T) <- CRS(proj4string(EXAMP))
-debug_print("22")
+# #Fire risk categories 2023 (From Clay)
+# FRISK <- raster(paste0(INPUTS_FOLDER,"FireRisk/Avg_Landscape_Fire_Risk_Hawaii_2023/Avg_Landscape_Fire_Risk_Hawaii_fire_risk_categories_2023.tif"))
+# crs(FRISK) <- "+proj=longlat +datum=WGS84 +no_defs"
+#
+# FRISK_Sh
+# FRISK_Shape_T <- spTransform(FRISK_Shape, crs(EXAMP))
+# crs(FRISK_Shape_T) <- CRS(proj4string(EXAMP))
 
 ##########   Forest Roads
-# F_Roads <- readOGR(paste0(INPUTS_FOLDER,"Forestry Roads/Forestry_Roads.shp"))
-debug_print("22.1")
-
 debug_print(paste0("22.2, INPUTS_FOLDER: ", INPUTS_FOLDER))
 
-F_Roads_File <-
-  paste0(INPUTS_FOLDER, "Forestry Roads/Forestry_Roads.shp")
-
+#F_Roads <- readOGR(paste0(INPUTS_FOLDER, "Forestry Roads/Forestry_Roads.shp"))
+F_Roads_File <- paste0(INPUTS_FOLDER, "Forestry Roads/Forestry_Roads.shp")
 debug_print(paste("23,F_Roads_File", F_Roads_File))
 F_Roads <- readOGR(F_Roads_File)
 F_Roads <- spTransform(F_Roads, crs(EXAMP))
@@ -442,8 +508,7 @@ plot(F_Roads)
 
 ##########   Trail Inventory
 # I_Trails <- readOGR(paste0(INPUTS_FOLDER,"Inventory Trails/InventoryTrails.shp"))
-I_Trails_File <-
-  paste0(INPUTS_FOLDER, "Inventory Trails/InventoryTrails.shp")
+I_Trails_File <- paste0(INPUTS_FOLDER, "Inventory Trails/InventoryTrails.shp")
 debug_print(paste("24,I_Trails_File", I_Trails_File))
 I_Trails <- readOGR(I_Trails_File)
 I_Trails <- spTransform(I_Trails, crs(EXAMP))
@@ -451,26 +516,22 @@ plot(I_Trails)
 
 ##########   Digital Elevation Model
 
-ELEV2 <-
-  dir(
-    paste0(INPUTS_FOLDER, "ned_dem/"),
-    pattern = "*x.adf",
-    recursive = T,
-    full.names = T
-  )
+ELEV2 = dir(
+  paste0(INPUTS_FOLDER, "ned_dem/"),
+  pattern = "*x.adf",
+  recursive = T,
+  full.names = T
+)
 # ### if doing portfolio for whole island (needed for Big Island at least)
 #   ELEV2 = dir(paste0(INPUTS_FOLDER), pattern="*ned_dem_crs.tif", recursive=T, full.names=T)
 ELEV <- raster(ELEV2[1])
-if (ELUnit == " ft") {
-  ELEV <- ELEV * 3.28084
-}
+if (ELUnit == " ft") { ELEV = ELEV * 3.28084 }
 crs(ELEV) <- "+proj=longlat +datum=WGS84 +no_defs"
-plot(ELEV)
 
 ##########  Hillshade
 HS <- raster(paste0(INPUTS_FOLDER, "hawaii_hillshade.tif"))
 crs(HS) <- "+proj=longlat +datum=WGS84 +no_defs"
-plot(HS)
+# plot(HS)
 
 # # convert to dataframe for plotting
 # HSd<-as.data.frame(HS, xy=T)
@@ -478,59 +539,58 @@ plot(HS)
 
 ##########  Landcover
 
-LC2 <-
-  dir(
-    paste0(INPUTS_FOLDER, "Landcover/"),
-    pattern = "*LCMAP_HI_2020_V10_LCPRI_crs.tif$",
-    recursive = T,
-    full.names = T
-  )
+LC2 = dir(
+  paste0(INPUTS_FOLDER, "Landcover/"),
+  pattern = "*LCMAP_HI_2020_V10_LCPRI_crs.tif$",
+  recursive = T,
+  full.names = T
+)
 LC <- raster(LC2)
 crs(LC) <- "+proj=longlat +datum=WGS84 +no_defs"
-plot(LC)
+# plot(LC)
 
 ##########  Moku and Ahupuaa
-MOKU <- readOGR(paste0(INPUTS_FOLDER, "Moku.shp"))
-MOKU <- spTransform(MOKU, crs(EXAMP))
-plot(MOKU)
+debug_print("Moku and Ahupuaa")
 
-AHU <- readOGR(paste0(INPUTS_FOLDER, "Ahupuaa2.shp"))
+MOKU = readOGR(paste0(INPUTS_FOLDER, "Moku.shp"))
+MOKU <- spTransform(MOKU, crs(EXAMP))
+# plot(MOKU)
+
+AHU_file <- paste0(INPUTS_FOLDER, "Ahupuaa3.shp")
+debug_print(paste0("AHU_file: ", AHU_file))
+AHU <- readOGR(AHU_file)
 AHU <- spTransform(AHU, crs(EXAMP))
-plot(AHU)
+# plot(AHU)
 
 ##########  Streams and Aquifers
-STRM <-
-  readOGR(paste0(
-    INPUTS_FOLDER,
-    "NHD_H_Hawaii_State_Shape/NHD_Flowlines2.shp"
-  ))
-STRM <- spTransform(STRM, crs(EXAMP))
+debug_print("Streams and Aquifers")
 
-AQU <-
-  readOGR(paste0(INPUTS_FOLDER, "Aquifers/DOH_Aquifers_type_status.shp"))
+STRM = readOGR(paste0(INPUTS_FOLDER, "NHD_H_Hawaii_State_Shape/NHD_Flowlines2.shp"))
+STRM <- spTransform(STRM, crs(EXAMP))
+STRM
+
+AQU <- readOGR(paste0(INPUTS_FOLDER, "Aquifers/DOH_Aquifers_type_status.shp"))
 AQU <- spTransform(AQU, crs(EXAMP))
+AQU
 
 ##########  Downscaling
+debug_print("Downscaling")
 
 # should be 132 DyDs_files. If TIF's were opened in arcgis, extra files may have been created
-DyDs_files <-
-  dir(
-    paste0(INPUTS_FOLDER, "HI_Downscaling_Final/"),
-    recursive = T,
-    full.names = T,
-    pattern = "\\.tif$"
-  )
-D2_files <-
-  dir(
-    paste0(INPUTS_FOLDER, "Lulin_Downscaling/"),
-    recursive = T,
-    full.names = T
-  )
-#print(paste("25,DyDs_files: ", DyDs_files))
-#print(paste("26,D2_files: ", D2_files))
-
+DyDs_files = dir(
+  paste0(INPUTS_FOLDER, "HI_Downscaling_Final/"),
+  recursive = T,
+  full.names = T,
+  pattern = "\\.tif$"
+)
+D2_files = dir(
+  paste0(INPUTS_FOLDER, "Lulin_Downscaling/"),
+  recursive = T,
+  full.names = T
+)
 
 ##########   Month Year Rainfall Maps (Frazier et al., 2016)
+debug_print("Month Year Rainfall Maps (Frazier et al., 2016)")
 
 # RF_Map_Path_A <- ("F:/PDKE/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
 RF_Map_Path_A_DIR <-
@@ -556,13 +616,15 @@ debug_print(paste("28,RF_Map_Path: ", RF_Map_Path))
 
 #Replace this with the ONI Dataset at some point
 MEI <- read.csv(paste0(INPUTS_FOLDER, "ONI_Season.csv"), sep = ",")
+MEI 
 
-
+########## Month Year Air Temperature Maps
+# moved the definition of this to where it's actually used.
+#AT_Map_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/") 
 
 ########## Monthly Climatology Air Temperature Maps
 #AT_CLIM_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/air_temp_climatology/")
-AT_CLIM_Path_A <-
-  paste0(INPUTS_FOLDER, "/air_temp/air_temp_climatology/")
+AT_CLIM_Path_A <- paste0(INPUTS_FOLDER, "/air_temp/air_temp_climatology/")
 
 #################################################################################################################################
 
@@ -636,7 +698,10 @@ colnames(Cell.RF_Year) <-
   )
 Cell.RF_Year[1] <- UNIT_N
 
+dpi = 300
+
 u <- 1
+
 # for (u in 1:1) {
 
 #debug_print("Analysis UNIT ")  # Unit Analyzed
@@ -644,27 +709,28 @@ u <- 1
 #debug_print(UNIT_N[u])         # Name Of Unit
 #debug_print("Maps")
 
-#Create A Directory for Output
 debug_print(paste("OUTPUTS_FOLDER: ", OUTPUTS_FOLDER))
 debug_print(paste("UNIT_N[u]: ", UNIT_N[u]))
 debug_print(paste("datetime_str: ", datetime_str))
 
-
+#Create A Directory for Output
 PATH <- paste0(OUTPUTS_FOLDER, UNIT_N[u], "_", datetime_str)
 PATH_WITH_PROJECT_NAME <- paste0(PATH, "/", UNIT_N[u], "_") 
 debug_print(paste("29, PATH:", PATH))
 dir.create(PATH, showWarnings = TRUE, recursive = FALSE)
 debug_print(paste("29, PATH_WITH_PROJECT_NAME:", PATH_WITH_PROJECT_NAME))
 
-#
-# TODO: the above got the following, so add error handling:
-# Warning message:
-# In dir.create(PATH, showWarnings = TRUE, recursive = FALSE) :
-#  '/Users/jgeis/Work/PDKE/CCVD/MINI_Phase2/Waikiki Watershed' already exists
-
-
 IS <- UNIT_I[u]       # Island
 SH <- UNIT_X[[u]]     # Shape File
+
+##########   Export AOI shapefile
+
+# png(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u]," Mokupuni.png"),width=5*dpi,height=4*dpi,res=dpi)
+#
+# writeOGR(obj = HALE,
+#          dsn = paste0(OUTPUTS_FOLDER,UNIT_N[u],"/AOI/"),
+#          layer = "AOI",
+#          driver = "ESRI Shapefile")
 
 ##########   Get Coast for Island
 debug_print("30, Get Coast for Island")
@@ -702,6 +768,29 @@ if (IS == "ALL") {
   Iname <- "Hawaiian Islands"
 }
 
+# #########   Get terrain basemap for each island and whole state
+# if(IS == "BI") {mapBound <- c(-156.673, 18.839, -154.339, 20.343)}
+# if(IS == "MN") {mapBound <- c(-156.867, 20.457, -155.851, 21.121)}
+# if(IS == "MO") {mapBound <- c(-157.367, 20.916, -156.666, 21.373)}
+# if(IS == "LA") {mapBound <- c(-157.146, 20.688, -156.713, 20.968)}
+# if(IS == "OA") {mapBound <- c(-158.387, 21.195, -157.525, 21.765)}
+# if(IS == "KA") {mapBound <- c(-159.938, 21.776, -159.077, 22.357)}
+# if(IS == "KO") {mapBound <- c(-156.792, 20.431, -156.423, 20.673)}
+#
+# basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype="terrain")
+
+# # get extent of state-wide map
+# # Stamen map coverage was reduced for Hawaii region start October 2023...
+# sxmin<-extent(Coast_Crop_T)[1]
+# sxmax<-extent(Coast_Crop_T)[2]
+# symin<-extent(Coast_Crop_T)[3]
+# symax<-extent(Coast_Crop_T)[4]
+# mapBound_s <- c((sxmin*1.001),(symin*0.99),(sxmax*0.999),(symax*1.005))
+# mapBound_s
+#
+# basemap_state<-ggmap::get_stamenmap(bbox=mapBound_s, zoom = 8, maptype = "terrain-background")
+# ggmap::ggmap(basemap_state)
+
 ##########   GET Central Latitude and Longitude for shapefile
 
 Xmin <- extent(SH)[1]
@@ -717,7 +806,7 @@ LAT <- round(mean(ymin, ymax), 3)
 debug_print("31, Make a Plot of Shapefile with Island Coast and LAT and LON")
 
 TIT <- paste0(UNIT_Ns[u], " (", Iname, ")")  # Title For Figure
-dpi <- 300
+dpi = 300
 
 # find width of map
 width <- abs(extent(CoastM)[1]) - abs(extent(CoastM)[2])
@@ -754,7 +843,7 @@ sb2 <- sb2 * 1.60934
 ############# plot Mokupuni (island)
 debug_print("32, Mokupuni")
 
-dpi <- 300
+dpi = 300
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Mokupuni.png"),
   width = 5 * dpi,
@@ -797,7 +886,6 @@ dev.off()
 ############# plot Moku
 debug_print("33, Plot Moku")
 
-
 # find which moku the study area is in
 # MI<-as.data.frame(gIntersects(MOKU,HALE,byid=T))
 # MI
@@ -806,7 +894,7 @@ debug_print("33, Plot Moku")
 
 MIt <- as.data.frame(raster::intersect(MOKU, HALE))
 MI2 <- data.frame(MIt$objectid)
-#MI2
+MI2
 colnames(MI2) <- "ObjectID"
 
 
@@ -830,8 +918,7 @@ plot(MI3)
 
 # get subsetted moku as a dataframe for text labels
 MId <- as(MI3, "data.frame")
-write.csv(
-  data.frame(MId),
+write.csv(data.frame(MId),
   paste0(PATH_WITH_PROJECT_NAME, "Moku.csv"),
   row.names = F
 )
@@ -903,36 +990,49 @@ dev.off()
 
 debug_print("34, Plot Ahupuaa")
 
-# Clip ahupuaa polygons to HALE polygons (removes all attribute data, use objectid
+# Clip ahupuaa polygons to HALE polygons (removes all attribute data, use objectid 
 # to re-assign attribute data afterwards)
 # AI<-gIntersection(AHU, HALE, byid=T, id = as.character(AHU$objectid))
 # plot(AI)
 plot(HALE)
 plot(AHU)
-AIt <- as.data.frame(raster::intersect(AHU, HALE))
-AI2 <- data.frame(AIt$objectid)
-#AI2
-colnames(AI2) <- "ObjectID"
+AIt<-as.data.frame(raster::intersect(AHU,HALE))
+AI2<-data.frame(AIt$objectid)
+AI2
+colnames(AI2)<-"ObjectID"
 
 # subset ahupuaa for study area
-AI3 <- AHU[AI2$ObjectID, ]
-plot(AI3)
+AI3<-AHU[AI2$ObjectID,]
+plot(HALE, col = "red")
+plot(AI3, add=T)
+
+# clip polygons and calculate areas
+AI3_sf<-st_as_sf(AI3)
+HALE_sf<-st_as_sf(HALE)
+HALE_sf_validated <- st_make_valid(HALE_sf)
+HALE_area_m <- st_area(HALE_sf_validated)  # Total area of HALE in square meters
+
+AI3_clipped <- st_intersection(AI3_sf, HALE_sf_validated)
+plot(AI3_clipped[2])
+
+AI3_clipped$area_m <- st_area(AI3_clipped)
+AI3_clipped
 
 # get subsetted ahupuaa as a dataframe for text labels
-AId <- as(AI3, "data.frame")
-write.csv(
-  data.frame(AId),
-  paste0(PATH_WITH_PROJECT_NAME, "Ahupuaa.csv"),
-  row.names = F
-)
+AId<-as.data.frame(AI3_clipped)
+AId
+
+AI3_clipped_df <- st_drop_geometry(AI3_clipped)
+
+write.csv(data.frame(AI3_clipped_df), paste0(PATH_WITH_PROJECT_NAME, "Ahupuaa.csv"),row.names = F)
 
 # get extent of Ahupuaa
-xm <- xmin(AI3)
-xma <- xmax(AI3)
-ym <- ymin(AI3) * 0.999
-yma <- ymax(AI3) * 1.0001
+xm<-xmin(AI3)
+xma<-xmax(AI3)
+ym<-ymin(AI3)*0.999
+yma<-ymax(AI3)*1.0001
 
-dpi <- 300
+dpi=300
 
 # make map
 png(
@@ -984,7 +1084,7 @@ debug_print("35, Fire Maps")
 FIRE_CropI <- FIRE_Shape_T
 TITF <- "Fire Occurrence 1999-2022"
 
-dpi <- 300
+dpi = 300
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Fire.png"),
   width = 5 * dpi,
@@ -1023,62 +1123,88 @@ dev.off()
 
 # Fire risk map
 
+### prepare hillshade for plotting
+#clip to island
+HSmoku <- mask(x = HS, mask = CoastM)
+
+HSmoku <- crop(x = HS, y = extent(CoastM))
+HSmoku[HSmoku == 0] <- NA
+
+# use this function I found online (https://stackoverflow.com/questions/47116217/overlay-raster-layer-on-map-in-ggplot2-in-r)
+gplot_data <- function(x, maxpixels = ncell(x))  {
+  x <- raster::sampleRegular(x, maxpixels, asRaster = TRUE)
+  coords <- raster::xyFromCell(x, seq_len(raster::ncell(x)))
+  ## Extract values
+  dat <- utils::stack(as.data.frame(raster::getValues(x)))
+  names(dat) <- c('value', 'variable')
+  
+  dat <- dplyr::as.tbl(data.frame(coords, dat))
+  
+  if (!is.null(levels(x))) {
+    dat <- dplyr::left_join(dat, levels(x)[[1]], by = c("value" = "ID"))
+  }
+  dat
+}
+
+HSd <- gplot_data(HSmoku)
+
 # get extent of AOI
 xm <- xmin(HALE)
 xma <- xmax(HALE)
 ym <- ymin(HALE) * 0.9999
 yma <- ymax(HALE) * 1.0001
+#
+# # separate fire risk categories
+# FR1<-FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "101"),]
+# FR2<-FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "102"),]
+# FR3<-FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "103"),]
+#
+# png(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u]," FireRisk.png"),width=5*dpi,height=5*dpi,res=dpi)
+#
+# par(mfrow=c(1,1))
+# ggplot() +
+#   geom_tile(data = dplyr::filter(HSd, !is.na(value)),
+#             aes(x=x, y=y, fill=value), show.legend = F) +
+#   scale_fill_gradient("Elevation", low = "black", high="white", na.value = 0) +
+#   geom_polygon(data = FR1, aes(x=long,y=lat, group=group), fill="yellow") +
+#   geom_polygon(data = FR2, aes(x=long,y=lat, group=group), fill="orange") +
+#   geom_polygon(data = FR3, aes(x=long,y=lat, group=group), fill="red") +
+#   geom_polygon(data = Coast, aes(x=long,y=lat,group=group), col="black", fill=NA, size = 1) +
+#   geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
+#
+#   coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
+#   theme_void()
+#
+# dev.off()
 
-# separate fire risk categories
-FR1 <- FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "101"), ]
-FR2 <- FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "102"), ]
-FR3 <- FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "103"), ]
 
-png(
-  paste0(PATH_WITH_PROJECT_NAME, "FireRisk.png"),
-  width = 5 * dpi,
-  height = 5 * dpi,
-  res = dpi
-)
 
-par(mfrow = c(1, 1))
-ggplot() +
-  geom_polygon(data = FR1,
-               aes(x = long, y = lat, group = group),
-               fill = "yellow") +
-  geom_polygon(data = FR2,
-               aes(x = long, y = lat, group = group),
-               fill = "orange") +
-  geom_polygon(data = FR3,
-               aes(x = long, y = lat, group = group),
-               fill = "red") +
-  geom_polygon(
-    data = Coast,
-    aes(x = long, y = lat, group = group),
-    col = "black",
-    fill = NA,
-    size = 1
-  ) +
-  geom_polygon(
-    data = HALE,
-    aes(x = long, y = lat, group = group),
-    col = "blue",
-    fill = NA,
-    size = 1
-  ) +
-  coord_sf(xlim = c(xm, xma), ylim = c(ym, yma)) +
-  theme_void()
-
-dev.off()
+# par(mfrow=c(1,1))
+# ggplot() +
+#   geom_tile(data = dplyr::filter(HSd, !is.na(value)),
+#             aes(x=x, y=y, fill=value), show.legend = F) +
+#   scale_fill_gradient("Elevation", low = "black", high="white", na.value = 0) +
+#   geom_polygon(data = Coast, aes(x=long, y=lat, group=group),fill=NA,col="black",size=0.5) +
+#   geom_path(data = STRMi, aes(x=long,y=lat, group=group),col="deepskyblue1",size=1) +
+#   geom_path(data = STRMp, aes(x=long,y=lat,group=group),col="darkblue", size=1) +
+#   geom_path(data = STRMa, aes(x=long,y=lat, group=group),col="green",size=1) +
+#   geom_path(data = STRMc, aes(x=long,y=lat, group=group),col="orange",size=1) +
+#   geom_path(data = STRMpi, aes(x=long,y=lat, group=group),col="lightgrey",size=1) +
+#   geom_path(data = STRMco, aes(x=long,y=lat, group=group),col="yellow",size=1) +
+#   geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
+#   coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
+#   theme_void()
+#
+# dev.off()
 
 ########### Elevation Extract and Map
 
 debug_print("36, Elevation")
 
+plot(CoastM)
 ELEV_MaskI <- mask(x = ELEV, mask = CoastM)
-debug_print("36.1")
+plot(ELEV_MaskI)
 ELEV_CropI <- crop(x = ELEV_MaskI, y = extent(CoastM))
-debug_print("36.2")
 
 #Mask For Geography
 ELEV_Mask <- mask(x = ELEV, mask = UNIT_X[[u]])
@@ -1086,7 +1212,6 @@ ELEV_Crop <- crop(x = ELEV_Mask, y = extent(UNIT_X[[u]]))
 ELEV_Mean <- round(cellStats(ELEV_Crop, 'mean'), 1)
 ELEV_Max <- round(cellStats(ELEV_Crop, 'max'), 1)
 ELEV_Min <- round(cellStats(ELEV_Crop, 'min'), 1)
-debug_print("36.3")
 
 Cell.DataCL[u, 2:4] <- c(ELEV_Min, ELEV_Mean, ELEV_Max)
 Cell.DataCL[u, 14] <- Iname
@@ -1094,10 +1219,9 @@ Cell.DataCLR[1:3, 1] <- c("Mean", "Max", "Min")
 Cell.DataCLR[1:3, 2] <- c(ELEV_Mean, ELEV_Max, ELEV_Min)
 Cell.DataCLR[1, 15] <- Iname
 Cell.DataCLR[1, 16] <- UNIT_Ns[u]
-debug_print("36.4")
 
-#Cell.DataCL
-#Cell.DataCLR
+Cell.DataCL
+Cell.DataCLR
 
 #BI_brksRH<-round(seq(RHLO, RHUP, length = 9),0)
 colfuncEL <- colorRampPalette(brewer.pal(9, "PuBuGn"))(100)
@@ -1157,8 +1281,7 @@ plot(LC_Crop)
 LC_Crop2 <- as.data.frame(LC_Crop, xy = T)
 
 # remove LC "0" (no data)
-LC_Crop3 <-
-  LC_Crop2[which(LC_Crop2$LCMAP_HI_2020_V10_LCPRI_crs != 0), ]
+LC_Crop3 <- LC_Crop2[which(LC_Crop2$LCMAP_HI_2020_V10_LCPRI_crs != 0), ]
 
 #Count frequencies
 LC_ct <- as.data.frame(table(LC_Crop3$LCMAP_HI_2020_V10_LCPRI_crs))
@@ -1276,7 +1399,7 @@ print(
       vjust = .65,
       size = 14
     )) +
-    labs(y = "Area (acres)", x = "",) +
+    labs(y = "Area (acres)", x = "", ) +
     theme(legend.position = "none") +
     theme(
       axis.title.y = element_text(size = 15),
@@ -1354,16 +1477,38 @@ colnames(AI2) <- "ObjectID"
 # subset aquifers for study area
 AQ3 <- AQU[AI2$ObjectID, ]
 plot(AQ3)
-
+plot(HALE, add = T)
 
 AQ3 <- raster::intersect(AQU, HALE)
+plot(AQ3)
+AQ3
+
+# clip polygons and calculate centroid coordinates
+AQ3_sf <- st_as_sf(AQ3)
+
+AQ3_clipped <- st_intersection(AQ3_sf, HALE_sf_validated)
+plot(AQ3_clipped[2])
+AQ3_clipped
+
+# I added the following line because it was getting an error "Loop 0 is not valid: Edge 257 is degenerate (duplicate vertex)"
+AQ3_validated <- st_make_valid(AQ3_clipped) # Fixes self-intersections and other issues
+AQ3_centroids <- st_centroid(AQ3_validated)
+#print(AQ3_centroids)
+
+
+# Extract latitude and longitude from centroids
+centroid_coords <- st_coordinates(AQ3_centroids)
+AQ3_clipped <- AQ3_clipped %>%
+  mutate(cent_long = centroid_coords[, 1], cent_lat = centroid_coords[, 2])
 
 # subset for hydrology
 AQb <- AQ3[which(AQ3$typea1 == 1), ]
 AQh <- AQ3[which(AQ3$typea1 == 2), ]
 
 # make data frame and only keep relevant columns
-AQd <- as(AQ3, "data.frame")
+# AQd<-as.data.frame(AQ3_clipped)
+AQd <- as.data.frame(AQ3)
+AQd <- as.data.frame(AQ3_clipped)
 AQd <-
   subset(
     AQd,
@@ -1378,13 +1523,13 @@ AQd <-
       "cent_long"
     )
   )
+AQd
 
 # translate type and status codes to text
 AQd$Hydrology <- NA
 AQd$Geology <- NA
 AQd$Salinity <- NA
 AQd$Use <- NA
-
 
 for (i in 1:nrow(AQd)) {
   if (AQd[i, ]$typea1 == 1) {
@@ -1437,23 +1582,21 @@ for (i in 1:nrow(AQd)) {
   }
   
 }
-
-#AQd
+AQd
 
 # trim it down to the final table
-AQe <-
+AQe <- 
   subset(AQd,
-         select = c("doh_aquife", "Hydrology", "Geology", "Salinity", "Use"))
+    select = c("doh_aquife", "Hydrology", "Geology", "Salinity", "Use"))
 colnames(AQe)[1] = "DOH Aquifer"
+AQe
 write.csv(
   data.frame(AQe),
   paste0(PATH_WITH_PROJECT_NAME, "Aquifer.csv"),
   row.names = F
 )
-#AQe
 
-
-# get extent of Aquifrs
+# get extent of Aquifers
 xm <- xmin(AQ3)
 xma <- xmax(AQ3)
 ym <- ymin(AQ3) * 0.999
@@ -1611,8 +1754,7 @@ gplot_data <- function(x, maxpixels = ncell(x))  {
   dat <- dplyr::as.tbl(data.frame(coords, dat))
   
   if (!is.null(levels(x))) {
-    dat <- dplyr::left_join(dat, levels(x)[[1]],
-                            by = c("value" = "ID"))
+    dat <- dplyr::left_join(dat, levels(x)[[1]], by = c("value" = "ID"))
   }
   dat
 }
@@ -1637,7 +1779,7 @@ png(
 par(mfrow = c(1, 1))
 ggplot() +
   geom_tile(
-    data = dplyr::filter(HSd,!is.na(value)),
+    data = dplyr::filter(HSd, !is.na(value)),
     aes(x = x, y = y, fill = value),
     show.legend = F
   ) +
@@ -1703,28 +1845,50 @@ ggplot() +
 dev.off()
 
 # clip features to study area
-ST <- crop(STRM, HALE)
-plot(ST)
 
-# make dataframe of features
-STdf <- as(ST, "data.frame")
+ST <- gIntersects(STRM, HALE)
 
-# get all hydrologic types present
-ht <- unique(STdf$Feature_Ty)
-for (i in 1:length(ht)) {
-  if (ht[i] == "ARTIFICIAL PATH") {
-    ht[i] <- "Managed Waterway"
+if (ST == "FALSE") {
+  ht <- data.frame()
+}
+
+if (ST != "FALSE") {
+  ST <- try(crop(STRM, HALE))
+  plot(ST)
+  
+  if (typeof(ST) == "character") {
+    ht <- data.frame()
   }
-  if (ht[i] == "CANAL/DITCH") {
-    ht[i] <- "Canal/Ditch"
-  }
-  if (ht[i] == "STREAM/RIVER") {
-    ht[i] <- "Stream"
-  }
-  if (ht[i] == "PIPELINE") {
-    ht[i] <- "Pipeline"
+  
+  if (typeof(ST) != "character") {
+    # make dataframe of features
+    STdf <- as(ST, "data.frame")
+    
+    # get all hydrologic types present
+    ht <- unique(STdf$Feature_Ty)
+    for (i in 1:length(ht)) {
+      if (ht[i] == "ARTIFICIAL PATH") {
+        ht[i] <- "Managed Waterway"
+      }
+      if (ht[i] == "CANAL/DITCH") {
+        ht[i] <- "Canal/Ditch"
+      }
+      if (ht[i] == "STREAM/RIVER") {
+        ht[i] <- "Stream"
+      }
+      if (ht[i] == "PIPELINE") {
+        ht[i] <- "Pipeline"
+      }
+      if (ht[i] == "CONNECTOR") {
+        ht[i] <- "Pipeline"
+      }
+    }
   }
 }
+
+# remove duplicate types before final output
+ht <- unique(ht)
+ht
 
 write.csv(
   data.frame(ht),
@@ -1740,43 +1904,45 @@ debug_print("40, Rain Station Locations")
 sn <- read.csv(paste0(INPUTS_FOLDER, "rain_stations_links.csv"))
 
 # load stations point shapefile, tranform points and polygons to planar projection
-sl <- readOGR(paste0(INPUTS_FOLDER, "rain_stations_2023.shp"))
+rain_stations_file <- paste0(INPUTS_FOLDER, "rain_stations.shp")
+debug_print(rain_stations_file)
+sl <- readOGR(rain_stations_file)
 # sl <- spTransform(sl, crs(EXAMP))
 
-utmStr <-
-  "+proj=utm +zone=%d +datum=NAD83 +units=m +no_defs +ellps=GRS80"
+utmStr <- "+proj=utm +zone=%d +datum=NAD83 +units=m +no_defs +ellps=GRS80"
 crs <- CRS(sprintf(utmStr, 4))
 sl <- spTransform(sl, crs)
 HALE1 <- spTransform(HALE, crs)
 
+head(sl)
 summary(sl)
 unique(sl$Network)
 
 # calculate distance from each point to the AOI polygon
 sd <- as.data.frame(apply(gDistance(sl, HALE1, byid = TRUE), 2, min))
-sd <- cbind(rownames(sd), data.frame(sd, row.names = NULL))
-colnames(sd) <- c("ID2", "distance")
+sd <- cbind(sl$SKN, data.frame(sd, row.names = NULL))
+colnames(sd) <- c("SKN", "distance")
+head(sd)
 
-# subtract 1 from each FID because they're all off by one (started with 0)
-sd$ID2 <- as.numeric(sd$ID2) - 1
+# sort by distance
 sd <- sd[order(sd$distance), ]
-#head(sd)
+head(sd)
 
 # convert station points shp into dataframe
 summary(sl)
 sld <- as.data.frame(sl)
-#head(sld)
+head(sld)
 
 # make table of 3 closest stations and join network links
-s1 <- sld[which(sld$ID2 == sd[1, ]$ID2), ]
-s2 <- sld[which(sld$ID2 == sd[2, ]$ID2), ]
-s3 <- sld[which(sld$ID2 == sd[3, ]$ID2), ]
+s1 <- sld[which(sld$SKN == sd[1, ]$SKN), ]
+s2 <- sld[which(sld$SKN == sd[2, ]$SKN), ]
+s3 <- sld[which(sld$SKN == sd[3, ]$SKN), ]
 st2 <- rbind(s1, s2, s3)
-#st2
+st2
 st <- st2[c("Station_Na", "Network")]
 st <- join(st, sn)
 colnames(st) <- c("Station Name", "Network", "Website")
-#st
+st
 
 # export table
 write.csv(st,
@@ -1806,7 +1972,7 @@ par(mfrow = c(1, 1))
 
 ggplot() +
   geom_tile(
-    data = dplyr::filter(HSd,!is.na(value)),
+    data = dplyr::filter(HSd, !is.na(value)),
     aes(x = x, y = y, fill = value),
     show.legend = F
   ) +
@@ -1874,7 +2040,7 @@ Cell.CL_Year[6, 1] <- "CF [%]"
 Cell.CL_Year[7, 1] <- paste0("ET [", RFUnit2, "]")
 Cell.CL_Year[8, 1] <- "SM [%]"
 Cell.CL_Year[9, 1] <- "S [W m/2]"
-#Cell.CL_Year
+Cell.CL_Year
 
 ##########   Solar Radiation
 debug_print("42, Solar Radiation")
@@ -2023,7 +2189,7 @@ KDLO <-
   )
 
 Cell.CL_Year[9, 2:14] <- MEANKD2
-
+Cell.CL_Year
 
 ##########   Soil Moisture
 debug_print("43, Soil Moisture")
@@ -2172,12 +2338,10 @@ SMLo <-
   )
 
 Cell.CL_Year[8, 2:14] <- MEANSM3
+Cell.CL_Year
 
-
-
-
-##########   EVAPOTRANSIPRATION
-debug_print("44, EVAPOTRANSIPRATION")
+##########   EVAPOTRANSPIRATION
+debug_print("44, EVAPOTRANSPIRATION")
 
 Jan <- raster(Mean_CLIM[19])
 Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
@@ -2362,8 +2526,10 @@ ETLo <-
   )
 
 Cell.CL_Year[7, 2:14] <- MEANET2
+Cell.CL_Year
 
 plot(Aug)
+
 ##########   Cloud Frequency
 debug_print("45, Cloud Frequency")
 
@@ -2511,6 +2677,7 @@ CFLO <-
   )
 
 Cell.CL_Year[6, 2:14] <- MEANCF3
+Cell.CL_Year
 
 ##########
 
@@ -2699,6 +2866,7 @@ TaLo <-
   )
 
 Cell.CL_Year[3, 2:14] <- MEANTA2
+Cell.CL_Year
 
 ########## MAX TEMPERATURE
 debug_print("47, MAX TEMPERATURE")
@@ -2915,7 +3083,9 @@ if (TUnit == "°F") {
 JanMTN   <- round(cellStats(Jan_CropTN, 'mean'), 1)
 JanMTNx   <- round(cellStats(Jan_CropTN , 'max'), 1)
 JanMTNn   <- round(cellStats(Jan_CropTN , 'min'), 1)
+summary(Jan_CropTN)
 
+plot(Jan_CropTN)
 Feb <- raster(Mean_CLIM[96])
 crs(Feb) <- crs(EXAMP)
 Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
@@ -3067,6 +3237,7 @@ MEANTN2 <-
     AnnMTN
   )
 Cell.CL_Year[2, 2:14] <- MEANTN2
+Cell.CL_Year
 
 ########## Get thresholds for figures
 
@@ -3216,7 +3387,7 @@ MEANRH2 <-
     ANNMRH
   )
 Cell.CL_Year[5, 2:14] <- MEANRH2
-#Cell.CL_Year
+Cell.CL_Year
 
 ##########   Get thresholds for figures
 
@@ -3277,7 +3448,7 @@ Tair_P_Crop <- crop(x = Tair_P_Mask, y = extent(UNIT_X[[u]]))
 if (TUnit == "°F") {
   Tair_P_Crop <- (Tair_P_Crop * 1.8) + 32
 }
-Tair_P_M   <- round(cellStats(Tair_P_Crop,  'mean'), 1)
+Tair_P_M   <- round(cellStats(Tair_P_Crop, 'mean'), 1)
 Tair_PName <- names(Tair_P)
 
 SM_P <- raster(Mean_CLIM[40])
@@ -3353,8 +3524,7 @@ VPD_PName <- names(VPD_P)
 VPDUP   <- round(cellStats(VPD_P_Crop  , 'max'), 0)
 VPDLO   <- round(cellStats(VPD_P_Crop  , 'min'), 0)
 
-WS_P <-
-  raster(paste0(INPUTS_FOLDER, "Mean Climate/Wind/wind_sd_avg.tif"))
+WS_P <- raster(paste0(INPUTS_FOLDER, "Mean Climate/Wind/wind_sd_avg.tif"))
 names(WS_P) = "Windspeed"
 WS_P_Mask <- mask(x = WS_P, mask = UNIT_X[[u]])
 WS_P_Crop <- crop(x = WS_P_Mask, y = extent(UNIT_X[[u]]))
@@ -3374,11 +3544,9 @@ Jan_CropRF <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Jan_CropRF  <- Jan_CropRF  * 0.0393701
 }
-JanMRF    <- round(cellStats(Jan_CropRF,  'mean'), 1)
+JanMRF    <- round(cellStats(Jan_CropRF, 'mean'), 1)
 JanMRFx   <- round(cellStats(Jan_CropRF  , 'max'), 1)
 JanMRFn   <- round(cellStats(Jan_CropRF  , 'min'), 1)
-
-debug_print("51A")
 
 Feb <- raster(MeanRF_ALL[2])
 Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
@@ -3386,7 +3554,7 @@ Feb_CropRF <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Feb_CropRF  <- Feb_CropRF  * 0.0393701
 }
-FebMRF   <- round(cellStats(Feb_CropRF,  'mean'), 1)
+FebMRF   <- round(cellStats(Feb_CropRF, 'mean'), 1)
 FebMRFx   <- round(cellStats(Feb_CropRF  , 'max'), 1)
 FebMRFn   <- round(cellStats(Feb_CropRF  , 'min'), 1)
 
@@ -3396,7 +3564,7 @@ Mar_CropRF <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Mar_CropRF  <- Mar_CropRF  * 0.0393701
 }
-MarMRF   <- round(cellStats(Mar_CropRF,  'mean'), 1)
+MarMRF   <- round(cellStats(Mar_CropRF, 'mean'), 1)
 MarMRFx   <- round(cellStats(Mar_CropRF  , 'max'), 1)
 MarMRFn   <- round(cellStats(Mar_CropRF  , 'min'), 1)
 
@@ -3406,7 +3574,7 @@ Apr_CropRF <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Apr_CropRF  <- Apr_CropRF  * 0.0393701
 }
-AprMRF   <- round(cellStats(Apr_CropRF,  'mean'), 1)
+AprMRF   <- round(cellStats(Apr_CropRF, 'mean'), 1)
 AprMRFx   <- round(cellStats(Apr_CropRF  , 'max'), 1)
 AprMRFn   <- round(cellStats(Apr_CropRF  , 'min'), 1)
 
@@ -3416,7 +3584,7 @@ May_CropRF <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   May_CropRF  <- May_CropRF  * 0.0393701
 }
-MayMRF   <- round(cellStats(May_CropRF,  'mean'), 1)
+MayMRF   <- round(cellStats(May_CropRF, 'mean'), 1)
 MayMRFx   <- round(cellStats(May_CropRF  , 'max'), 1)
 MayMRFn   <- round(cellStats(May_CropRF  , 'min'), 1)
 
@@ -3426,7 +3594,7 @@ Jun_CropRF <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Jun_CropRF  <- Jun_CropRF  * 0.0393701
 }
-JunMRF   <- round(cellStats(Jun_CropRF,  'mean'), 1)
+JunMRF   <- round(cellStats(Jun_CropRF, 'mean'), 1)
 JunMRFx   <- round(cellStats(Jun_CropRF  , 'max'), 1)
 JunMRFn   <- round(cellStats(Jun_CropRF  , 'min'), 1)
 
@@ -3436,7 +3604,7 @@ Jul_CropRF <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Jul_CropRF  <- Jul_CropRF  * 0.0393701
 }
-JulMRF   <- round(cellStats(Jul_CropRF,  'mean'), 1)
+JulMRF   <- round(cellStats(Jul_CropRF, 'mean'), 1)
 JulMRFx   <- round(cellStats(Jul_CropRF  , 'max'), 1)
 JulMRFn   <- round(cellStats(Jul_CropRF  , 'min'), 1)
 
@@ -3446,7 +3614,7 @@ Aug_CropRF <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Aug_CropRF  <- Aug_CropRF  * 0.0393701
 }
-AugMRF   <- round(cellStats(Aug_CropRF,  'mean'), 1)
+AugMRF   <- round(cellStats(Aug_CropRF, 'mean'), 1)
 AugMRFx   <- round(cellStats(Aug_CropRF  , 'max'), 1)
 AugMRFn   <- round(cellStats(Aug_CropRF  , 'min'), 1)
 
@@ -3476,7 +3644,7 @@ Nov_CropRF <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Nov_CropRF  <- Nov_CropRF  * 0.0393701
 }
-NovMRF   <- round(cellStats(Nov_CropRF,  'mean'), 1)
+NovMRF   <- round(cellStats(Nov_CropRF, 'mean'), 1)
 NovMRFx   <- round(cellStats(Nov_CropRF  , 'max'), 1)
 NovMRFn   <- round(cellStats(Nov_CropRF  , 'min'), 1)
 
@@ -3486,7 +3654,7 @@ Dec_CropRF <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
 if (RFUnit == " in") {
   Dec_CropRF  <- Dec_CropRF  * 0.0393701
 }
-DecMRF   <- round(cellStats(Dec_CropRF,  'mean'), 1)
+DecMRF   <- round(cellStats(Dec_CropRF, 'mean'), 1)
 DecMRFx   <- round(cellStats(Dec_CropRF  , 'max'), 1)
 DecMRFn   <- round(cellStats(Dec_CropRF  , 'min'), 1)
 
@@ -3561,6 +3729,7 @@ write.csv(
   row.names = F
 )
 Cell.CL_Year
+
 ##########   CLIMO GRAPHS
 debug_print("52, CLIMO GRAPHS")
 
@@ -3581,7 +3750,6 @@ df <-
     "Dec"
   ))
 colnames(df) <- c("month")
-Cell.CL_Year
 df$month <- factor(df$month, levels = month.abb)
 PREC <- as.numeric(as.vector(Cell.CL_Year[1, 2:13]))
 TA <- as.numeric(as.vector(Cell.CL_Year[3, 2:13]))
@@ -3589,12 +3757,14 @@ TA <- as.numeric(as.vector(Cell.CL_Year[3, 2:13]))
 df$PREC <- PREC
 df$TA <- TA
 
+df
+
 #Set X and Y Limits for Graph 20% higher than the max.
 XPR <- max(PREC) + (max(PREC) * 0.2)
 XTA <- max(TA) +   (max(TA) * 0.2)
 NTA <- min(TA) - min(TA) * 0.2
 
-#Make Cliamo Graph and Save to ouptput folder
+#Make Climo Graph and Save to output folder
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climograph2.png"),
@@ -3614,7 +3784,6 @@ my_bar <- barplot(
   ylab = paste0("Rainfall [", RFUnit2, "]")
 )#,
 
-XPR
 title(paste0("Monthly Climate: ", UNIT_Ns[u]),
       line = 0.8,
       cex.main = 1.5)
@@ -3768,11 +3937,11 @@ axis(
 
 dev.off()
 
-########## Figure for Other Cliamte Variables
+########## Figure for Other Climate Variables
 # Decide on a Break for Rainfall
 
 #Mean Rainfall
-debug_print("53, Figure for Other Cliamte Variables ")
+debug_print("53, Figure for Other Climate Variables ")
 
 # Decide on a Break for Rainfall
 RNGERF <- RFUP - RFLO
@@ -3841,53 +4010,52 @@ if (RNGERFA >= 10) {
 }
 if (RNGERFA < 10 && RNGERFA > 8.99) {
   BI_brksRFA <- round(seq(ANNLO, ANNUP, length = 10), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(9, "YlGnBu"))(50)
 }
 if (RNGERFA < 9 && RNGERFA > 7.99) {
   BI_brksRFA <- round(seq(ANNLO, ANNUP, length = 9), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(9, "YlGnBu"))(50)
 }
 if (RNGERFA < 8 && RNGERFA > 6.99) {
   BI_brksRFA <- round(seq(ANNLO, ANNUP, length = 8), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(8, "YlGnBu"))(50)
 }
 if (RNGERFA < 7 && RNGERFA > 5.99) {
   BI_brksRFA <- round(seq(ANNLO, ANNUP, length = 7), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(7, "YlGnBu"))(50)
 }
 if (RNGERFA < 6 && RNGERFA > 4.99) {
   BI_brksRFA <- round(seq(0, ANNUP, length = 6), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(6, "YlGnBu"))(50)
 }
 if (RNGERFA < 5 && RNGERFA > 3.99) {
   BI_brksRFA <- round(seq(0, ANNUP, length = 5), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(5, "YlGnBu"))(50)
 }
 if (RNGERFA < 4 && RNGERFA > 0.99) {
   BI_brksRFA <- round(seq(0, ANNUP, length = 3), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(4, "YlGnBu"))(50)
 }
 if (RNGERFA < 4 && RNGERFA < 0.99) {
   BI_brksRFA <- round(seq(0, ANNUP, length = 3), 0)
-  
   colfuncRFA <- colorRampPalette(brewer.pal(3, "YlGnBu"))(50)
 }
 
-#if (RNGERFA < 3){
-#  BI_brksRFA<-round(seq(RFLO, RFUP, length = 3),0);
-#  colfuncRFA<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
-#}
+if (RNGERFA < 3) {
+  BI_brksRFA <- round(seq(RFLO, RFUP, length = 3), 0)
+  colfuncRFA <- colorRampPalette(brewer.pal(3, "YlGnBu"))(50)
+}
 
 #Use Same Scale for TA
-BI_brksTA <- round(seq(TnLO, TxUP, length = 9), 0)
-colfuncTA <- colorRampPalette(brewer.pal(9, "YlOrRd"))(50)
+if (!is.infinite(TnLO)) {
+  BI_brksTA <- round(seq(TnLO, TxUP, length = 9), 0)
+  colfuncTA <- colorRampPalette(brewer.pal(9, "YlOrRd"))(50)
+}
+
+if (is.infinite(TnLO)) {
+  BI_brksTA <- round(seq(TaLo, TaUP, length = 9), 0)
+  colfuncTA <- colorRampPalette(brewer.pal(9, "YlOrRd"))(50)
+}
 
 #For RH
 RNGERH <- RHUP - RHLO
@@ -3920,10 +4088,16 @@ if (RNGERH < 4 && RNGERH > 2.99) {
   BI_brksRH <- round(seq(RHLO, RHUP, length = 4), 0)
   colfuncRH <- colorRampPalette(brewer.pal(4, "BuPu"))(50)
 }
+if (RNGERH < 2.99) {
+  l <- round((RHUP - RHLO), 0)
+  BI_brksRH <- round(seq(RHLO, RHUP, length = l), 0)
+  colfuncRH <- colorRampPalette(brewer.pal(l, "BuPu"))(50)
+}
 
 #For SM
 BI_brksSM <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
 colfuncSM <- colorRampPalette(brewer.pal(9, "YlGn"))(50)
+
 #For KD (Solar)
 if ((KDUP - KDLO) >= 9) {
   BI_brksKD <- round(seq(KDLO, KDUP, length = 9), 0)
@@ -3931,12 +4105,14 @@ if ((KDUP - KDLO) >= 9) {
 }
 if ((KDUP - KDLO) < 9) {
   BI_brksKD <- round(seq(KDLO, KDUP, length = (KDUP - KDLO)), 0)
-  colfuncKD <- colorRampPalette(brewer.pal(1, "OrRd"))(50)
+  colfuncKD <- colorRampPalette(brewer.pal(3, "OrRd"))(50)
 }
-# if((KDUP - KDLO)<1){
-#   BI_brksKD<-
-#   colfuncKD <-colorRampPalette(brewer.pal(1,"OrRd"))(50)
-# }
+if ((KDUP - KDLO) <= 1) {
+  KDUP <- KDLO + 1
+  KDLO <- KDLO - 1
+  BI_brksKD <- round(seq(KDLO, KDUP, length = 2), 0)
+  colfuncKD <- colorRampPalette(brewer.pal(3, "OrRd"))(50)
+}
 
 #For CF
 BI_brksCF <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
@@ -4034,7 +4210,6 @@ spplot(
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
 dev.off()
-
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_SR.png"),
@@ -4151,260 +4326,338 @@ dev.off()
 ##########  Temperature Maps Figure
 debug_print("54, Temperature Maps Figure ")
 
-png(
-  paste0(PATH_WITH_PROJECT_NAME, "TA12.png"),
-  width = 5 * dpi,
-  height = 5 * dpi,
-  res = dpi
-)
-
-title1 = textGrob(
-  paste("Monthly Temperature:", UNIT_Ns[u]),
-  gp = gpar(
-    col = "darkred",
-    fontface = "bold",
-    fontsize = 15
+if (length(values(Jan_CropTA)) > 1) {
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "TA12.png"),
+    width = 5 * dpi,
+    height = 5 * dpi,
+    res = dpi
   )
-)
-grid.arrange(
-  top = title1,
-  spplot(
-    Jan_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("JAN (", JanMTA , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
   
-  spplot(
-    Feb_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("FEB (", FebMTA , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
+  title1 = textGrob(
+    paste("Monthly Temperature:", UNIT_Ns[u]),
+    gp = gpar(
+      col = "darkred",
+      fontface = "bold",
+      fontsize = 15
+    )
+  )
+  grid.arrange(
+    top = title1,
+    spplot(
+      Jan_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("JAN (", JanMTA , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Feb_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("FEB (", FebMTA , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Mar_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("MAR (", MarMTA  , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Apr_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("APR (", AprMTA  , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      May_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("MAY (", MayMTA , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Jun_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("JUN (", JunMTA  , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Jul_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("JUL (", JulMTA  , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Aug_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("AUG (", AugMTA , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Sep_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("SEP (", SepMTA  , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Oct_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("OCT (", OctMTA  , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Nov_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("NOV (", NovMTA  , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Dec_CropTA,
+      col.regions = colfuncTA,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksTA,
+      main = list(
+        label = paste0("DEC (", DecMTA , TUnit2, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1))
+  )
   
-  spplot(
-    Mar_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("MAR (", MarMTA  , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Apr_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("APR (", AprMTA  , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    May_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("MAY (", MayMTA , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Jun_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("JUN (", JunMTA  , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Jul_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("JUL (", JulMTA  , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Aug_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("AUG (", AugMTA , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Sep_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("SEP (", SepMTA  , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Oct_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("OCT (", OctMTA  , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Nov_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("NOV (", NovMTA  , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Dec_CropTA,
-    col.regions = colfuncTA,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksTA,
-    main = list(label = paste0("DEC (", DecMTA , TUnit2, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1))
-)
+  dev.off()
+}
 
-dev.off()
+if (length(values(Jan_CropTA)) <= 1) {
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "TA12.png"),
+    width = 5 * dpi,
+    height = 5 * dpi,
+    res = dpi
+  )
+  par(mfrow = c(4, 3))
+  plot(SHAPE)
+  plot(Jan_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Feb_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Mar_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Apr_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(May_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Jun_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Jul_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Aug_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Sep_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Oct_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Nov_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Dec_CropTA, col = colfuncTA, add = T)
+  plot(SHAPE, add = T)
+  mtext(
+    paste("Monthly Temperature:", UNIT_Ns[u]),
+    side = 3,
+    line = -2,
+    outer = TRUE
+  )
+  dev.off()
+}
 
 ##### Hottest and Coldest month maps
-
-# find hottest and coldest months
 debug_print("55, find hottest and coldest months")
 
-#Cell.CL_Year
+# find hottest and coldest months
+Cell.CL_Year
 t <- Cell.CL_Year[3, 2:13]
 min.col <- function(m, ...)
   max.col(-m, ...)
@@ -4518,7 +4771,6 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-
 spplot(
   hmap,
   col.regions = colfuncTA,
@@ -4536,7 +4788,6 @@ spplot(
   sp.layout = list(UNIT_X[u])
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
-
 dev.off()
 
 png(
@@ -4545,7 +4796,6 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-
 spplot(
   cmap,
   col.regions = colfuncTA,
@@ -4569,516 +4819,590 @@ dev.off()
 ##########   MEAN ANNUAL Relative Humidity 12-maps
 debug_print("56, MEAN ANNUAL Relative Humidity 12-maps")
 
-png(
-  paste0(PATH_WITH_PROJECT_NAME, "RH12.png"),
-  width = 5 * dpi,
-  height = 5 * dpi,
-  res = dpi
-)
-
-title1 = textGrob(
-  paste("Monthly Relative Humidity:", UNIT_Ns[u]),
-  gp = gpar(
-    col = "darkred",
-    fontface = "bold",
-    fontsize = 15
+if (length(values(Jan_CropRH)) > 1) {
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "RH12.png"),
+    width = 5 * dpi,
+    height = 5 * dpi,
+    res = dpi
   )
-)
-grid.arrange(
-  top = title1,
-  spplot(
-    Jan_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("JAN (", JanMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
   
-  spplot(
-    Feb_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("FEB (", FebMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Mar_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("MAR (", MarMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Apr_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("APR (", AprMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    May_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("MAY (", MayMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Jun_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("JUN (", JunMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Jul_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("JUL (", JulMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Aug_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("AUG (", AugMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Sep_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("SEP (", SepMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Oct_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("OCT (", OctMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Nov_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("NOV (", NovMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Dec_CropRH,
-    col.regions = colfuncRH,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRH,
-    main = list(label = paste0("DEC (", DecMRH , "%)"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1))
-)
-dev.off()
+  title1 = textGrob(
+    paste("Monthly Relative Humidity:", UNIT_Ns[u]),
+    gp = gpar(
+      col = "darkred",
+      fontface = "bold",
+      fontsize = 15
+    )
+  )
+  grid.arrange(
+    top = title1,
+    spplot(
+      Jan_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("JAN (", JanMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Feb_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("FEB (", FebMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Mar_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("MAR (", MarMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Apr_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("APR (", AprMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      May_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("MAY (", MayMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Jun_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("JUN (", JunMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Jul_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("JUL (", JulMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Aug_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("AUG (", AugMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Sep_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("SEP (", SepMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Oct_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("OCT (", OctMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Nov_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("NOV (", NovMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Dec_CropRH,
+      col.regions = colfuncRH,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRH,
+      main = list(label = paste0("DEC (", DecMRH , "%)"), cex = 0.9),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1))
+  )
+  dev.off()
+}
 
 dpi = 300
 ##########   MEAN ANNUAL Rainfall 12-maps
-#BI_brksRF<-round(seq(0, RFUP+0.3, length = 4),0) #For dry areas.
 debug_print("57, MEAN ANNUAL Rainfall 12-maps ")
+#BI_brksRF<-round(seq(0, RFUP+0.3, length = 4),0) #For dry areas.
 
-png(
-  paste0(PATH_WITH_PROJECT_NAME, "RF12.png"),
-  width = 5 * dpi,
-  height = 5 * dpi,
-  res = dpi
-)
-
-title1 = textGrob(
-  paste("Monthly Rainfall:", UNIT_Ns[u]),
-  gp = gpar(
-    col = "darkred",
-    fontface = "bold",
-    fontsize = 15
+debug_print(paste0("length(values(Jan_CropRF)): ", length(values(Jan_CropRF))))
+if (length(values(Jan_CropRF)) > 1) {
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "RF12.png"),
+    width = 5 * dpi,
+    height = 5 * dpi,
+    res = dpi
   )
-)
-grid.arrange(
-  top = title1,
-  spplot(
-    Jan_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("JAN (", JanMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
   
-  spplot(
-    Feb_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("FEB (", FebMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Mar_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("MAR (", MarMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Apr_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("APR (", AprMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    May_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("MAY (", MayMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Jun_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("JUN (", JunMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Jul_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("JUL (", JulMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Aug_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("AUG (", AugMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Sep_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("SEP(", SepMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Oct_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("OCT (", OctMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Nov_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("NOV(", NovMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1)) ,
-  
-  spplot(
-    Dec_CropRF,
-    col.regions = colfuncRF,
-    equal = FALSE,
-    axes = TRUE,
-    las = 1,
-    cex.axis = 0.7,
-    at = BI_brksRF,
-    main = list(label = paste0("DEC (", DecMRF , RFUnit, ")"), cex =
-                  0.9),
-    colorkey = list(
-      space = "right",
-      height = 1,
-      labels = list(cex = 0.6)
-    ),
-    sp.layout = list(UNIT_X[u])
-  ) +
-    layer(sp.polygons(SHAPE, lwd = 1))
-)
+  title1 = textGrob(
+    paste("Monthly Rainfall:", UNIT_Ns[u]),
+    gp = gpar(
+      col = "darkred",
+      fontface = "bold",
+      fontsize = 15
+    )
+  )
+  grid.arrange(
+    top = title1,
+    spplot(
+      Jan_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("JAN (", JanMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Feb_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("FEB (", FebMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Mar_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("MAR (", MarMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Apr_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("APR (", AprMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      May_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("MAY (", MayMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Jun_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("JUN (", JunMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Jul_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("JUL (", JulMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Aug_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("AUG (", AugMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Sep_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("SEP(", SepMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Oct_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("OCT (", OctMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Nov_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("NOV(", NovMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1)) ,
+    
+    spplot(
+      Dec_CropRF,
+      col.regions = colfuncRF,
+      equal = FALSE,
+      axes = TRUE,
+      las = 1,
+      cex.axis = 0.7,
+      at = BI_brksRF,
+      main = list(
+        label = paste0("DEC (", DecMRF , RFUnit, ")"),
+        cex = 0.9
+      ),
+      colorkey = list(
+        space = "right",
+        height = 1,
+        labels = list(cex = 0.6)
+      ),
+      sp.layout = list(UNIT_X[u])
+    ) +
+      layer(sp.polygons(SHAPE, lwd = 1))
+  )
+  dev.off()
+}
 
-dev.off()
+debug_print(paste0("length(values(Jan_CropRF)): ", length(values(Jan_CropRF))))
+if (length(values(Jan_CropRF)) <= 1) {
+  rf12_file <-  paste0(PATH_WITH_PROJECT_NAME, "RF12.png")
+  debug_print(paste0("rf12_file: ", rf12_file))
+  png(
+    rf12_file,
+    width = 5 * dpi,
+    height = 5 * dpi,
+    res = dpi
+  )
+  par(mfrow = c(4, 3))
+  plot(SHAPE)
+  plot(Jan_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Feb_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Mar_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Apr_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(May_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Jun_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Jul_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Aug_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Sep_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Oct_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Nov_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  plot(SHAPE)
+  plot(Dec_CropRF, col = colfuncRF, add = T)
+  plot(SHAPE, add = T)
+  mtext(
+    paste("Monthly Rainfall:", UNIT_Ns[u]),
+    side = 3,
+    line = -2,
+    outer = TRUE
+  )
+  dev.off()
+}
 
 ##### Driest and Wettest month maps
 debug_print("58, Driest and Wettest month maps")
 
 # find driest and wettest months
-#Cell.CL_Year
+Cell.CL_Year
 d <- Cell.CL_Year[1, 2:13]
 min.col <- function(m, ...)
   max.col(-m, ...)
 dm <- colnames(d)[min.col(d, ties.method = "first")]
 wm <- colnames(d)[max.col(d, ties.method = "first")]
+
+d
 
 # Select correct month map based on dry and wet months
 if (dm == "JAN") {
@@ -5205,7 +5529,6 @@ spplot(
   sp.layout = list(UNIT_X[u])
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
-
 dev.off()
 
 png(
@@ -5214,7 +5537,6 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-
 spplot(
   wmap,
   col.regions = colfuncRF,
@@ -5232,7 +5554,6 @@ spplot(
   sp.layout = list(UNIT_X[u])
 ) +
   layer(sp.polygons(SHAPE, lwd = 1))
-
 dev.off()
 
 
@@ -5462,24 +5783,19 @@ grid.arrange(
 dev.off()
 
 ### calculate the seasonal avg. monthly rainfall percentile vs. whole state
-debug_print("59A")
-#stateRF
-plot(stateRFM)
-#summary(stateRFMd)
-#debug_print(paste("59B", stateRFMd))
-#dput(stateRFMd,file = "") # print out stateRFMd
-debug_print("59C")
-per <-
-  ecdf(stateRFMd$X) # was stateRFMd$layer, but there's no 'layer' in stateRFMd, so switched to 'X'
-#per<-ecdf(stateRFMd$layer)
-debug_print("59D")
+stateRF
+head(stateRFMd)
+summary(stateRFMd)
+
+per <- ecdf(stateRFMd$layer) 
+per
+summary(per)
 
 WetSMP <- round(per(WetSMV) * 100)
 DrySMP <- round(per(DrySMV) * 100)
-debug_print("59E")
 
 P <- data.frame(WetSMP, DrySMP)
-debug_print("59F")
+P
 
 # write seasonal monthly rainfall percentiles to csv
 write.csv(P,
@@ -5621,10 +5937,8 @@ Dy8.5A_n <- round(cellStats(Dy8.5A_C , 'min'), 0)
 Dy8.5D_n <- round(cellStats(Dy8.5D_C , 'min'), 0)
 Dy8.5W_n <- round(cellStats(Dy8.5W_C , 'min'), 0)
 
-DyRF100UP <-
-  max(c(Dy4.5A_x, Dy4.5D_x, Dy4.5W_x, Dy8.5A_x, Dy8.5D_x, Dy8.5W_x))
-DyRF100LO <-
-  min(c(Dy4.5A_n, Dy4.5D_n, Dy4.5W_n, Dy8.5A_n, Dy8.5D_n, Dy8.5W_n))
+DyRF100UP <- max(c(Dy4.5A_x, Dy4.5D_x, Dy4.5W_x, Dy8.5A_x, Dy8.5D_x, Dy8.5W_x))
+DyRF100LO <- min(c(Dy4.5A_n, Dy4.5D_n, Dy4.5W_n, Dy8.5A_n, Dy8.5D_n, Dy8.5W_n))
 
 ########## DyDs Temperature 2100
 #Percent Change DyDs RCP 4.5 & 8.5
@@ -5719,10 +6033,8 @@ St8.5A_n <- round(cellStats(St8.5A_C , 'min'), 0)
 St8.5D_n <- round(cellStats(St8.5D_C , 'min'), 0)
 St8.5W_n <- round(cellStats(St8.5W_C , 'min'), 0)
 
-StRF100UP <-
-  max(c(St4.5A_x, St4.5D_x, St4.5W_x, St8.5A_x, St8.5D_x, St8.5W_x))
-StRF100LO <-
-  min(c(St4.5A_n, St4.5D_n, St4.5W_n, St8.5A_n, St8.5D_n, St8.5W_n))
+StRF100UP <- max(c(St4.5A_x, St4.5D_x, St4.5W_x, St8.5A_x, St8.5D_x, St8.5W_x))
+StRF100LO <- min(c(St4.5A_n, St4.5D_n, St4.5W_n, St8.5A_n, St8.5D_n, St8.5W_n))
 
 
 ##########   StDs Rainfall 2040-2070
@@ -5912,10 +6224,8 @@ D28.5A_x <- round(cellStats(D28.5A_CT , 'max'), 1)
 D28.5A_n <- round(cellStats(D28.5A_CT , 'min'), 1)
 
 
-StRF100UP <-
-  max(c(St4.5A_x, St4.5D_x, St4.5W_x, St8.5A_x, St8.5D_x, St8.5W_x))
-StRF100LO <-
-  min(c(St4.5A_n, St4.5D_n, St4.5W_n, St8.5A_n, St8.5D_n, St8.5W_n))
+StRF100UP <- max(c(St4.5A_x, St4.5D_x, St4.5W_x, St8.5A_x, St8.5D_x, St8.5W_x))
+StRF100LO <- min(c(St4.5A_n, St4.5D_n, St4.5W_n, St8.5A_n, St8.5D_n, St8.5W_n))
 RFdsup <-
   max(c(
     abs(DyRF100UP),
@@ -6120,8 +6430,7 @@ grid.arrange(
     las = 1,
     cex.axis = 0.7,
     at = BI_brks2,
-    main = list(label = paste0("DyDs ANN (", Dy4.5A_MM , "%)"), cex =
-                  0.9),
+    main = list(label = paste0("DyDs ANN (", Dy4.5A_MM , "%)"), cex = 0.9),
     colorkey = list(
       space = "right",
       height = 1,
@@ -6139,8 +6448,7 @@ grid.arrange(
     las = 1,
     cex.axis = 0.7,
     at = BI_brks2,
-    main = list(label = paste0("StDs ANN (", Dy4.5A_MM , "%)"), cex =
-                  0.9),
+    main = list(label = paste0("StDs ANN (", Dy4.5A_MM , "%)"), cex = 0.9),
     colorkey = list(
       space = "right",
       height = 1,
@@ -6158,8 +6466,7 @@ grid.arrange(
     las = 1,
     cex.axis = 0.7,
     at = BI_brks2,
-    main = list(label = paste0("DyDs DRY (", Dy4.5D_MM , "%)"), cex =
-                  0.9),
+    main = list(label = paste0("DyDs DRY (", Dy4.5D_MM , "%)"), cex = 0.9),
     colorkey = list(
       space = "right",
       height = 1,
@@ -6177,8 +6484,7 @@ grid.arrange(
     las = 1,
     cex.axis = 0.7,
     at = BI_brks2,
-    main = list(label = paste0("StDs Dry (", St4.5D_MM , "%)"), cex =
-                  0.9),
+    main = list(label = paste0("StDs Dry (", St4.5D_MM , "%)"), cex = 0.9),
     colorkey = list(
       space = "right",
       height = 1,
@@ -6196,8 +6502,7 @@ grid.arrange(
     las = 1,
     cex.axis = 0.7,
     at = BI_brks2,
-    main = list(label = paste0("DyDs WET (", Dy4.5W_MM , "%)"), cex =
-                  0.9),
+    main = list(label = paste0("DyDs WET (", Dy4.5W_MM , "%)"), cex = 0.9),
     colorkey = list(
       space = "right",
       height = 1,
@@ -6215,8 +6520,7 @@ grid.arrange(
     las = 1,
     cex.axis = 0.7,
     at = BI_brks2,
-    main = list(label = paste0("StDs WET (", St4.5W_MM , "%)"), cex =
-                  0.9),
+    main = list(label = paste0("StDs WET (", St4.5W_MM , "%)"), cex = 0.9),
     colorkey = list(
       space = "right",
       height = 1,
@@ -6324,166 +6628,27 @@ dev.off()
 debug_print("71, Downscaling Compare TEMP RCP 8.5 & 4.5 2100")
 
 colfunc3 <- colorRampPalette(brewer.pal(9, "Reds"))(100)
-debug_print("71A1")
-BI_brksF = 0  # added declaration as next line was throwing "object 'BI_brksF' not found"
+
 if (TUnit == "°C") {
   BI_brksF <- round(seq(0, 7 , length = 7), 0)
 }
 if (TUnit == "°F") {
   BI_brksF <- round(seq(0, 9 , length = 9), 0)
 }
-debug_print("71A")
+
 png(
   paste0(PATH_WITH_PROJECT_NAME, "DS_Temp2100.png"),
   width = 6.5 * dpi,
   height = 4 * dpi,
   res = dpi
 )
-debug_print("71B")
 
 title4 = textGrob("Changes in Air Temperature by 2100",
-                  gp = gpar(
-                    col = "darkred",
-                    fontface = "bold",
-                    fontsize = 15
-                  ))
-debug_print("71C")
-
-# pulled these out of the following loop so I can find the bug, remove these 4 chunks once found
-
-mainList <-
-  list(label = paste0("Dynamical 4.5 (", Dy4.5A_MMT, TUnit2, " average)"),
-       cex = 0.9)
-debug_print("71C1")
-
-colorKeyList <-
-  list(space = "right",
-       height = 1,
-       labels = list(cex = 0.6))
-debug_print("71C2")
-
-spLayoutList <- list(UNIT_X[u])
-debug_print("71C3")
-
-polylayer <- layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("71C4")
-
-#debug_print(paste("Dy4.5A_CT", Dy4.5A_CT))
-#debug_print(paste("colfunc3", colfunc3))
-#debug_print(paste("BI_brksF", BI_brksF))
-#debug_print(paste("mainList", mainList))
-#debug_print(paste("colorKeyList", colorKeyList))
-#debug_print(paste("spLayoutList", spLayoutList))
-
-
-spplot(
-  Dy4.5A_CT,
-  col.regions = colfunc3,
-  equal = FALSE,
-  axes = TRUE,
-  las = 1,
-  cex.axis = 0.7,
-  at = BI_brksF,
-  main = mainList,
-  colorkey = colorKeyList,
-  sp.layout = spLayoutList
-)
-# removed + polylayer
-
-debug_print("71C5")
-
-
-spplot(
-  Dy4.5A_CT,
-  col.regions = colfunc3,
-  equal = FALSE,
-  axes = TRUE,
-  las = 1,
-  cex.axis = 0.7,
-  at = BI_brksF,
-  main = list(
-    label = paste0("Dynamical 4.5 (", Dy4.5A_MMT , TUnit2, " average)"),
-    cex = 0.9
-  ),
-  colorkey = list(
-    space = "right",
-    height = 1,
-    labels = list(cex = 0.6)
-  ),
-  sp.layout = list(UNIT_X[u])
-) +
-  layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("71D")
-
-spplot(
-  St4.5A_CT,
-  col.regions = colfunc3,
-  equal = FALSE,
-  axes = TRUE,
-  las = 1,
-  cex.axis = 0.7,
-  at = BI_brksF,
-  main = list(
-    label = paste0("Statistical 4.5 (", St4.5A_MMT , TUnit2, " average)"),
-    cex = 0.9
-  ),
-  colorkey = list(
-    space = "right",
-    height = 1,
-    labels = list(cex = 0.6)
-  ),
-  sp.layout = list(UNIT_X[u])
-) +
-  layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("71E")
-
-
-spplot(
-  Dy8.5A_CT,
-  col.regions = colfunc3,
-  equal = FALSE,
-  axes = TRUE,
-  las = 1,
-  cex.axis = 0.7,
-  at = BI_brksF,
-  main = list(
-    label = paste0("Dynamical 8.5 (", Dy8.5A_MMT , TUnit2, " average)"),
-    cex = 0.9
-  ),
-  colorkey = list(
-    space = "right",
-    height = 1,
-    labels = list(cex = 0.6)
-  ),
-  sp.layout = list(UNIT_X[u])
-) +
-  layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("71F")
-
-spplot(
-  St8.5A_CT,
-  col.regions = colfunc3,
-  equal = FALSE,
-  axes = TRUE,
-  las = 1,
-  cex.axis = 0.7,
-  at = BI_brksF,
-  main = list(
-    label = paste0("Statistical 8.5 (", St8.5A_MMT , TUnit2, " average)"),
-    cex = 0.9
-  ),
-  colorkey = list(
-    space = "right",
-    height = 1,
-    labels = list(cex = 0.6)
-  ),
-  sp.layout = list(UNIT_X[u])
-) +
-  layer(sp.polygons(SHAPE, lwd = 1))
-debug_print("71G")
-
-
-
+  gp = gpar(
+    col = "darkred",
+    fontface = "bold",
+    fontsize = 15
+  ))
 grid.arrange(
   top = title4,
   spplot(
@@ -6570,7 +6735,6 @@ grid.arrange(
   ) +
     layer(sp.polygons(SHAPE, lwd = 1))
 )
-debug_print("71D")
 
 dev.off()
 
@@ -6650,8 +6814,8 @@ dev.off()
 ##########  Create A Monthly Rainfall Time Series
 debug_print("73, Rainfall Extract ")
 
-#debug_print("Rainfall Extract")
-#debug_print("Frazier et al 2016")
+debug_print("Rainfall Extract")
+debug_print("Frazier et al 2016")
 
 #########   Extract RF Data From Monthly Maps (2 DATASETS)
 #########   Call in the Shapefile
@@ -6719,8 +6883,7 @@ for (i in 1:nfiles)        {
 ##########   Matty's Maps
 debug_print("74, Matty's Maps")
 
-#debug_print("Lucas")
-
+debug_print("Lucas")
 
 #Load Daily RF MAPS
 RF_Map_Path
@@ -6737,18 +6900,19 @@ Cell.ML_Maps <- data.frame(matrix(nrow = 396, ncol = 4))
 colnames(Cell.ML_Maps) <- c("Date", "Year", "Month", "RF")
 
 for (i in 1:nfiles) {
-  # if (i == 1) {
-  #   debug_print("ML")
-  # }
-  # if (i == 100) {
-  #   debug_print(i)
-  # } #Just to see where Im at in the process
-  # if (i == 200) {
-  #   debug_print(i)
-  # }
-  # if (i == 300) {
-  #   debug_print(i)
-  # }
+
+  if (i == 1) {
+    print("ML")
+  }
+  if (i == 100) {
+    print(i)
+  } #Just to see where Im at in the process
+  if (i == 200) {
+    print(i)
+  }
+  if (i == 300) {
+    print(i)
+  }
   
   ###########   Open Map as raster and change projection
   
@@ -6880,6 +7044,7 @@ write.csv(
 # ## Can read in the csv from above to start script here
 # MRF100<-read.csv(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u],"_Monthly Rainfall_in.csv"))
 
+#head(MRF100)
 # fix month values
 MRF100$Month <- sub(".*/", "", MRF100$Date)
 
@@ -6887,6 +7052,8 @@ MRF100$Month <- sub(".*/", "", MRF100$Date)
 ey <- as.numeric(MRF100[nrow(MRF100), ]$Year)
 em <- as.numeric(MRF100[nrow(MRF100), ]$Month)
 ed <- as.Date(MRF100[nrow(MRF100), ]$Ndate)
+
+MRF100[nrow(MRF100), ]
 
 #head(MRF100)
 #tail(MRF100)
@@ -6898,8 +7065,7 @@ RF_IN <- as.numeric(MRF100[, 4])
 summary(RF_IN)
 
 MRF100$Day <- 1
-MRF100$Ndate <-
-  as.Date(with(MRF100, paste(Year, Month, Day, sep = "-")), "%Y-%m-%d")
+MRF100$Ndate <- as.Date(with(MRF100, paste(Year, Month, Day, sep = "-")), "%Y-%m-%d")
 
 MRF_Max <- round(max(RF_IN, na.rm = T), 1)
 MRF_Min <- round(min(RF_IN, na.rm = TRUE), 1)
@@ -6965,6 +7131,7 @@ write.csv(
   row.names = F
 )
 ###
+
 T1 <- round(coefficients(summary(LM1))[2, 1], 2)
 T2 <- round(coefficients(summary(LM2))[2, 1], 2)
 T3 <- round(coefficients(summary(LM3))[2, 1], 2)
@@ -7096,8 +7263,8 @@ WET_RF5 <-
 
 # Dry Season
 DRY_RF <- MRF100[MRF100a$Month != 1 & MRF100a$Month  != 02 &
-                   MRF100a$Month  != 3 & MRF100a$Month  != 04 &
-                   MRF100a$Month  != 11 & MRF100a$Month  != 12, ]
+    MRF100a$Month  != 3 & MRF100a$Month  != 04 &
+    MRF100a$Month  != 11 & MRF100a$Month  != 12, ]
 head(DRY_RF, 12)
 DRY_RF2 <- as.numeric(DRY_RF$RF)
 
@@ -7445,18 +7612,52 @@ dev.off()
 # Count All Drought Events Long-term 12 and Short term 12 and 3.
 debug_print("84, SPI/DROUGHT")
 
-
 Cell.SPICNT <- data.frame(matrix(ncol = 4, nrow = 4))
-colnames(Cell.SPICNT) <-
-  c("Total", "SPI_12_Long", "SPI_3_Short", "SPI_12_Short")
-Cell.SPICNT[1:4, 1] <-
-  c("Drought Events", "Moderate", "Severe", "Extreme")
+colnames(Cell.SPICNT) <- c("Total", "SPI_12_Long", "SPI_3_Short", "SPI_12_Short")
+Cell.SPICNT[1:4, 1] <- c("Drought Events", "Moderate", "Severe", "Extreme")
 
 ### Ryan's code
 debug_print("SPI FIG 12")
 RF <- as.numeric(MRF100$RF)
 RFDATA <- cbind(MRF100[, c(2, 3)])
 
+
+# ####### FOR SPI GRAPH/TABLE ######
+# # Convert the Date column to Date format (if not already in Date format)
+# MRF100$Ndate <- as.Date(MRF100$Ndate)
+#
+# head(MRF100)
+#
+# # Filter for the desired date range
+# MRF100_filtered <- MRF100[which(MRF100$Year>=2000),]
+#
+# # Create a time series object for rainfall
+# rainfall_ts <- ts(MRF100_filtered$RF, start = c(2000, 1), frequency = 12)
+#
+# # Calculate SPI for a 3-month interval
+# spi_3 <- spi(rainfall_ts, scale = 12)
+#
+# spi_table <- data.frame(
+#   Date = MRF100_filtered$Ndate,
+#   SPI_3 = as.numeric(spi_3$fitted)
+# )
+#
+# ggplot(spi_table, aes(x = Date, y = SPI_3)) +
+#   geom_line(color = "blue") +
+#   geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+#   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +  # Breaks every year, labeled with the year
+#   labs(title = "Molokai Irrigation Svc. Area 12-Month SPI (2000-2024)", x = "Year", y = "SPI") +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate labels for better readability
+#
+# # View the first few rows of the SPI table
+# head(spi_table)
+#
+# # Export SPI table as a CSV file
+# getwd()
+# write.csv(spi_table, "Molokai_Irrigation_svcarea_SPI_12_Month_2000_2024.csv", row.names = FALSE)
+
+##################################
 #SPI-12 Calculation
 SPI12 <- spi(RF, scale = 12, distribution = 'Gamma')
 #SPI-3 Calculation
@@ -7470,12 +7671,7 @@ png(
   res = dpi
 )
 
-plot(spi(
-  ts(RF, freq = 12, start = c(1920, 1)),
-  scale = 12,
-  distribution = 'Gamma'
-),
-main = paste0("SPI-12 1920-", ey, ": ", UNIT_Ns[u]))
+plot(spi(ts(RF, freq = 12, start = c(1920, 1)), scale = 12), main = paste0("SPI-12 1920-", ey, ": ", UNIT_Ns[u]))
 
 dev.off()
 ##########   Table Metrics SPI 12
@@ -7489,7 +7685,7 @@ colnames(Cell.DataSPI) <-
     "A Intensity",
     "P Intensity",
     "Magnitude")
-#Cell.DataSPI
+Cell.DataSPI
 
 ##### Derek's Drought Code from Guam
 debug_print("86, Derek's Drought Code from Guam")
@@ -7515,11 +7711,11 @@ spi_val <- data.frame(spi = as.matrix(spi_val), date = time(spi_val))
 spi_val$m.scale <- 12
 spi_val$date <- sub("\\..*", "", spi_val$date)
 
-#head(spi_val, 20)
+head(spi_val, 20)
+tail(spi_val)
 
 spi3_val <- spi3$fitted
-spi3_val <-
-  data.frame(spi = as.matrix(spi3_val), date = time(spi3_val))
+spi3_val <- data.frame(spi = as.matrix(spi3_val), date = time(spi3_val))
 spi3_val$m.scale <- 3
 spi3_val$date <- sub("\\..*", "", spi3_val$date)
 
@@ -7528,25 +7724,30 @@ spi3_val$date <- sub("\\..*", "", spi3_val$date)
 
 # combine dataframes
 SPI_ALL <- rbind(spi_val, spi3_val)
+colnames(SPI_ALL) <- c("spi", "date", "m.scale")
 #head(SPI_ALL, 20)
 #tail(SPI_ALL, 20)
 
 # determine if last year is complete, or how many months are missing
 # complete will be 24 months in 1 year because two time scales
 ly <- nrow(SPI_ALL[which(SPI_ALL$date == max(SPI_ALL$date)), ])
+ly
 m <- 24 - ly
+m
 
 # make extra rows so the last year is complete
-extra <- data.frame(matrix(ncol = 3, nrow = m))
-colnames(extra) <- c("spi", "date", "m.scale")
-extra$date <- max(SPI_ALL$date)
-extra[1:(m / 2), ]$m.scale <- 3
-extra[((m / 2) + 1):nrow(extra), ]$m.scale <- 12
+if (m != 0) {
+  extra <- data.frame(matrix(ncol = 3, nrow = m))
+  colnames(extra) <- c("spi", "date", "m.scale")
+  max(SPI_ALL$date)
+  extra$date <- max(SPI_ALL$date)
+  extra[1:(m / 2), ]$m.scale <- 3
+  extra[((m / 2) + 1):nrow(extra), ]$m.scale <- 12
+  # add extra rows to dataset
+  SPI_ALL <- rbind(SPI_ALL, extra)
+}
 
-#extra
-#head(SPI_ALL)
-# add extra rows to dataset
-SPI_ALL <- rbind(SPI_ALL, extra)
+head(SPI_ALL)
 
 # sort by year
 SPI_ALL <- SPI_ALL[order(SPI_ALL$date, SPI_ALL$m.scale), ]
@@ -7554,10 +7755,9 @@ SPI_ALL <- SPI_ALL[order(SPI_ALL$date, SPI_ALL$m.scale), ]
 # fix date column
 SPI_ALL$date2 <- NA
 SPI_ALL$date2 <- rep(c(1:12))
-SPI_ALL$date <-
-  as.Date(paste0(SPI_ALL$date, "/", SPI_ALL$date2, "/01"), format = "%Y/%m/%d")
+SPI_ALL$date <- as.Date(paste0(SPI_ALL$date, "/", SPI_ALL$date2, "/01"), format = "%Y/%m/%d")
 #head(SPI_ALL, 20)
-#tail(SPI_ALL, 20)
+#tail(SPI_ALL, 30)
 
 SPI_ALL <- SPI_ALL[1:3]
 colnames(SPI_ALL) <- c("SPI", "date", "m.scale")
@@ -7570,7 +7770,8 @@ SPI_ALL$spi_negs <- ifelse(SPI_ALL$SPI > 0, 0, SPI_ALL$SPI)
 SPI_ALL$spi_negs <- abs(SPI_ALL$spi_negs)
 
 summary(SPI_ALL$spi_negs)
-#head(SPI_ALL, 50)
+head(SPI_ALL, 50)
+tail(SPI_ALL, 50)
 
 # Save SPI_ALL drought intensity (inverted SPI) dataset
 write.csv(
@@ -7582,21 +7783,22 @@ write.csv(
 ### Drought Event Count for SPI-12 ###
 
 spi2 <- SPI_ALL[which(SPI_ALL$m.scale == 12), ]
+head(spi2)
 
 # create binary column of drought (SPI>0) yes or no
 spi2$drought <- ifelse(spi2$spi_negs > 0, 1, 0)
-#head(spi2, 50)
+head(spi2, 50)
+tail(spi2, 50)
 
-# make column of consecutive drought months
 spi2$DRGHT_ct <- with(spi2, (drought == 1) *
-                        ave(drought, rleid(drought == 1),
-                            FUN = seq_along))
+    ave(drought, rleid(drought == 1), FUN = seq_along))
 
 summary(spi2$DRGHT_ct)
 
 # subset data for drought event months only
 spi3 <- spi2[which(spi2$DRGHT_ct >= 1), ]
 head(spi3, 20)
+tail(spi3, 50)
 
 # create empty event count column
 spi3$event_ct <- 0
@@ -7618,8 +7820,9 @@ for (r in 1:nrow(spi3)) {
   }
 }
 
-#head(spi3, 100)
-#summary(spi3$event_ct)
+head(spi3, 100)
+tail(spi3, 50)
+summary(spi3$event_ct)
 
 ### keep only events with peak spi_negs >=1
 event <- unique(spi3$event_ct)
@@ -7632,7 +7835,8 @@ for (x in event) {
   }
 }
 
-#head(spi3, 100)
+head(spi3, 100)
+tail(spi3, 50)
 
 ### make final event_ct column
 # subset for events only
@@ -7652,23 +7856,23 @@ for (x in 1:nrow(event)) {
   spi4[which(spi4$event_ct == e), ]$event_ct2 <- x
 }
 
-#spi4
+tail(spi4, 10)
 
 # merge event_ct back into full SPI dataset
-spi5 <- merge(spi2, spi4, all = T)
+head(spi2)
+head(spi4)
 
-#head(spi5, 10)
+spi5 <- merge(spi2, spi4, all = T)
+spi5 <- spi5[order(as.Date(spi5$date)), ]
+head(spi5, 10)
+tail(spi5, 50)
 summary(spi5$event_ct2)
 
 # get rid of wrong event column
 spi5 <- subset(spi5, select = -c(event_ct))
 
-colnames(spi5)[which(names(spi5) == "event_ct2")] <-
-  "event_ct"
-
-# sort by date
-spi5 <- spi5[order(as.Date(spi5$date)), ]
-#head(spi5, 20)
+colnames(spi5)[which(names(spi5) == "event_ct2")] <- "event_ct"
+#head(spi5, 50)
 
 ### create column which labels each drought event by intensity
 # create new copy of dataframe
@@ -7705,22 +7909,19 @@ for (x in events) {
   SPI_I$mag <- sum(SPI_I$spi_negs)
   
   # keep only these columns
-  SPI_I <-
-    SPI_I[c("date", "months", "intensity", "peak", "mean", "mag")]
+  SPI_I <- SPI_I[c("date", "months", "intensity", "peak", "mean", "mag")]
   #SPI_I
   
   spi6 <- merge(spi6, SPI_I, by = "date", all.x = T)
   
   # merge intensity columns together
   if (x > 1) {
-    spi6$months <-
-      ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)
+    spi6$months <- ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)
   }
   if (x > 1) {
-    spi6$intensity <-
-      ifelse(is.na(spi6$intensity.x),
-             spi6$intensity.y,
-             spi6$intensity.x)
+    spi6$intensity <- ifelse(is.na(spi6$intensity.x),
+      spi6$intensity.y,
+      spi6$intensity.x)
   }
   if (x > 1) {
     spi6$peak <- ifelse(is.na(spi6$peak.x), spi6$peak.y, spi6$peak.x)
@@ -7751,8 +7952,9 @@ for (x in events) {
   }
 }
 
-#head(spi6)
-#head(spi6, 100)
+head(spi6)
+head(spi6, 100)
+tail(spi6, 50)
 summary(spi6$intensity)
 summary(spi6$peak)
 summary(spi6$months)
@@ -7775,7 +7977,10 @@ colnames(Cell.DataSPI)
 
 ### loop through rows and fill table
 
-for (y in 1:nrow(spi6)) {
+head(spi6, 50)
+tail(spi6, 50)
+
+for (y in 1:nrow(spi6[which(!is.na(spi6$SPI)), ])) {
   # get row
   row <- spi6[y, ]
   
@@ -7795,6 +8000,10 @@ for (y in 1:nrow(spi6)) {
       is.na(nex$intensity)) {
     Cell.DataSPI[number, ]$End <- as.Date(nex$date)
   }
+  if (y == nrow(spi6[which(!is.na(spi6$SPI)), ]) &&
+      !is.na(row$intensity)) {
+    Cell.DataSPI[number, ]$End <- NA
+  }
   if (!is.na(row$intensity)) {
     Cell.DataSPI[number, ]$Duration <- row$months
   }
@@ -7811,11 +8020,13 @@ for (y in 1:nrow(spi6)) {
 }
 
 # fix date formats
-Cell.DataSPI$Start2 <-
-  as.yearmon(sub(" .*", "", Cell.DataSPI$Start), "%Y-%m-%d")
-Cell.DataSPI$End2 <-
-  as.yearmon(sub(" .*", "", Cell.DataSPI$End), "%Y-%m-%d")
+Cell.DataSPI$Start2 <- as.yearmon(sub(" .*", "", Cell.DataSPI$Start), "%Y-%m-%d")
+Cell.DataSPI$End2 <- as.yearmon(sub(" .*", "", Cell.DataSPI$End), "%Y-%m-%d")
 
+# order by date
+Cell.DataSPI <- Cell.DataSPI[order(Cell.DataSPI$Start), ]
+
+# df <- df[order(df$date), ]
 #Cell.DataSPI
 
 ###### Back to Ryan's code #####
@@ -7841,15 +8052,13 @@ MO_Cnt2 <- D_Cnt -  SV_Cnt2 - EX_Cnt
 
 # create SPI count dataframe
 Cell.SPICNT <- data.frame(matrix(ncol = 4, nrow = 4))
-colnames(Cell.SPICNT) <-
-  c("Total", "SPI_12_Long", "SPI_3_Short", "SPI_12_Short")
-Cell.SPICNT[1:4, 1] <-
-  c("Drought Events", "Moderate", "Severe", "Extreme")
+colnames(Cell.SPICNT) <- c("Total", "SPI_12_Long", "SPI_3_Short", "SPI_12_Short")
+Cell.SPICNT[1:4, 1] <- c("Drought Events", "Moderate", "Severe", "Extreme")
 
 Cell.SPICNT[1:4, 2] <- c(D_Cnt, MO_Cnt2, SV_Cnt2, EX_Cnt)
 #Cell.SPICNT
 
-##########   Remove Postive SPI and make absloute values
+##########   Remove Positive SPI and make absolute values
 debug_print("89, Remove Postive SPI and make absloute values")
 
 ### Derek's code
@@ -7861,10 +8070,8 @@ M_SPI.ts <- ts(SPIVEC,
                c(1920, 1),
                end = c(ey, em),
                frequency = 12)
-myts66 <-
-  as.vector(window(M_SPI.ts, start = c(1920, 1), end = c(ey, em)))
-DateT1 <-
-  as.Date(seq(as.Date("1920-01-01"), as.Date(ed), by = "months"))
+myts66 <- as.vector(window(M_SPI.ts, start = c(1920, 1), end = c(ey, em)))
+DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date(ed), by = "months"))
 #short.date_M = strftime(MonthlyRF$Ndate, "%Y-%m")
 
 xx <- data.frame(DateT1, myts66)
@@ -7915,10 +8122,8 @@ M_SPI.ts <-
      c(1920, 1),
      end = c(ey, em),
      frequency = 12)
-myts66 <-
-  as.vector(window(M_SPI.ts, start = c(1920, 1), end = c(ey, em)))
-DateT1 <-
-  as.Date(seq(as.Date("1920-01-01"), as.Date(ed), by = "months"))
+myts66 <- as.vector(window(M_SPI.ts, start = c(1920, 1), end = c(ey, em)))
+DateT1 <- as.Date(seq(as.Date("1920-01-01"), as.Date(ed), by = "months"))
 #short.date_M = strftime(MonthlyRF$Ndate, "%Y-%m")
 
 xx <- data.frame(DateT1, myts66)
@@ -7935,70 +8140,73 @@ png(
   res = dpi
 )
 
-print(
-  ggplot(xx, aes(x = DT, y = SP)) +
-    geom_area(fill = "darkorange", color = "black") +
-    xlab("") +
-    
-    labs(
-      title = paste0("SPI-12 Drought Events 1920 -", ey, ": ", UNIT_Ns[u]),
-      x = "",
-      y = "Drought Intensity"
-    ) +
-    geom_hline(
-      yintercept = 2,
-      linetype = "dashed",
-      color = "darkred",
-      size = 1
-    ) +
-    geom_hline(
-      yintercept = 1.5,
-      linetype = "dashed",
-      color = "red",
-      size = 1
-    ) +
-    geom_hline(
-      yintercept = 1,
-      linetype = "dashed",
-      color = "orange",
-      size = 1
-    )  +
-    annotate(
-      "text",
-      x = xx$DT[350],
-      y = 3.4,
-      label = paste0("Drought Events = ",  D_Cnt),
-      size = 5,
-      fontface = "bold"
-    ) +
-    annotate(
-      "text",
-      x = xx$DT[350],
-      y = 3.1,
-      label = paste0("Moderate Droughts = ", MO_Cnt2),
-      size = 5,
-      fontface = "bold",
-      colour = "orange"
-    ) +
-    annotate(
-      "text",
-      x = xx$DT[350],
-      y = 2.8,
-      label = paste0("Severe Droughts = ", SV_Cnt2),
-      size = 5,
-      fontface = "bold",
-      colour = "red"
-    ) +
-    annotate(
-      "text",
-      x = xx$DT[350],
-      y = 2.5,
-      label = paste0("Extreme Droughts = ", EX_Cnt),
-      size = 5,
-      fontface = "bold",
-      colour = "darkred"
-    )
-)
+print
+
+ggplot(xx, aes(x = DT, y = SP)) +
+  geom_area(fill = "darkorange", color = "black") +
+  xlab("") +
+  
+  labs(
+    title = paste0("SPI-12 Drought Events 1920 -", ey, ": ", UNIT_Ns[u]),
+    x = "",
+    y = "Drought Intensity"
+  ) +
+  geom_hline(
+    yintercept = 2,
+    linetype = "dashed",
+    color = "darkred",
+    size = 1
+  ) +
+  geom_hline(
+    yintercept = 1.5,
+    linetype = "dashed",
+    color = "red",
+    size = 1
+  ) +
+  geom_hline(
+    yintercept = 1,
+    linetype = "dashed",
+    color = "orange",
+    size = 1
+  )  +
+  
+  annotate(
+    "text",
+    x = xx$DT[350],
+    y = 3.4,
+    label = paste0("Drought Events = ", D_Cnt),
+    size = 5,
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = xx$DT[350],
+    y = 3.1,
+    label = paste0("Moderate Droughts = ", MO_Cnt2),
+    size = 5,
+    fontface = "bold",
+    colour = "orange"
+  ) +
+  annotate(
+    "text",
+    x = xx$DT[350],
+    y = 2.8,
+    label = paste0("Severe Droughts = ", SV_Cnt2),
+    size = 5,
+    fontface = "bold",
+    colour = "red"
+  ) +
+  annotate(
+    "text",
+    x = xx$DT[350],
+    y = 2.5,
+    label = paste0("Extreme Droughts = ", EX_Cnt),
+    size = 5,
+    fontface = "bold",
+    colour = "darkred"
+  )
+
+
 
 dev.off()
 
@@ -8024,8 +8232,7 @@ spi2$drought <- ifelse(spi2$spi_negs > 0, 1, 0)
 
 # make column of consecutive drought months
 spi2$DRGHT_ct <- with(spi2, (drought == 1) *
-                        ave(drought, rleid(drought == 1),
-                            FUN = seq_along))
+    ave(drought, rleid(drought == 1), FUN = seq_along))
 
 # subset data for drought event months only
 spi3 <- spi2[which(spi2$drought >= 1), ]
@@ -8052,7 +8259,7 @@ for (r in 1:nrow(spi3)) {
 }
 
 #head(spi3, 50)
-summary(spi3$event_ct)
+#summary(spi3$event_ct)
 
 ### keep only events with peak spi_negs >=1
 event <- unique(spi3$event_ct)
@@ -8145,14 +8352,12 @@ for (x in events) {
   
   # merge intensity columns together
   if (x > 1) {
-    spi6$months <-
-      ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)
+    spi6$months <- ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)
   }
   if (x > 1) {
-    spi6$intensity <-
-      ifelse(is.na(spi6$intensity.x),
-             spi6$intensity.y,
-             spi6$intensity.x)
+    spi6$intensity <- ifelse(is.na(spi6$intensity.x),
+      spi6$intensity.y,
+      spi6$intensity.x)
   }
   if (x > 1) {
     spi6$peak <- ifelse(is.na(spi6$peak.x), spi6$peak.y, spi6$peak.x)
@@ -8184,6 +8389,7 @@ for (x in events) {
 }
 
 #head(spi6, 100)
+#tail(spi6, 50)
 summary(spi6$intensity)
 summary(spi6$peak)
 summary(spi6$months)
@@ -8207,10 +8413,9 @@ colnames(Cell.DataSPI3_S)
 
 ### loop through rows and fill table
 
-for (y in 1:nrow(spi6)) {
+for (y in 1:nrow(spi6[which(!is.na(spi6$SPI)), ])) {
   # get row
   row <- spi6[y, ]
-  #row
   
   # get previous and next row
   prev <- spi6[y - 1, ]
@@ -8229,6 +8434,10 @@ for (y in 1:nrow(spi6)) {
       is.na(nex$intensity)) {
     Cell.DataSPI3_S[number, ]$End <- as.Date(nex$date)
   }
+  if (y == nrow(spi6[which(!is.na(spi6$SPI)), ]) &&
+      !is.na(row$intensity)) {
+    Cell.DataSPI3_S[number, ]$End <- NA
+  }
   if (!is.na(row$intensity)) {
     Cell.DataSPI3_S[number, ]$Duration <- row$months
   }
@@ -8245,10 +8454,8 @@ for (y in 1:nrow(spi6)) {
 }
 
 # fix date formats
-Cell.DataSPI3_S$Start <-
-  as.yearmon(sub(" .*", "", Cell.DataSPI3_S$Start), "%Y-%m-%d")
-Cell.DataSPI3_S$End <-
-  as.yearmon(sub(" .*", "", Cell.DataSPI3_S$End), "%Y-%m-%d")
+Cell.DataSPI3_S$Start <- as.yearmon(sub(" .*", "", Cell.DataSPI3_S$Start), "%Y-%m-%d")
+Cell.DataSPI3_S$End <- as.yearmon(sub(" .*", "", Cell.DataSPI3_S$End), "%Y-%m-%d")
 
 #Cell.DataSPI3_S
 
@@ -8261,8 +8468,7 @@ write.csv(
 ##########   Count Droughts For Figure - Derek's edits
 debug_print("92, Count Droughts For Figure")
 
-Cell.DataSPI3_S$`P Intensity` <-
-  as.numeric(Cell.DataSPI3_S$`P Intensity`)
+Cell.DataSPI3_S$`P Intensity` <- as.numeric(Cell.DataSPI3_S$`P Intensity`)
 
 EX_Cnt <- sum(Cell.DataSPI3_S[5] > 2)
 SV_Cnt <- sum(Cell.DataSPI3_S[5] > 1.5)
@@ -8299,10 +8505,8 @@ M_SPI.ts <-
      c(1990, 1),
      end = c(ey, em),
      frequency = 12)
-myts66 <-
-  as.vector(window(M_SPI.ts, start = c(1990, 1), end = c(ey, em)))
-DateT1 <-
-  as.Date(seq(as.Date("1990-01-01"), as.Date(ed), by = "months"))
+myts66 <- as.vector(window(M_SPI.ts, start = c(1990, 1), end = c(ey, em)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date(ed), by = "months"))
 xx <- data.frame(DateT1, myts66)
 colnames(xx) <- c("DT", "SP")
 xx$DT <- as.Date(xx$DT)
@@ -8353,7 +8557,7 @@ print(
       "text",
       x = xx$DT[70],
       y = 3.4,
-      label = paste0("Drought Events = ",  D_Cnt),
+      label = paste0("Drought Events = ", D_Cnt),
       size = 5,
       fontface = "bold"
     ) +
@@ -8393,6 +8597,7 @@ print(
       fontface = "bold",
       colour = "black"
     )
+  
 )
 
 dev.off()
@@ -8417,8 +8622,7 @@ spi2$drought <- ifelse(spi2$spi_negs > 0, 1, 0)
 
 # make column of consecutive drought months
 spi2$DRGHT_ct <- with(spi2, (drought == 1) *
-                        ave(drought, rleid(drought == 1),
-                            FUN = seq_along))
+    ave(drought, rleid(drought == 1), FUN = seq_along))
 
 # subset data for drought event months only
 spi3 <- spi2[which(spi2$DRGHT_ct >= 1), ]
@@ -8534,14 +8738,12 @@ for (x in events) {
   
   # merge intensity columns together
   if (x > 1) {
-    spi6$months <-
-      ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)
+    spi6$months <- ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)
   }
   if (x > 1) {
-    spi6$intensity <-
-      ifelse(is.na(spi6$intensity.x),
-             spi6$intensity.y,
-             spi6$intensity.x)
+    spi6$intensity <- ifelse(is.na(spi6$intensity.x),
+      spi6$intensity.y,
+      spi6$intensity.x)
   }
   if (x > 1) {
     spi6$peak <- ifelse(is.na(spi6$peak.x), spi6$peak.y, spi6$peak.x)
@@ -8596,7 +8798,7 @@ colnames(Cell.DataSPI12_S)
 
 ### loop through rows and fill table
 
-for (y in 1:nrow(spi6)) {
+for (y in 1:nrow(spi6[which(!is.na(spi6$SPI)), ])) {
   # get row
   row <- spi6[y, ]
   #row
@@ -8618,6 +8820,10 @@ for (y in 1:nrow(spi6)) {
       is.na(nex$intensity)) {
     Cell.DataSPI12_S[number, ]$End <- as.Date(nex$date)
   }
+  if (y == nrow(spi6[which(!is.na(spi6$SPI)), ]) &&
+      !is.na(row$intensity)) {
+    Cell.DataSPI12_S[number, ]$End <- NA
+  }
   if (!is.na(row$intensity)) {
     Cell.DataSPI12_S[number, ]$Duration <- row$months
   }
@@ -8634,10 +8840,8 @@ for (y in 1:nrow(spi6)) {
 }
 
 # fix date formats
-Cell.DataSPI12_S$Start <-
-  as.yearmon(sub(" .*", "", Cell.DataSPI12_S$Start), "%Y-%m-%d")
-Cell.DataSPI12_S$End <-
-  as.yearmon(sub(" .*", "", Cell.DataSPI12_S$End), "%Y-%m-%d")
+Cell.DataSPI12_S$Start <- as.yearmon(sub(" .*", "", Cell.DataSPI12_S$Start), "%Y-%m-%d")
+Cell.DataSPI12_S$End <- as.yearmon(sub(" .*", "", Cell.DataSPI12_S$End), "%Y-%m-%d")
 
 #Cell.DataSPI12_S
 Cell.DataSPI12_S[which(Cell.DataSPI12_S$`P Intensity` > 1.5), ]
@@ -8646,8 +8850,7 @@ Cell.DataSPI12_S[which(Cell.DataSPI12_S$`P Intensity` > 1.5), ]
 ##########   Count Droughts For Figure - Derek's edits
 debug_print("96, Count Droughts For Figure")
 
-Cell.DataSPI12_S$`P Intensity` <-
-  as.numeric(Cell.DataSPI12_S$`P Intensity`)
+Cell.DataSPI12_S$`P Intensity` <- as.numeric(Cell.DataSPI12_S$`P Intensity`)
 
 EX_Cnt <- sum(Cell.DataSPI12_S[5] > 2)
 SV_Cnt <- sum(Cell.DataSPI12_S[5] > 1.5)
@@ -8685,15 +8888,12 @@ SPIVEC[SPIVEC > 0] <- 0
 SPIVEC_Abs <- as.vector(abs(SPIVEC))
 
 # make dataframe of date and drought (absolute SPI) value
-M_SPI.ts <-
-  ts(SPIVEC_Abs,
-     c(1990, 1),
-     end = c(ey, em),
-     frequency = 12)
-myts66 <-
-  as.vector(window(M_SPI.ts, start = c(1990, 1), end = c(ey, em)))
-DateT1 <-
-  as.Date(seq(as.Date("1990-01-01"), as.Date(ed), by = "months"))
+M_SPI.ts <- ts(SPIVEC_Abs,
+  c(1990, 1),
+  end = c(ey, em),
+  frequency = 12)
+myts66 <- as.vector(window(M_SPI.ts, start = c(1990, 1), end = c(ey, em)))
+DateT1 <- as.Date(seq(as.Date("1990-01-01"), as.Date(ed), by = "months"))
 xx <- data.frame(DateT1, myts66)
 colnames(xx) <- c("DT", "SP")
 xx$DT <- as.Date(xx$DT)
@@ -8735,12 +8935,12 @@ print(
       linetype = "dashed",
       color = "orange",
       size = 1
-    )  +
+    ) +
     annotate(
       "text",
       x = xx$DT[70],
       y = 3.4,
-      label = paste0("Drought Events = ",  D_Cnt),
+      label = paste0("Drought Events = ", D_Cnt),
       size = 5,
       fontface = "bold"
     ) +
@@ -8803,8 +9003,7 @@ colnames(Cell.MEI) <-
     "D-Min",
     "W-Count",
     "D-Count")
-Cell.MEI[1:5, 1] <-
-  c("Strong EL", "Weak EL", "Neutral", "Weak LA", "Strong LA")
+Cell.MEI[1:5, 1] <- c("Strong EL", "Weak EL", "Neutral", "Weak LA", "Strong LA")
 
 debug_print("98.1, MEI")
 
@@ -8816,20 +9015,13 @@ debug_print("98.2, MEI")
 #debug_print(MRF100$Year)
 # get last year
 ly <- 1949 + nrow(MEI)
+# ly<-max(MRF100$Year)
 
 debug_print("98.2.1, MEI")
 #debug_print(ly)
 #debug_print(MEI$Year)
 
-# failing here
 MEI$Year <- seq(1950, ly, 1)
-
-# # options
-# # Truncate the sequence to match the number of rows:
-#MEI$Year <- seq(1950, 1950 + nrow(MEI) - 1)
-
-debug_print("98.3, MEI")
-
 
 #Cell.MEI_All[u:1] <- UNIT_N[u]
 #Cell.MEI_All[u,8] <- W_MRF_MEAN
@@ -8857,7 +9049,8 @@ debug_print("98.5, MEI")
 
 # Using ONI and the combo dataset 1950 (row 361) - current
 # MRF = MRF100[c(361:(nrow(MRF100)-12)),]
-MRF = MRF100[361:nrow(MRF100), ]
+MRF100[361,]
+MRF = MRF100[361:nrow(MRF100),]
 #head(MRF)
 #tail(MRF)
 
@@ -8865,40 +9058,30 @@ debug_print("98.6, MEI")
 
 ##########  Need to remove Rows to get seasons correct
 # first row always starts on May 1950
-MRF2 =  MRF[-c(1:4), ]
-#head(MRF2)
-
-debug_print("98.7, MEI")
+MRF2 =  MRF[-c(1:4),]
+head(MRF2)
 
 # last row changes depending on dataset end point
 # get last row in dataset
-lr <- MRF2[nrow(MRF2), ]
+lr<-MRF2[nrow(MRF2),]
+#lr
 
 # get count of how many months in the last year
-yc <- max(MRF2$Year)
-yc <- nrow(MRF2[which(MRF2$Year == yc), ])
+yc<-max(MRF2$Year)
+yc<-nrow(MRF2[which(MRF2$Year == yc),])
+#yc
 
 # get row number of April or October of last year
-mrn <- data.frame(which(MRF2$Year == lr$Year))
-debug_print("98.8, MEI")
+mrn<-data.frame(which(MRF2$Year == lr$Year))
+#mrn
 
-if (nrow(mrn > 4)) {
-  arn <- mrn[4, ]
-}
-if (nrow(mrn > 10)) {
-  orn <- mrn[10, ]
-}
+if(nrow(mrn>4)) {arn<-mrn[4,]}
+if(nrow(mrn>10)) {orn<-mrn[10,]}
 
 # make dataset end at the end of the last complete season
-if (yc < 4) {
-  MRF2 <- MRF2[which(MRF2$Year < lr), ]
-}
-if (yc > 4 && yc < 10) {
-  MRF2 <- MRF2[1:arn, ]
-}
-if (yc > 10) {
-  MRF2 <- MRF2[1:orn, ]
-}
+if(yc<4){MRF2<-MRF2[which(MRF2$Year < lr$Year),]} 
+if(yc>4 && yc<10) {MRF2<-MRF2[1:arn,]}
+if(yc>10) {MRF2<-MRF2[1:orn,]}
 
 #tail(MRF2)
 
@@ -8914,8 +9097,7 @@ rows <- seq(from = 1,
 #rows
 
 # create empty dataframe
-seasons <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
-                    c("Year", "RF", "season"))
+seasons <- setNames(data.frame(matrix(ncol = 3, nrow = 0)), c("Year", "RF", "season"))
 #head(seasons)
 #head(MRF3)
 debug_print("98.10, MEI")
@@ -8925,21 +9107,18 @@ debug_print("98.10, MEI")
 n <- 1
 #debug_print(rows)
 for (y in rows) {
-  b <- MRF3[c(y:(y + 5)), ]
-  b
-  # calculate average seasonal rainfall value and set season
-  seasons[n, ]$RF <- mean(b$RF)
-  seasons[n, ]$Year <- max(b$Year)
-  if (as.numeric(min(b$Month) == 5)) {
-    seasons[n, ]$season <- "dry"
+  b<-MRF3[c(y:(y+5)),]
+  if(!is.na(mean(b$RF))) {
+    # calculate average seasonal rainfall value and set season
+    seasons[n,]$RF<-mean(b$RF)
+    seasons[n,]$Year<-max(b$Year)
+    if(as.numeric(min(b$Month) == 5)) {seasons[n,]$season<-"dry"}
+    if(as.numeric(min(b$Month) == 1)) {seasons[n,]$season<-"wet"}
+    n<-n+1
   }
-  if (as.numeric(min(b$Month) == 1)) {
-    seasons[n, ]$season <- "wet"
-  }
-  
-  n <- n + 1
 }
 debug_print("98.11, MEI")
+
 
 #head(seasons, 10)
 #tail(seasons)
@@ -8957,30 +9136,93 @@ summary(seasons$RF)
 debug_print("98.12, Bind MEI and Data")
 
 DryRF <- seasons[which(seasons$season == "dry"), ]
-debug_print(nrow(DryRF))
-debug_print("98.12.1, Bind MEI and Data")
+#MEI_D
+MEI_Dly <- max(MEI_D$Year)
+debug_print("  1")
+#MEI_Dly
+
 #DryRF
-debug_print("98.12.2, Bind MEI and Data")
+DryRFly <- DryRF[which(DryRF$Year <= MEI_Dly), ]
+#debug_print("  2")
 
-L0_D <- cbind(DryRF, MEI_D[which(!is.na(MEI_D$MEI_D)), ])
-debug_print("98.12.3, Bind MEI and Data")
+#if (length(MEI_D[which(!is.na(MEI_D$MEI_D)), ]) != length(DryRF))
+#{
+#  DryRF <- DryRF[1:nrow(DryRF) - 1, ]
+#  DryRF
+#}
 
+#MEI_D$MEI_D
+# [1] -1.1  1.2  0.2  0.8 -0.9 -1.4 -0.6  1.4  0.7 -0.3  0.3  0.0 -0.3  1.3 -0.8
+# [16]  2.0  0.4 -0.4  0.6  0.9 -0.8 -0.9  1.8 -1.7 -0.9 -1.4  0.8  0.7 -0.4  0.5
+# [31]  0.5 -0.3  2.0  1.1 -0.6 -0.8  0.9  1.7 -1.5 -0.6  0.4  0.8  1.1  0.7  0.7
+# [46] -1.0 -0.4  2.3 -1.4 -1.3 -0.7 -0.3  1.2  0.1  0.7  0.0  0.8 -1.3 -0.8  1.0
+# [61] -1.6 -1.0  0.4 -0.4  0.5  2.4 -0.7 -0.7  0.8  0.5 -1.2 -0.8 -1.0  1.8
+#debug_print("     a")
+
+# MEI_D$Year
+# this prints: NULL
+# debug_print("     b")
+
+# print(MEI_Dly)
+# this prints: -Inf
+# debug_print("     c")
+
+#print(unique(DryRF$Year))  # Shows the unique years in DryRF
+# [1] "1950" "1951" "1952" "1953" "1954" "1955" "1956" "1957" "1958" "1959"
+# [11] "1960" "1961" "1962" "1963" "1964" "1965" "1966" "1967" "1968" "1969"
+# [21] "1970" "1971" "1972" "1973" "1974" "1975" "1976" "1977" "1978" "1979"
+# [31] "1980" "1981" "1982" "1983" "1984" "1985" "1986" "1987" "1988" "1989"
+# [41] "1990" "1991" "1992" "1993" "1994" "1995" "1996" "1997" "1998" "1999"
+# [51] "2000" "2001" "2002" "2003" "2004" "2005" "2006" "2007" "2008" "2009"
+# [61] "2010" "2011" "2012" "2013" "2014" "2015" "2016" "2017" "2018" "2019"
+# [71] "2020" "2021" "2022" "2023"
+#debug_print("     d")
+
+#summary(DryRF$Year)        # Provides summary statistics (min, max, etc.)
+#Length     Class      Mode 
+#74 character character 
+#debug_print("     e")
+
+#DryRFly
+# [1] Year   RF     season
+# <0 rows> (or 0-length row.names)
+#debug_print("     f")
+
+#MEI_D[which(!is.na(MEI_D$MEI_D)), ] 
+# same as MEI_D$MEI_D above
+#debug_print("     g")
+
+#MEI_D[which(!is.na(MEI_D$Year)), ]
+#numeric(0)
+#debug_print("     h")
+
+if (nrow(DryRFly) == 0) {
+  debug_print("got zero") # this printed
+}
+
+L0_D <- cbind(DryRFly, MEI_D[which(!is.na(MEI_D$Year)), ])
 #L0_D
-debug_print("98.12.4, Bind MEI and Data")
+#[1] Year                               RF                                
+#[3] season                             MEI_D[which(!is.na(MEI_D$Year)), ]
+#<0 rows> (or 0-length row.names)
+debug_print("  3")
+
+L0_D <- cbind(DryRFly, MEI_D[which(!is.na(MEI_D$MEI_D)), ])
+#L0_D
+#debug_print("  4")
+
+#MEI_W
+MEI_W[which(!is.na(MEI_W$MEI_W)), ] # Error in MEI_W$MEI_W : $ operator is invalid for atomic vectors
+#debug_print("  5")
 
 WetRF <- seasons[which(seasons$season == "wet"), ]
+#WetRF
+#debug_print("  6")
 
-# Filter both data frames to keep only the common years
-# Extract the years from both dataframes
-WetRF_years <- unique(WetRF$Year)  # Assuming 'Year' is the column name for years
-MEI_W_years <- unique(MEI_W$Year)  # Assuming 'Year' is the column name for years
-
-# Find the common years in both dataframes
-common_years <- intersect(WetRF_years, MEI_W_years)
-
-# Filter the dataframes to only include the common years
-WetRF <- WetRF[WetRF$Year %in% common_years, ]
-MEI_W <- MEI_W[MEI_W$Year %in% common_years, ]
+if (length(MEI_W[which(!is.na(MEI_W$MEI_W)), ]) != length(WetRF))
+{
+  WetRF <- WetRF[1:nrow(WetRF) - 1, ]
+}
 
 debug_print("98.12.5, Bind MEI and Data")
 
@@ -9062,10 +9304,8 @@ C_LA_D_S <- sum(!is.na(LA_D_S))
 C_LA_D_W <- sum(!is.na(LA_D_W))
 C_NU_D <-   sum(!is.na(NU_D))
 
-Cell.MEI[1:5, 8] <-
-  c(C_EL_W_S, C_EL_W_W, C_NU_W, C_LA_W_W, C_LA_W_S)
-Cell.MEI[1:5, 9] <-
-  c(C_EL_D_S, C_EL_D_W, C_NU_D, C_LA_D_W, C_LA_D_S)
+Cell.MEI[1:5, 8] <- c(C_EL_W_S, C_EL_W_W, C_NU_W, C_LA_W_W, C_LA_W_S)
+Cell.MEI[1:5, 9] <- c(C_EL_D_S, C_EL_D_W, C_NU_D, C_LA_D_W, C_LA_D_S)
 #Cell.MEI
 ##########   Mean RF values for each season-phase
 debug_print("98.21, Mean RF values for each season-phase")
@@ -9081,10 +9321,8 @@ Me_LA_D_S <- round(mean(LA_D_S, na.rm = T), 1)
 Me_LA_D_W <- round(mean(LA_D_W, na.rm = T), 1)
 Me_NU_D <-   round(mean(NU_D, na.rm = T), 1)
 
-Cell.MEI[1:5, 2] <-
-  c(Me_EL_W_S, Me_EL_W_W, Me_NU_W, Me_LA_W_W, Me_LA_W_S)
-Cell.MEI[1:5, 3] <-
-  c(Me_EL_D_S, Me_EL_D_W, Me_NU_D, Me_LA_D_W, Me_LA_D_S)
+Cell.MEI[1:5, 2] <- c(Me_EL_W_S, Me_EL_W_W, Me_NU_W, Me_LA_W_W, Me_LA_W_S)
+Cell.MEI[1:5, 3] <- c(Me_EL_D_S, Me_EL_D_W, Me_NU_D, Me_LA_D_W, Me_LA_D_S)
 
 ##########   MAX
 debug_print("98.22, MAX")
@@ -9100,10 +9338,8 @@ Mx_LA_D_S <- round(max(LA_D_S, na.rm = T), 1)
 Mx_LA_D_W <- round(max(LA_D_W, na.rm = T), 1)
 Mx_NU_D <-   round(max(NU_D, na.rm = T), 1)
 
-Cell.MEI[1:5, 4] <-
-  c(Mx_EL_W_S, Mx_EL_W_W, Mx_NU_W, Me_LA_W_W, Mx_LA_W_S)
-Cell.MEI[1:5, 5] <-
-  c(Mx_EL_D_S, Mx_EL_D_W, Mx_NU_D, Me_LA_D_W, Mx_LA_D_S)
+Cell.MEI[1:5, 4] <- c(Mx_EL_W_S, Mx_EL_W_W, Mx_NU_W, Me_LA_W_W, Mx_LA_W_S)
+Cell.MEI[1:5, 5] <- c(Mx_EL_D_S, Mx_EL_D_W, Mx_NU_D, Me_LA_D_W, Mx_LA_D_S)
 
 ##########   MIN
 debug_print("98.23, MIN")
@@ -9119,10 +9355,8 @@ Mn_LA_D_S <- round(min(LA_D_S, na.rm = T), 1)
 Mn_LA_D_W <- round(min(LA_D_W, na.rm = T), 1)
 Mn_NU_D <-   round(min(NU_D, na.rm = T), 1)
 
-Cell.MEI[1:5, 6] <-
-  c(Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
-Cell.MEI[1:5, 7] <-
-  c(Mn_EL_D_S, Mn_EL_D_W, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
+Cell.MEI[1:5, 6] <- c(Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
+Cell.MEI[1:5, 7] <- c(Mn_EL_D_S, Mn_EL_D_W, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
 
 # ##########   SUM
 # Su_EL_W_S <- round(sum(EL_W_S,na.rm=T),1)
@@ -9289,7 +9523,6 @@ write.csv(Cell.MEI,
 ##### ENSO rainfall barplots (Derek's addition)
 debug_print("101, ENSO rainfall barplots")
 
-
 # Average Monthly Rainfall by ENSO Phase and Season barplot
 # spell out the ENSO phases
 Cell.MEI2 <- Cell.MEI
@@ -9362,8 +9595,7 @@ png(
   res = dpi
 )
 
-ggplot(data = cc,
-       aes(x = Season, y = Mean, group = Phase)) +
+ggplot(data = cc, aes(x = Season, y = Mean, group = Phase)) +
   geom_bar(
     aes(fill = Phase),
     position = position_dodge(width = 0.7),
@@ -9481,6 +9713,7 @@ dat$date <- as.Date(paste0(dat$year, "-", dat$month, "-01"))
 
 # only keep complete years
 dat$full <- c("N")
+head(dat)
 
 y <- as.list(unique(dat$year))
 
@@ -9490,7 +9723,10 @@ for (i in y) {
   }
 }
 
+tail(dat, 20)
+
 ic <- unique(dat[which(dat$full == "N"), ]$year)
+
 
 # dat<-dat[which(dat$full == "Y"),]
 #head(dat)
@@ -9498,7 +9734,6 @@ ic <- unique(dat[which(dat$full == "N"), ]$year)
 #############################
 ### Annual air temp trend
 debug_print("104, Annual air temp trend")
-
 
 # aggregate monthly to annual air temp
 rm(min)
@@ -9517,8 +9752,10 @@ dat.y$max <- round((aggregate(max ~ year, dat, max))$max, digits = 2)
 #dat.y
 
 # remove stats from incomplete year
-dat.y <- dat.y[which(dat.y$year < ic), ]
-dat.y[(nrow(dat.y) + 1), ]$year <- ic
+if (length(ic) != 0) {
+  dat.y <- dat.y[which(dat.y$year < ic), ]
+  dat.y[(nrow(dat.y) + 1), ]$year <- ic
+}
 
 # make date column
 dat.y$date <- as.Date(paste0(dat.y$year, "-01-01"))
@@ -9535,6 +9772,7 @@ slope <-
 
 dpi = 300
 
+tail(dat.y)
 png(
   paste0(PATH_WITH_PROJECT_NAME, "annual_airtemp.png"),
   width = 6 * dpi,
@@ -9556,8 +9794,7 @@ ggplot(dat.y, aes(x = date, y = mean)) +
     label.y = 58
   ) +
   scale_x_date(date_breaks = "5 years", labels = date_format(format = "%Y")) +
-  labs(title = "Annual Air Temperature and Extremes",
-       y = "Temperature (F)", x = "Year") +
+  labs(title = "Annual Air Temperature and Extremes", y = "Temperature (F)", x = "Year") +
   geom_line(aes(x = date, y = min), size = 1.2, color = "blue") +
   geom_line(aes(x = date, y = max), size = 1.2, color = "red") +
   annotate(
@@ -9577,7 +9814,7 @@ dev.off()
 ##### add annual mean values
 dat2 <-
   merge(dat, dat.y[, c("year", "mean", "min", "max")], by = "year", all.x =
-          T)
+        T)
 #head(dat2)
 #tail(dat2)
 
@@ -9617,8 +9854,8 @@ ggplot(dat2, aes(x = date, y = mean.x)) +
     color = "orange"
   ) +
   geom_smooth(method = lm,
-              se = F,
-              color = "black") +
+    se = F,
+    color = "black") +
   stat_cor(
     method = "pearson",
     label.x = as.Date("1993-01-01"),
@@ -9751,13 +9988,13 @@ ggplot(anom, aes(x = date, y = anom_f)) +
     color = "orange"
   ) +
   geom_smooth(method = lm,
-              se = F,
-              color = "black") +
+    se = F,
+    color = "black") +
   # stat_cor(method="pearson", label.x=as.Date("1993-01-01"), label.y=yl-3) +
   scale_x_date(date_breaks = "4 years", labels = date_format(format = "%Y")) +
   ylim(ylow, yhi) +
   labs(title = "Air Temperature Anomaly Trends",
-       y = "Temperature (F)", x = "") +
+    y = "Temperature (F)", x = "") +
   # geom_hline(yintercept=0) +
   # annotate("text", x=as.Date("1996-07-01"), y=yl,
   #          label=paste0("Slope = ",slope)) +
@@ -9786,4 +10023,3 @@ debug_print(paste0("runString: ", run_string))
 system(run_string, wait = FALSE)
 
 ### END! ###
-
