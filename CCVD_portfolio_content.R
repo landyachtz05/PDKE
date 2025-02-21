@@ -9,18 +9,6 @@
 # for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
 start_time <- Sys.time()
 
-
-environ <- "dev"
-#environ <- "prod"
-Sys.setenv(PROJ_LIB = "/opt/anaconda3/share/proj/")
-BASE_DIR <- "/srv/shiny-server"
-RSCRIPT_PATH = paste0("/usr/bin/Rscript") # where to find Rscript, prod
-if (environ == "dev") {
-  Sys.setenv(PROJ_LIB = "/usr/share/proj/")
-  BASE_DIR <- "/Users/jgeis/Work/PDKE"
-  RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), "/Rscript") # where to find Rscript, dev
-}
-
 library(gstat)
 library(raster)
 library(sp) 
@@ -58,6 +46,9 @@ library(ggmap)
 library(ggthemes)
 library(zoo)
 library(classInt)
+library(jsonlite)
+library(here)
+
 
 ##########   This code will the generate the inputs for a CCVD portfolio
 ##########   Required Inputs: 1. Folder destinations 2. Measurement units 3. Shapefiles 4. List of files and output names
@@ -67,6 +58,37 @@ library(classInt)
 ##########################################################################################################################
 
 print("In CCVD_portfolio_content.R")
+
+read_credentials <- function(filepath) {
+  tryCatch({
+    credentials <- fromJSON(filepath)
+    return(credentials)
+  }, error = function(e) {
+    print(paste("Error reading credentials file:", e$message))
+    return(NULL) # Or handle the error as you see fit
+  })
+}
+
+# default values for prod
+PROJ_LIB_IN <- "/usr/share/proj/"
+#BASE_DIR <- "/srv/shiny-server"
+RSCRIPT_PATH <- "/usr/bin/Rscript"
+BASE_DIR <- paste0(here(), "/") # Gets the project root
+
+credentials_file <- paste0(BASE_DIR, "/credentials.json")
+creds <- read_credentials(credentials_file)
+if (!is.null(creds)) {
+  PROJ_LIB_IN <- creds$PROJ_LIB_VAL
+  BASE_DIR <- creds$BASE_DIR
+  RSCRIPT_PATH <- creds$RSCRIPT_PATH
+} else {
+  print("Credentials could not be loaded")
+}
+print(paste("PROJ_LIB_IN:", PROJ_LIB_IN))
+print(paste("BASE_DIR:", BASE_DIR))
+print(paste("RSCRIPT_PATH:", RSCRIPT_PATH))
+Sys.setenv(PROJ_LIB = PROJ_LIB_IN)
+
 
 # non-user provided values
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2/")

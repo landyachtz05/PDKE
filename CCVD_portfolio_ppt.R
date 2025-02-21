@@ -21,24 +21,37 @@ library(jsonlite)
 library(httr)
 library(stringr)
 library(zip)
+library(jsonlite)
+library(here)
 
 start_time <- Sys.time()
 PROJ_DEBUG = 3
 
-#setwd("F://PDKE/CCVD/MINI_Phase2/")
-#Path = "C:/Users/BUNNY1/Documents/Work From Home/PAPERS/Beef_Production/Specific Ranch/"
-#I_FOLDER <- "F://PDKE/CCVD/IMAGE/"        # Folder with images
-#R_FOLDER <- "F://PDKE/CCVD/MINI_Phase2/"  # File with your site specific folders
-#P_FOLDER <- "F://PDKE/CCVD/MINI_PPT/"     # Output folder
-#RANL <- list.files(R_FOLDER)
-#NF <- length(RANL)
-
 print("In CCVD_portfolio_ppt.R")
-BASE_DIR <- "/Users/jgeis/Work/PDKE"
-#BASE_DIR <- "/srv/shiny-server"
 
-# default values
+read_credentials <- function(filepath) {
+  tryCatch({
+    credentials <- fromJSON(filepath)
+    return(credentials)
+  }, error = function(e) {
+    print(paste("Error reading credentials file:", e$message))
+    return(NULL) # Or handle the error as you see fit
+  })
+}
+
+# default values for prod
+#BASE_DIR <- "/srv/shiny-server"
+#credentials_file <- "credentials.json"
+BASE_DIR <- paste0(here(), "/") # Gets the project root
+credentials_file <- paste0(BASE_DIR, "/credentials.json")
+creds <- read_credentials(credentials_file)
+if (!is.null(creds)) {
+  BASE_DIR <- creds$BASE_DIR
+} else {
+  print("Credentials could not be loaded")
+}
 print(paste0("BASE_DIR: ", BASE_DIR))
+
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images

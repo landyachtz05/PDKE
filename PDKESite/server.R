@@ -8,25 +8,60 @@
 #
 # using https://maps.equatorstudios.com to test if saved shapefiles are legit
 # watershed shapefile from https://geoportal.hawaii.gov/datasets/HiStateGIS::watersheds/explore 
+#
+# --------------------------------------------------------------------------
+# 
+# Before running server.R, make sure you have a file called credentials.json
+# in the base level dir of the project dir and edit the values to match your 
+# environment.  The file should look like this:
+# {
+#  "PROJ_LIB_VAL": "/opt/anaconda3/share/proj/",
+#  "RSCRIPT_PATH": "/Library/Frameworks/R.framework/Resources/bin/Rscript"
+# }
+#
+# You also need to make an empty file called .here in your project's 
+# base level directory.
+#
 
-
+#install.packages("jsonlite")
 library(shiny)
 library(leaflet)
 library(leaflet.extras)
 library(sf)
+library(jsonlite)
+library(here)
 
-environ <- "dev"
-#environ <- "prod"
-# prod, default if environ is not dev
-rscript_path = "/bin/Rscript" 
-PDKE_dir = "/srv/shiny-server/"
-if (environ == "dev") {
-  rscript_path = "/Rscript"
-  PDKE_dir = "/Users/jgeis/Work/PDKE/"
+read_credentials <- function(filepath) {
+  tryCatch({
+    credentials <- fromJSON(filepath)
+    return(credentials)
+  }, error = function(e) {
+    print(paste("Error reading credentials file:", e$message))
+    return(NULL) # Or handle the error as you see fit
+  })
 }
-location_file = paste0(PDKE_dir, "locations.csv")
-myscript_path = paste0(PDKE_dir, "CCVD_portfolio_content.R")
-run_string = paste(rscript_path, myscript_path)
+
+# default values for prod
+RSCRIPT_PATH = "/bin/Rscript" 
+# RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), Rscript)
+#BASE_DIR = "/srv/shiny-server/"
+BASE_DIR <- paste0(here(), "/") # Gets the project root
+
+# Load credentials
+credentials_file <- paste0(BASE_DIR, "/credentials.json")
+creds <- read_credentials(credentials_file)
+if (!is.null(creds)) {
+  RSCRIPT_PATH = creds$RSCRIPT_PATH
+  #BASE_DIR <- creds$BASE_DIR
+} else {
+  print("Credentials could not be loaded")
+}
+print(paste("BASE_DIR:", BASE_DIR))
+print(paste("RSCRIPT_PATH:", RSCRIPT_PATH))
+
+location_file = paste0(BASE_DIR, "locations.csv")
+myscript_path = paste0(BASE_DIR, "CCVD_portfolio_content.R")
+run_string = paste(RSCRIPT_PATH, myscript_path)
 
 validate_text_inputs <- function(email, polygon_name, polygon_short_name) {
   print(paste0("validate_text_inputs: ", email, ", ", polygon_name, ", ", polygon_short_name))
@@ -101,10 +136,9 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   }
   cat("shapefile_full_path: ", shapefile_full_path, "\n")
   
-  full_run_string <- paste0(Sys.getenv("R_HOME"),
-    run_string, " ",
+  full_run_string <- paste0(run_string, " ",
     shQuote(email), " ",
-    shQuote(paste0(PDKE_dir, "PDKESite/", shapefile_full_path)), " ",
+    shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
     shQuote(polygon_name), " ",
     shQuote(polygon_short_name), " ",
     shQuote(island_full_name), " ",
@@ -518,7 +552,7 @@ server <- function(input, output, session) {
         #filename <- paste0("Shapefiles/UserDefinedPolygon/selected_area_", datetime_str, ".shp")
         filename <- paste0(polygon_short_name, "_", datetime_str)
         full_filename <- paste0("Shapefiles/UserDefinedPolygon/", filename, ".shp")
-        #full_filepath <- paste0(PDKE_dir, "PDKESite/", "Shapefiles/UserDefinedPolygon/", filename, ".shp")
+        #full_filepath <- paste0(BASE_DIR, "PDKESite/", "Shapefiles/UserDefinedPolygon/", filename, ".shp")
         
         # Write the sf object to a shapefile
         sf::st_write(sf_object, full_filename)
