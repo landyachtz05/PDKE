@@ -14,7 +14,7 @@ library(flextable)
 library(officer)
 library(mschart)
 library(purrr)
-library(imager)
+#library(imager)
 library(pdftools)
 library(magick)
 library(jsonlite)
@@ -29,27 +29,8 @@ PROJ_DEBUG = 3
 
 print("In CCVD_portfolio_ppt.R")
 
-read_credentials <- function(filepath) {
-  tryCatch({
-    credentials <- fromJSON(filepath)
-    return(credentials)
-  }, error = function(e) {
-    print(paste("Error reading credentials file:", e$message))
-    return(NULL) # Or handle the error as you see fit
-  })
-}
-
-# default values for prod
-#BASE_DIR <- "/srv/shiny-server"
-#credentials_file <- "credentials.json"
 BASE_DIR <- paste0(here(), "/") # Gets the project root
-credentials_file <- paste0(BASE_DIR, "/credentials.json")
-creds <- read_credentials(credentials_file)
-if (!is.null(creds)) {
-  BASE_DIR <- creds$BASE_DIR
-} else {
-  print("Credentials could not be loaded")
-}
+
 print(paste0("BASE_DIR: ", BASE_DIR))
 
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
