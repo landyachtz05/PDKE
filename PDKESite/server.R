@@ -24,12 +24,15 @@
 #
 
 #install.packages("jsonlite")
+#install.packages("processx") # Install if you haven't already
+
 library(shiny)
 library(leaflet)
 library(leaflet.extras)
 library(sf)
 library(jsonlite)
 library(here)
+#library(processx)
 
 read_credentials <- function(filepath) {
   tryCatch({
@@ -43,7 +46,8 @@ read_credentials <- function(filepath) {
 
 # default values for prod
 RSCRIPT_PATH = "/bin/Rscript" 
-# RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), Rscript)
+#RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), 'Rscript')
+
 #BASE_DIR = "/srv/shiny-server/"
 BASE_DIR <- paste0(here(), "/") # Gets the project root
 
@@ -61,7 +65,7 @@ print(paste("RSCRIPT_PATH:", RSCRIPT_PATH))
 
 location_file = paste0(BASE_DIR, "locations.csv")
 myscript_path = paste0(BASE_DIR, "CCVD_portfolio_content.R")
-run_string = paste(RSCRIPT_PATH, myscript_path)
+#run_string = paste(RSCRIPT_PATH, myscript_path)
 
 validate_text_inputs <- function(email, polygon_name, polygon_short_name) {
   print(paste0("validate_text_inputs: ", email, ", ", polygon_name, ", ", polygon_short_name))
@@ -136,19 +140,66 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   }
   cat("shapefile_full_path: ", shapefile_full_path, "\n")
   
-  full_run_string <- paste0(run_string, " ",
-    shQuote(email), " ",
-    shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
-    shQuote(polygon_name), " ",
-    shQuote(polygon_short_name), " ",
-    shQuote(island_full_name), " ",
-    shQuote(island_short_name))
-  print(paste0("full_run_string: ", full_run_string))
   # /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp' 'Kaa' 'Kaa' 'Lanai' 'LA'"
   
-  # this works, gets temporarily commented out so I can test w/o invoking the other stuff
+  full_run_string <- if (.Platform$OS.type == "windows") {
+    paste0(
+      dQuote(RSCRIPT_PATH), " ",
+      dQuote(myscript_path), " ",
+      dQuote(email), " ",
+      dQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
+      dQuote(polygon_name), " ",
+      dQuote(polygon_short_name), " ",
+      dQuote(island_full_name), " ",
+      dQuote(island_short_name))
+  } else { # macOS or Linux
+    paste0(
+      shQuote(RSCRIPT_PATH), " ",
+      shQuote(myscript_path), " ",
+      shQuote(email), " ",
+      shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
+      shQuote(polygon_name), " ",
+      shQuote(polygon_short_name), " ",
+      shQuote(island_full_name), " ",
+      shQuote(island_short_name))
+  }
+  print(paste0("full_run_string: ", full_run_string))
+  
+  # note, I tried to processx::process$new, but it hides the output of the called file
   system(full_run_string, wait = FALSE)
 
+  # print(paste0("RSCRIPT_PATH: ", RSCRIPT_PATH))
+  # print(paste0("myscript_path: ", myscript_path))
+  # print(paste0("BASE_DIR: ", BASE_DIR))
+  # print(paste0("shapefile_full_path: ", shapefile_full_path))
+  # print(paste0("polygon_name: ", polygon_name))
+  # print(paste0("polygon_short_name: ", polygon_short_name))
+  # print(paste0("island_full_name: ", island_full_name))
+  # print(paste0("island_short_name: ", island_short_name))
+  
+  # args <- c(
+  #   myscript_path,
+  #   email,
+  #   file.path(BASE_DIR, "PDKESite", shapefile_full_path),
+  #   polygon_name,
+  #   polygon_short_name,
+  #   island_full_name,
+  #   island_short_name
+  # )
+  # 
+  # print("run ccvd")
+  # #process <- processx::process$new(
+  # result <- processx::run(
+  #   command = RSCRIPT_PATH,  # The Rscript or other command
+  #   args = args,            # Arguments as a character vector
+  #   echo = TRUE              # Print the output to the console
+  # )
+  # 
+  # cat(result$stdout)
+  # if (result$stderr != "") {
+  #   cat("Error:", result$stderr)
+  # }
+  
   #showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
   
   # Disable the save button to prevent a re-submission.

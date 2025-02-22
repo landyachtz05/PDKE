@@ -71,7 +71,6 @@ read_credentials <- function(filepath) {
 
 # default values for prod
 PROJ_LIB_IN <- "/usr/share/proj/"
-#BASE_DIR <- "/srv/shiny-server"
 RSCRIPT_PATH <- "/usr/bin/Rscript"
 BASE_DIR <- paste0(here(), "/") # Gets the project root
 
@@ -79,7 +78,6 @@ credentials_file <- paste0(BASE_DIR, "/credentials.json")
 creds <- read_credentials(credentials_file)
 if (!is.null(creds)) {
   PROJ_LIB_IN <- creds$PROJ_LIB_VAL
-  BASE_DIR <- creds$BASE_DIR
   RSCRIPT_PATH <- creds$RSCRIPT_PATH
 } else {
   print("Credentials could not be loaded")
@@ -6823,14 +6821,56 @@ debug_print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
 debug_print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
 debug_print(paste0("Execution time: ", end_time - start_time))
 
-#system(paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ", shQuote(PATH)), wait = FALSE)
-run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ", 
-  shQuote(email), " ", 
-  shQuote(PATH), " ", 
-  shQuote(NM), " ", 
-  shQuote(NM_s), " ",
-  shQuote(NP_FILE))
-debug_print(paste0("runString: ", run_string))
-system(run_string, wait = FALSE)
+#run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ", 
+#  shQuote(email), " ", 
+#  shQuote(PATH), " ", 
+#  shQuote(NM), " ", 
+#  shQuote(NM_s), " ",
+#  shQuote(NP_FILE))
+#debug_print(paste0("runString: ", run_string))
+#system(run_string, wait = FALSE)
+
+full_run_string <- if (.Platform$OS.type == "windows") {
+  paste0(    
+    dQuote(RSCRIPT_PATH), " ", 
+    dQuote(MYSCRIPT_PATH), " ",
+    dQuote(email), " ",
+    dQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
+    dQuote(polygon_name), " ",
+    dQuote(polygon_short_name), " ",
+    dQuote(island_full_name), " ",
+    dQuote(island_short_name))
+} else { # macOS or Linux
+  paste0(
+    shQuote(RSCRIPT_PATH), " ", 
+    shQuote(MYSCRIPT_PATH), " ", 
+    shQuote(email), " ", 
+    shQuote(PATH), " ", 
+    shQuote(NM), " ", 
+    shQuote(NM_s), " ",
+    shQuote(NP_FILE))
+}
+print(paste0("full_run_string: ", full_run_string))
+
+# this works, gets temporarily commented out so I can test w/o invoking the other stuff
+system(full_run_string, wait = FALSE)
+
+
+# 
+# args <- c(
+#   MYSCRIPT_PATH,
+#   email,
+#   file.path(PATH),
+#   NM,
+#   NM_s,
+#   NP_FILE
+# )
+# 
+# print("run ccvd")
+# process <- processx::process$new(
+#   command = RSCRIPT_PATH,  # The Rscript or other command
+#   args = args            # Arguments as a character vector
+# )
+
 
 ### END! ###
