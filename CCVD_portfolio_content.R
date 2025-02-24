@@ -6830,47 +6830,41 @@ debug_print(paste0("Execution time: ", end_time - start_time))
 #debug_print(paste0("runString: ", run_string))
 #system(run_string, wait = FALSE)
 
-full_run_string <- if (.Platform$OS.type == "windows") {
-  paste0(    
-    dQuote(RSCRIPT_PATH), " ", 
-    dQuote(MYSCRIPT_PATH), " ",
-    dQuote(email), " ",
-    dQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
-    dQuote(polygon_name), " ",
-    dQuote(polygon_short_name), " ",
-    dQuote(island_full_name), " ",
-    dQuote(island_short_name))
-} else { # macOS or Linux
-  paste0(
-    shQuote(RSCRIPT_PATH), " ", 
-    shQuote(MYSCRIPT_PATH), " ", 
-    shQuote(email), " ", 
-    shQuote(PATH), " ", 
-    shQuote(NM), " ", 
-    shQuote(NM_s), " ",
-    shQuote(NP_FILE))
+# full_run_string <-  
+#   paste0(
+#     shQuote(RSCRIPT_PATH, type = c("cmd")), " ", 
+#     shQuote(MYSCRIPT_PATH, type = c("cmd")), " ", 
+#     shQuote(email, type = c("cmd")), " ", 
+#     shQuote(PATH, type = c("cmd")), " ", 
+#     shQuote(NM, type = c("cmd")), " ", 
+#     shQuote(NM_s, type = c("cmd")), " ",
+#     shQuote(NP_FILE, type = c("cmd")))
+# print(paste0("full_run_string: ", full_run_string))
+# 
+# # this works, gets temporarily commented out so I can test w/o invoking the other stuff
+# system(full_run_string, wait = FALSE)
+
+
+
+args <- c(
+  MYSCRIPT_PATH,
+  email,
+  file.path(PATH),
+  NM,
+  NM_s,
+  NP_FILE
+)
+
+print("run ccvd")
+result <- processx::run(
+  command = RSCRIPT_PATH,  # The Rscript or other command
+  args = args,            # Arguments as a character vector
+  echo = TRUE
+)
+
+cat(result$stdout)
+if (result$stderr != "") {
+  cat("Error:", result$stderr)
 }
-print(paste0("full_run_string: ", full_run_string))
-
-# this works, gets temporarily commented out so I can test w/o invoking the other stuff
-system(full_run_string, wait = FALSE)
-
-
-# 
-# args <- c(
-#   MYSCRIPT_PATH,
-#   email,
-#   file.path(PATH),
-#   NM,
-#   NM_s,
-#   NP_FILE
-# )
-# 
-# print("run ccvd")
-# process <- processx::process$new(
-#   command = RSCRIPT_PATH,  # The Rscript or other command
-#   args = args            # Arguments as a character vector
-# )
-
 
 ### END! ###

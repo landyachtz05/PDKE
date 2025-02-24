@@ -141,32 +141,31 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   cat("shapefile_full_path: ", shapefile_full_path, "\n")
   
   # /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp' 'Kaa' 'Kaa' 'Lanai' 'LA'"
+  #print(paste0("platform: ", Platform@OS.type))
+  # full_run_string <- paste0(
+  #   shQuote(RSCRIPT_PATH, type = c("cmd")), " ",
+  #   shQuote(myscript_path, type = c("cmd")), " ",
+  #   shQuote(email, type = c("cmd")), " ",
+  #   shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path), type = c("cmd")), " ",
+  #   shQuote(polygon_name, type = c("cmd")), " ",
+  #   shQuote(polygon_short_name, type = c("cmd")), " ",
+  #   shQuote(island_full_name, type = c("cmd")), " ",
+  #   shQuote(island_short_name, type = c("cmd")))
   
-  full_run_string <- if (.Platform$OS.type == "windows") {
-    paste0(
-      dQuote(RSCRIPT_PATH), " ",
-      dQuote(myscript_path), " ",
-      dQuote(email), " ",
-      dQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
-      dQuote(polygon_name), " ",
-      dQuote(polygon_short_name), " ",
-      dQuote(island_full_name), " ",
-      dQuote(island_short_name))
-  } else { # macOS or Linux
-    paste0(
-      shQuote(RSCRIPT_PATH), " ",
-      shQuote(myscript_path), " ",
-      shQuote(email), " ",
-      shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
-      shQuote(polygon_name), " ",
-      shQuote(polygon_short_name), " ",
-      shQuote(island_full_name), " ",
-      shQuote(island_short_name))
-  }
-  print(paste0("full_run_string: ", full_run_string))
+  # full_run_string <- paste0(
+  #   dQuote(RSCRIPT_PATH), " ",
+  #   dQuote(myscript_path), " ",
+  #   dQuote(email), " ",
+  #   dQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
+  #   dQuote(polygon_name), " ",
+  #   dQuote(polygon_short_name), " ",
+  #   dQuote(island_full_name), " ",
+  #   dQuote(island_short_name))
+  
+  #print(paste0("full_run_string: ", full_run_string))
   
   # note, I tried to processx::process$new, but it hides the output of the called file
-  system(full_run_string, wait = FALSE)
+  #system(full_run_string, wait = FALSE)
 
   # print(paste0("RSCRIPT_PATH: ", RSCRIPT_PATH))
   # print(paste0("myscript_path: ", myscript_path))
@@ -177,28 +176,28 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   # print(paste0("island_full_name: ", island_full_name))
   # print(paste0("island_short_name: ", island_short_name))
   
-  # args <- c(
-  #   myscript_path,
-  #   email,
-  #   file.path(BASE_DIR, "PDKESite", shapefile_full_path),
-  #   polygon_name,
-  #   polygon_short_name,
-  #   island_full_name,
-  #   island_short_name
-  # )
-  # 
-  # print("run ccvd")
-  # #process <- processx::process$new(
-  # result <- processx::run(
-  #   command = RSCRIPT_PATH,  # The Rscript or other command
-  #   args = args,            # Arguments as a character vector
-  #   echo = TRUE              # Print the output to the console
-  # )
-  # 
-  # cat(result$stdout)
-  # if (result$stderr != "") {
-  #   cat("Error:", result$stderr)
-  # }
+  args <- c(
+    myscript_path,
+    email,
+    file.path(BASE_DIR, "PDKESite", shapefile_full_path),
+    polygon_name,
+    polygon_short_name,
+    island_full_name,
+    island_short_name
+  )
+
+  print("run ccvd")
+  #process <- processx::process$new(
+  result <- processx::run(
+    command = RSCRIPT_PATH,  # The Rscript or other command
+    args = args,            # Arguments as a character vector
+    echo = TRUE              # Print the output to the console
+  )
+
+  cat(result$stdout)
+  if (result$stderr != "") {
+    cat("Error:", result$stderr)
+  }
   
   #showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
   
