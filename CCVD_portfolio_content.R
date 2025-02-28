@@ -2926,6 +2926,7 @@ colfuncCF <- colorRampPalette(brewer.pal(9, "PuRd"))(50)
 #For ET
 BI_brksET <- round(seq(ETLO, ETUP, length = 9), 0)
 if (ETUP - ETLO < 9) { BI_brksET <- round(seq(ETLO, ETUP, length = 9), 1) }
+if(ETUP-ETLO == 0) {BI_brksET<-c((ETLO-0.5),ETLO,(ETLO+0.5))}
 colfuncET <- colorRampPalette(brewer.pal(9, "PuBu"))(50)
 #For WS
 BI_brksWS <- round(seq(WSLO, WSUP, length = 9), 2)
