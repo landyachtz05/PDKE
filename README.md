@@ -16,7 +16,7 @@ Create a credentials.json file in the project's root directory.  It should look 
 >   "PROJ_LIB_VAL": "/opt/anaconda3/share/proj/",  
 >   "RSCRIPT_PATH": "/Library/Frameworks/R.framework/Resources/bin/Rscript",  
 >   "bearer": ""  
-> }
+> }  
 Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search).  
 Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
 Ask the PDKE administrator for the bearer value.  
@@ -37,9 +37,9 @@ Ask the PDKE administrator for the bearer value.
 - Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.
 - Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.
 
-### To run the program
+## To run the program
 
-#### Using RStudio on your local machine
+### Using RStudio on your local machine
 
 - Install r and RStudio
 - Open server.R and click the run button.  The GUI opens and you either select a pre-existing shapefile or create a new one by clicking on the map.  
@@ -52,7 +52,7 @@ Ask the PDKE administrator for the bearer value.
 The R server is hosted on Jetstream and is currently called PDKE\_Shiny.  To access it, go to the following link:  
 <https://jetstream2.exosphere.app/exosphere/projects/ae2152821a6a4d5d866e10698d616466/regions/IU/servers/c1f9d4fa-8ff0-4e43-b15a-326f30f19fa6>   
 
-#### Setting up a new instance on Jetstream2:
+### Setting up a new instance on Jetstream2:
 
 - Login to Jetstream2: <https://jetstream2.exosphere.app/exosphere/projects>
 - Use "ACCESS CI (XSEDE)" for identity provider, not "University of Hawaii"
@@ -74,7 +74,7 @@ The R server is hosted on Jetstream and is currently called PDKE\_Shiny.  To acc
 - If repo is private, generate a personal access token following instructions here: <https://stackoverflow.com/questions/2505096/clone-a-private-repository-github>  
 - Figure out where you want to put the repo, then clone it.  Ideally it will be cloned into the shiny-server directory, but I had permission issues with that.  I ended up cloning it into the workflow directory, then copying the files over to the shiny-server directory.  Want to take another try at this.
 
-#### Running/Updating on Jetstream:
+### Running/Updating on Jetstream:
 
 Site URL: <http://149.165.154.114:3838/PDKESite/>. Note: I expect this to change.    
 GitHub: <https://github.com/landyachtz05/PDKE> 
