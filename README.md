@@ -12,10 +12,10 @@ RStudio: <https://posit.co/products/open-source/rstudio/>
 ### Setup your credentials file
 
 Create a credentials.json file in the project's root directory.  It should look like this:  
-> {
->   "PROJ_LIB_VAL": "/opt/anaconda3/share/proj/",
->   "RSCRIPT_PATH": "/Library/Frameworks/R.framework/Resources/bin/Rscript",
->   "bearer": ""
+> {  
+>   "PROJ_LIB_VAL": "/opt/anaconda3/share/proj/",  
+>   "RSCRIPT_PATH": "/Library/Frameworks/R.framework/Resources/bin/Rscript",  
+>   "bearer": ""  
 > }
 Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search).  
 Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
@@ -41,21 +41,20 @@ Ask the PDKE administrator for the bearer value.
 
 #### Using RStudio on your local machine
 
-Install r and RStudio
-Open server.R and click the run button.  The GUI opens and you either select a pre-existing shapefile or create a new one by clicking on the map.  
-Make sure the 'Name' and 'Short Name' fields are filled in.  
-Enter your email address and click "Generate Data" button.  
-This starts a process that takes about 40 minutes.  
-When it's finished running, look in the MINI_PPT folder and there will be a new pdf named something like: \<Name\>_\<YYYY\>_\<MM\>_\<DD\>_CCVD_Portfolio.pdf.  
+- Install r and RStudio
+- Open server.R and click the run button.  The GUI opens and you either select a pre-existing shapefile or create a new one by clicking on the map.  
+- Make sure the 'Name' and 'Short Name' fields are filled in.  
+- Enter your email address and click "Generate Data" button.  
+- This starts a process that takes about 40 minutes.  When it's finished running, look in the MINI_PPT folder and there will be a new pdf named something like: \<Name\>\_\<YYYY\>\_\<MM\>\_\<DD\>\_CCVD_Portfolio.pdf.  
 
 ### Using R server (website)
 
-The R server is hosted on Jetstream.  To access it, go to the following link:  
-<https://jetstream2.exosphere.app/exosphere/projects/ae2152821a6a4d5d866e10698d616466/regions/IU/servers/bbda40a9-0435-45f6-9fc3-7464afd56a53>   
+The R server is hosted on Jetstream and is currently called PDKE\_Shiny.  To access it, go to the following link:  
+<https://jetstream2.exosphere.app/exosphere/projects/ae2152821a6a4d5d866e10698d616466/regions/IU/servers/c1f9d4fa-8ff0-4e43-b15a-326f30f19fa6>   
 
-#### Setting up on Jetstream:
+#### Setting up a new instance on Jetstream2:
 
-- Login to Jetstream: <https://jetstream2.exosphere.app/exosphere/projects>
+- Login to Jetstream2: <https://jetstream2.exosphere.app/exosphere/projects>
 - Use "ACCESS CI (XSEDE)" for identity provider, not "University of Hawaii"
 - Click on existing allocation (RAPID: Tuning and Assessing Lahaina Wildfire Models with AI Enhanced Data)
 - Click on red “Create” button on the right.
@@ -95,6 +94,7 @@ Once in a terminal in either method:
 - git fetch
 - git status
 - git pull  
+
 Shiny Server: <https://support.posit.co/hc/en-us/articles/218499158-Shiny-Server-Quick-Start-Guides>
 
 To see apache error log:
@@ -114,6 +114,7 @@ config file values:
 Code is found at:  
 /srv/shiny-server/PDKESite  
 /home/exouser/workflow  
+
 Tried using the workflow dir as it was supposed to let me automate github updates, but the automated github updates didn’t work (this was attempted via binders <https://docs.jetstream-cloud.org/ui/exo/binder/>).  Then I tried to point the shiny-server config file to this directory, but there were permission issues.  Finally had to resort to doing git updates in the workflow dir, then doing a copy of the affected files (typically just CCVD_portfolio_content.R, CCVD_portfolio_ppt.R, and the 3 r files in the PDKESite dir).  
 
 Had to do an ln for shapefile access while in the main scripts when we started from PDKESite.  
