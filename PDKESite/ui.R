@@ -81,6 +81,19 @@ ui <- fluidPage(
         background-color: #0056b3; /* Darker blue on hover */
         border-color: #0056b3;
       }
+      .main-header {
+        display: flex;
+        flex-direction: column; /* Stack centered row and left-aligned contact */
+        align-items: center; /* Center the first row horizontally */
+      }
+      .centered-row {
+        display: flex;
+        align-items: center; /* Vertically center the logo and title */
+      }
+      .contact-line {
+        align-self: flex-end; /* Align the contact line to the left */
+        margin-top: 5px; /* Add some spacing */
+      }
     "))
   ),
 
@@ -92,9 +105,19 @@ ui <- fluidPage(
 
   # Container for the inline image and title
   div(
-    class = "inline-container",
-    img(src = "logo-PDKE_Logo_Color_Rounded_Type-03.jpg", height = "60px", alt = "PDKE Logo"),
-    h1("Hawaiʻi Climate Portfolios")
+    class = "main-header",
+    div(
+      class = "centered-row",
+      img(src = "logo-PDKE_Logo_Color_Rounded_Type-03.jpg", height = "60px", alt = "PDKE Logo"),
+      h1("Hawaiʻi Climate Portfolios")
+    ),
+    div(
+      class = "contact-line",
+      tags$p(
+        "Contact Us: ",
+        tags$a(href = "mailto:your.email@example.com", "your.email@example.com")
+      )
+    )
   ),
   
   # Sidebar layout with input and output definitions
