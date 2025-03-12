@@ -71,6 +71,15 @@ ui <- fluidPage(
         height: auto;
         width: auto;
         display: block; /* Remove extra space below images */
+      },
+      .btn-primary {
+        background-color: #007bff; /* Blue background color */
+        border-color: #007bff; /* Blue border color */
+        color: white; /* White text color */
+      }
+      .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        border-color: #0056b3;
       }
     "))
   ),
@@ -113,6 +122,13 @@ ui <- fluidPage(
       tags$div(id = "email_warning", style = "color: red; margin-top: 12px;",
         tags$p("An email address is required since results will be emailed to you once generated.  The submit button will not be enabled until a shape is selected or drawn and all values are provided.")
       ),
+      div(
+        # Add a button to save the selected area as a shapefile
+        actionButton("save_button", "Generate Report", class = "btn-primary"),
+        style = "text-align: center;" # Inline CSS for centering
+      ),
+      # Placeholder for submission confirmation message
+      textOutput("status_messages"),
       
       # JavaScript code snippet to handle email validation
       tags$script(HTML('
@@ -140,13 +156,7 @@ ui <- fluidPage(
     # Main panel for displaying outputs
     mainPanel(
       # Leaflet map
-      leafletOutput("map", height = 600),
-      
-      # Add a button to save the selected area as a shapefile
-      actionButton("save_button", "Use Selected Area"),
-      
-      # Placeholder for submission confirmation message
-      textOutput("status_messages")
+      leafletOutput("map", height = 600)
     )
   ),
   
