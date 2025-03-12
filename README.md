@@ -11,13 +11,13 @@ RStudio: <https://posit.co/products/open-source/rstudio/>
 
 ### Setup your credentials file
 
-Create a credentials.json file in the project's root directory.  It should look like this:  
+Create a credentials.json file in the project's root directory.  It should look something like this:  
 > {  
->   "PROJ_LIB_VAL": "/opt/anaconda3/share/proj/",  
->   "RSCRIPT_PATH": "/Library/Frameworks/R.framework/Resources/bin/Rscript",  
+>   "PROJ_LIB_VAL": "/software/r9/matlab/R2021a/toolbox/map/mapproj/projdata/proj.db",  
+>   "RSCRIPT_PATH": "/usr/bin/Rscript",  
 >   "bearer": ""  
 > }  
-Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search).  
+Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search, 'sudo find / -name "proj.db"', or get it via installing proj at: <https://proj.org/en/stable/index.html>).  
 Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
 Ask the PDKE administrator for the bearer value.  
 
@@ -41,7 +41,8 @@ Ask the PDKE administrator for the bearer value.
 
 ### Using RStudio on your local machine
 
-- Install r and RStudio
+- Install r and RStudio 
+- Install r shiny: install.packages("shiny")
 - Open server.R and click the run button.  The GUI opens and you either select a pre-existing shapefile or create a new one by clicking on the map.  
 - Make sure the 'Name' and 'Short Name' fields are filled in.  
 - Enter your email address and click "Generate Data" button.  
@@ -52,29 +53,69 @@ Ask the PDKE administrator for the bearer value.
 The R server is hosted on Jetstream and is currently called PDKE\_Shiny.  To access it, go to the following link:  
 <https://jetstream2.exosphere.app/exosphere/projects/ae2152821a6a4d5d866e10698d616466/regions/IU/servers/c1f9d4fa-8ff0-4e43-b15a-326f30f19fa6>   
 
-### Setting up a new instance on Jetstream2:
+Note, as of 3/10/2025 we have a new Jetstream VM that we are going to use for setting up PDKE:
+CIS240457: AI Agents on Jetstream2 Training for UH
+<https://jetstream2.exosphere.app/exosphere/projects/fa8f488bff214b96baf622f56818cace/regions/IU/overview>
+
+#### Setting up a new instance on Jetstream2:
 
 - Login to Jetstream2: <https://jetstream2.exosphere.app/exosphere/projects>
 - Use "ACCESS CI (XSEDE)" for identity provider, not "University of Hawaii"
-- Click on existing allocation (RAPID: Tuning and Assessing Lahaina Wildfire Models with AI Enhanced Data)
+- Click on existing allocation ('RAPID: Tuning and Assessing Lahaina Wildfire Models with AI Enhanced Data' or 'CIS240457: AI Agents on Jetstream2 Training for UH')
 - Click on red “Create” button on the right.
 - Select “Instance”
 - Select the latest Ubuntu
 - Enter the instance name
-- Select “Flavor” (most of the small sites I’ve been making, I’ve used m3.small)
-- Add to storage size if needed
+- Select “Flavor” (m3.medium for PDKE)
 - For “Enable Web Desktop?” Select: “Yes”
 - Create
-- Once created and ready, open web desktop, then open terminal and type the following
-  - sudo apt install apache2
-  - sudo adduser <username>
-  - sudo passwd <username>
-  - sudo groupadd <groupname>
-  - sudo usermod -a -G <groupname> <username>
-- If repo is private, generate a personal access token following instructions here: <https://stackoverflow.com/questions/2505096/clone-a-private-repository-github>  
-- Figure out where you want to put the repo, then clone it.  Ideally it will be cloned into the shiny-server directory, but I had permission issues with that.  I ended up cloning it into the workflow directory, then copying the files over to the shiny-server directory.  Want to take another try at this.
+- RStudio is installed by default
+- sudo apt-get update
+- sudo apt-get install r-base 
+- RStudio is installed by default 
+- install devtools: sudo apt install r-cran-devtools
+- sudo R, 
+  - install.packages("rmarkdown", dep = TRUE)
+  - install.packages("leaflet", dep = TRUE)
+  - install.packages("shiny", dep = TRUE)
+  - install.packages("leaflet.extras", dep = TRUE)
+  - install.packages("sf", dep = TRUE)
+  - install.packages("jsonlite", dep = TRUE)
+  - install.packages("here", dep = TRUE)
+- install markdown: sudo su - -c "R -e \"library(devtools); install_github('rstudio/rmarkdown')\""
+- install shiny r package: sudo su - -c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
+- install shiny server: <https://posit.co/download/shiny-server/>
+  - sudo apt-get install gdebi-core
+  - wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb
+  - sudo gdebi shiny-server-1.5.23.1030-amd64.deb
+- Clone repo into /srv/shiny-server
+- edit the r server config file, should use </etc/shiny-server/shiny-server.conf> but had to edit cd /opt/shiny-server/config/default.config before it would stick.
+  - listen 80;  
+  - location / {  
+    site_dir /srv/shiny-server/PDKE/PDKESite;  
+    log_dir /var/log/shiny-server;  
+  - }
 
-### Running/Updating on Jetstream:
+
+<https://docs.posit.co/shiny-server/#stopping-and-starting>  
+sudo systemctl start shiny-server  
+sudo systemctl stop shiny-server  
+
+You can restart the server with:  
+sudo systemctl restart shiny-server  
+This command will shutdown all running Shiny processes, disconnect all open connections, and re-initialize the server.
+
+If you wish to reload the configuration but keep the server and all Shiny processes running without interruption, you can use the systemctl command to send a SIGHUP signal:  
+sudo systemctl kill -s HUP --kill-who=main shiny-server  
+This will cause the server to re-initialize, but will not interrupt the current processes or any of the open connections to the server.
+
+You can check the status of the shiny-server service using:  
+sudo systemctl status shiny-server
+
+
+
+TODO: Possibly, hopefully, no longer valid
+#### Running/Updating on Jetstream:
 
 Site URL: <http://149.165.154.114:3838/PDKESite/>. Note: I expect this to change.    
 GitHub: <https://github.com/landyachtz05/PDKE> 
@@ -85,7 +126,7 @@ Login (2 methods):
 - Jetstream site (hoping this will change if we can git clone in /srv/shiny-server:
 <https://jetstream2.exosphere.app/exosphere/projects>
   - Use "ACCESS CI (XSEDE)" for identity provider, not "University of Hawaii"
-  - Click on existing allocation (RAPID: Tuning and Assessing Lahaina Wildfire Models with AI Enhanced Data)
+  - Click on existing allocation ('RAPID: Tuning and Assessing Lahaina Wildfire Models with AI Enhanced Data' or 'CIS240457: AI Agents on Jetstream2 Training for UH')
   - Click on Instances
   - Click on PDKE-Shiny
   - Click on Web Desktop
@@ -96,6 +137,7 @@ Once in a terminal in either method:
 - git pull  
 
 Shiny Server: <https://support.posit.co/hc/en-us/articles/218499158-Shiny-Server-Quick-Start-Guides>
+<https://posit.co/download/shiny-server/>
 
 To see apache error log:
 sudo less /var/log/apache2/error.log
@@ -123,10 +165,4 @@ Had to do an ln for shapefile access while in the main scripts when we started f
 Shiny Server will use the [default configuration](https://github.com/rstudio/shiny-server/blob/master/config/default.config) unless an alternate configuration is provided at `/etc/shiny-server/shiny-server.conf`. Using the default configuration, Shiny Server will look for Shiny apps in `/srv/shiny-server/` and host them on port 3838.  
 
 sudo cp -R ~/MY-APP /srv/shiny-server/
-
-
-
-
-
-
 
