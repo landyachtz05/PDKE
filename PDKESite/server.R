@@ -13,12 +13,13 @@
 # 
 # Before running server.R, make sure you have a file called credentials.json
 # in the base level dir of the project dir and edit the values to match your 
-# environment.  The file should look like this:
+# environment.  The file should look something like this: 
 # {
+#  "ENV_TYPE": "linux",
 #  "PROJ_LIB_VAL": "/opt/anaconda3/share/proj/",
 #  "RSCRIPT_PATH": "/Library/Frameworks/R.framework/Resources/bin/Rscript"
 # }
-#
+# Set ENV_TYPE to either "linux" or "windows", depending on the box you will be running this on.
 # You also need to make an empty file called .here in your project's 
 # base level directory.
 #
@@ -45,16 +46,21 @@ read_credentials <- function(filepath) {
 }
 
 # default values for prod
+ENV_TYPE = "windows"
 RSCRIPT_PATH = "/bin/Rscript" 
 #RSCRIPT_PATH = paste0(Sys.getenv("R_HOME"), 'Rscript')
 
 #BASE_DIR = "/srv/shiny-server/"
-BASE_DIR <- paste0(here(), "/") # Gets the project root
+BASE_DIR <- paste0(here(), "/") # Gets the project root which is whereever the .here file is located
+
+status_message = "Your request has been submitted.  In about 45 minutes you will receive an email with a link to the download.  The link expires in 7 days."
+
 
 # Load credentials
 credentials_file <- paste0(BASE_DIR, "/credentials.json")
 creds <- read_credentials(credentials_file)
 if (!is.null(creds)) {
+  ENV_TYPE <- creds$ENV_TYPE
   RSCRIPT_PATH = creds$RSCRIPT_PATH
   #BASE_DIR <- creds$BASE_DIR
 } else {
@@ -65,7 +71,7 @@ print(paste("RSCRIPT_PATH:", RSCRIPT_PATH))
 
 location_file = paste0(BASE_DIR, "locations.csv")
 myscript_path = paste0(BASE_DIR, "CCVD_portfolio_content.R")
-#run_string = paste(RSCRIPT_PATH, myscript_path)
+run_string = paste(RSCRIPT_PATH, myscript_path)
 
 validate_text_inputs <- function(email, polygon_name, polygon_short_name) {
   print(paste0("validate_text_inputs: ", email, ", ", polygon_name, ", ", polygon_short_name))
@@ -99,7 +105,7 @@ record_location_to_file <- function(content) {
 # Function to update the state of the submit button
 update_submit_button <- function(session, valid_text_inputs, polygon_selected) {
   print(paste0("update_submit_button: ", valid_text_inputs, ", ", polygon_selected))
-  updateActionButton(session, "save_button", label = "Generate data", disabled = !(valid_text_inputs && polygon_selected))
+  updateActionButton(session, "save_button", label = "Generate Report", disabled = !(valid_text_inputs && polygon_selected))
 }
 
 display_intersected_islands <- function(intersected_island_names) {
@@ -125,7 +131,7 @@ get_intersected_islands <- function(sf_object, island_boundaries) {
   return(intersected_island_names)
 }
 
-run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_name, polygon_short_name, email) {
+run_ccvd <- function(session, sf_object, island_boundaries, shapefile_full_path, polygon_name, polygon_short_name, email) {
   ISLAND_FULL_NAMES <- c("Hawaii", "Maui", "Kahoolawe", "Lanai", "Molokai", "Oahu", "Kauai")
   ISLAND_SHORT_NAMES <- c("BI", "MN", "KO", "LA","MO","OA","KA")
   
@@ -140,69 +146,57 @@ run_ccvd <- function(sf_object, island_boundaries, shapefile_full_path, polygon_
   }
   cat("shapefile_full_path: ", shapefile_full_path, "\n")
   
-  # /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp' 'Kaa' 'Kaa' 'Lanai' 'LA'"
-  #print(paste0("platform: ", Platform@OS.type))
-  # full_run_string <- paste0(
-  #   shQuote(RSCRIPT_PATH, type = c("cmd")), " ",
-  #   shQuote(myscript_path, type = c("cmd")), " ",
-  #   shQuote(email, type = c("cmd")), " ",
-  #   shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path), type = c("cmd")), " ",
-  #   shQuote(polygon_name, type = c("cmd")), " ",
-  #   shQuote(polygon_short_name, type = c("cmd")), " ",
-  #   shQuote(island_full_name, type = c("cmd")), " ",
-  #   shQuote(island_short_name, type = c("cmd")))
+  if (ENV_TYPE == "linux") {
+    # start of code for mac/linux box
+    full_run_string <- paste0(run_string, " ",
+      shQuote(email), " ",
+      shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
+      shQuote(polygon_name), " ",
+      shQuote(polygon_short_name), " ",
+      shQuote(island_full_name), " ",
+      shQuote(island_short_name))
+    print(paste0("full_run_string: ", full_run_string))
+    # /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp' 'Kaa' 'Kaa' 'Lanai' 'LA'"
   
-  # full_run_string <- paste0(
-  #   dQuote(RSCRIPT_PATH), " ",
-  #   dQuote(myscript_path), " ",
-  #   dQuote(email), " ",
-  #   dQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
-  #   dQuote(polygon_name), " ",
-  #   dQuote(polygon_short_name), " ",
-  #   dQuote(island_full_name), " ",
-  #   dQuote(island_short_name))
-  
-  #print(paste0("full_run_string: ", full_run_string))
-  
-  # note, I tried to processx::process$new, but it hides the output of the called file
-  #system(full_run_string, wait = FALSE)
-
-  # print(paste0("RSCRIPT_PATH: ", RSCRIPT_PATH))
-  # print(paste0("myscript_path: ", myscript_path))
-  # print(paste0("BASE_DIR: ", BASE_DIR))
-  # print(paste0("shapefile_full_path: ", shapefile_full_path))
-  # print(paste0("polygon_name: ", polygon_name))
-  # print(paste0("polygon_short_name: ", polygon_short_name))
-  # print(paste0("island_full_name: ", island_full_name))
-  # print(paste0("island_short_name: ", island_short_name))
-  
-  args <- c(
-    myscript_path,
-    email,
-    file.path(BASE_DIR, "PDKESite", shapefile_full_path),
-    polygon_name,
-    polygon_short_name,
-    island_full_name,
-    island_short_name
-  )
-
-  print("run ccvd")
-  #process <- processx::process$new(
-  result <- processx::run(
-    command = RSCRIPT_PATH,  # The Rscript or other command
-    args = args,            # Arguments as a character vector
-    echo = TRUE              # Print the output to the console
-  )
-
-  cat(result$stdout)
-  if (result$stderr != "") {
-    cat("Error:", result$stderr)
+    # this works, gets temporarily commented out so I can test w/o invoking the other stuff
+    system(full_run_string, wait = FALSE)
+    
+    # print(paste0("RSCRIPT_PATH: ", RSCRIPT_PATH))
+    # print(paste0("myscript_path: ", myscript_path))
+    # print(paste0("BASE_DIR: ", BASE_DIR))
+    # print(paste0("shapefile_full_path: ", shapefile_full_path))
+    # print(paste0("polygon_name: ", polygon_name))
+    # print(paste0("polygon_short_name: ", polygon_short_name))
+    # print(paste0("island_full_name: ", island_full_name))
+    # print(paste0("island_short_name: ", island_short_name))
   }
-  
-  #showNotification("Your polygon has been submitted. When the results are ready, you will receive an email with a link to the download.", type = "message")
-  
+  else if (ENV_TYPE == "windows") {
+    args <- c(
+      myscript_path,
+      email,
+      file.path(BASE_DIR, "PDKESite", shapefile_full_path),
+      polygon_name,
+      polygon_short_name,
+      island_full_name,
+      island_short_name
+    )
+
+    print("run ccvd")
+    #result <- processx::process$new(
+    result <- processx::run(
+      command = RSCRIPT_PATH,  # The Rscript or other command
+      args = args,            # Arguments as a character vector
+      echo = TRUE              # Print the output to the console
+    )
+
+    cat(result$stdout)
+    if (result$stderr != "") {
+      cat("Error:", result$stderr)
+    }
+  }
+
   # Disable the save button to prevent a re-submission.
-  #updateActionButton(session, "save_button", disabled = TRUE)
+  updateActionButton(session, "save_button", disabled = TRUE)
   
   datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
   csv_output_string <- paste0(datetime_str, ",", shapefile_full_path, ", ", island_full_name, ", ", polygon_name)
@@ -377,7 +371,7 @@ server <- function(input, output, session) {
       
       
       # Update button label
-      #updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
+      #updateActionButton(session, "save_button", label = "Generate Report", disabled = TRUE)
       
       # Disable drawing when a shapefile is selected
       drawing_enabled(FALSE)
@@ -398,7 +392,7 @@ server <- function(input, output, session) {
         updateTextInput(session, "polygon_name", value = "")
         updateTextInput(session, "polygon_short_name", value = "")
         # Update button label
-        updateActionButton(session, "save_button", label = "Generate data", disabled = TRUE)
+        updateActionButton(session, "save_button", label = "Generate Report", disabled = TRUE)
         # Enable drawing when no shapefile is selected
         drawing_enabled(TRUE)
         
@@ -599,20 +593,19 @@ server <- function(input, output, session) {
 
         # Generate the filename using the current date and time
         datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
-        #filename <- paste0("Shapefiles/UserDefinedPolygon/selected_area_", datetime_str, ".shp")
         filename <- paste0(polygon_short_name, "_", datetime_str)
         full_filename <- paste0("Shapefiles/UserDefinedPolygon/", filename, ".shp")
         #full_filepath <- paste0(BASE_DIR, "PDKESite/", "Shapefiles/UserDefinedPolygon/", filename, ".shp")
-        
+
         # Write the sf object to a shapefile
         sf::st_write(sf_object, full_filename)
         #showNotification(paste("The selected area has been saved as:", full_filename), type = "message")
         
         # call the other script asynchronously to do the processing
-        run_ccvd(sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
+        run_ccvd(session, sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
         # Render the confirmation message when the submit button is clicked
         output$status_messages <- renderText({
-          "Your request has been submitted. When the results are ready, you will receive an email with a link to the download."
+          status_message
         })
         
         # Disable the save button to prevent a re-submission.
@@ -650,11 +643,11 @@ server <- function(input, output, session) {
         # need this because was getting "Error: Error in wk_handle.wk_wkb(wkb, s2_geography_writer(oriented = oriented, : Loop 0 is not valid: Edge 1865 is degenerate (duplicate vertex)\n"
         sf_object <- st_make_valid(sf_object)
         
-        run_ccvd(sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
+        run_ccvd(session, sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
 
         # Render the confirmation message when the submit button is clicked
         output$status_messages <- renderText({
-          "Your request has been submitted. When the results are ready, you will receive an email with a link to the download."
+          status_message
         })
         
         # Disable the save button to prevent a re-submission.
@@ -673,7 +666,7 @@ server <- function(input, output, session) {
       
       full_filename <- sub(".*PDKESite/", "", selected_shapefile_path())
       filename <- sub(".*/(.*)\\.shp$", "\\1", selected_shapefile_path())
-      run_ccvd(selected_shapefile(), island_boundaries, full_filename, polygon_name, polygon_short_name, email)
+      run_ccvd(session, selected_shapefile(), island_boundaries, full_filename, polygon_name, polygon_short_name, email)
       #cat(file=stderr(), "selected_shapefile2: ", selected_shapefile_path(), "\n")
     } 
     # reset all values so user starts from scratch
