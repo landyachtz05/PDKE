@@ -2784,8 +2784,13 @@ my_unbox <- function(x) {
 
 # Function to create a zip file containing all files with the specified base name
 create_zip_for_base_name <- function(directory, base_name, zip_file_name) {
+  debug_print(paste0("directory: ", directory))
+  debug_print(paste0("base_name: ", base_name))
+  debug_print(paste0("zip_file_name: ", zip_file_name))
+  
   # Get a list of all files in the directory
   all_files <- list.files(directory, full.names = TRUE)
+  debug_print(paste0("All files: ", all_files))
   
   # Use regex to match files with the specified base name
   pattern <- paste0("^", base_name, "\\.")
