@@ -1,3 +1,17 @@
+# To run this, either run PDKESite/server.R to get a GUI which allows you to
+# select an area on which to run this script, or, using one of the examples
+# below, copy and paste one of the lines into the command line/terminal window.
+# either one will run this script followed by the CCVD_portfolio_ppt.R script.
+# A run generally takes about 40 minutes.
+#
+# No matter which method you choose, you need to edit the credentials.json file
+# to set the variables correctly for your environment.
+# Set ENV_TYPE to either "linux" or "windows", depending on the box you will be running this on.
+# For the PROJ_LIB_VAL field search your system for a file called proj.db and use that path as the value.
+# If you have none, install proj: https://proj.org/en/stable/index.html
+# If that us set incorrectly, you will get the error message:
+# “proj_create: Cannot find proj.db”
+#
 # to test via command line, no interface needed
 # Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp Kaa Kaa Lanai LA
 # to redirect all output to a file, use R CMD BATCH, it creates a file called CCVD_portfolio_content.Rout
@@ -70,6 +84,7 @@ read_credentials <- function(filepath) {
 }
 
 # default values for prod
+ENV_TYPE = "windows"
 PROJ_LIB_IN <- "/usr/share/proj/"
 RSCRIPT_PATH <- "/usr/bin/Rscript"
 BASE_DIR <- paste0(here(), "/") # Gets the project root
@@ -77,6 +92,7 @@ BASE_DIR <- paste0(here(), "/") # Gets the project root
 credentials_file <- paste0(BASE_DIR, "/credentials.json")
 creds <- read_credentials(credentials_file)
 if (!is.null(creds)) {
+  ENV_TYPE <- creds$ENV_TYPE
   PROJ_LIB_IN <- creds$PROJ_LIB_VAL
   RSCRIPT_PATH <- creds$RSCRIPT_PATH
 } else {
@@ -6822,50 +6838,37 @@ debug_print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
 debug_print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
 debug_print(paste0("Execution time: ", end_time - start_time))
 
-#run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ", 
-#  shQuote(email), " ", 
-#  shQuote(PATH), " ", 
-#  shQuote(NM), " ", 
-#  shQuote(NM_s), " ",
-#  shQuote(NP_FILE))
-#debug_print(paste0("runString: ", run_string))
-#system(run_string, wait = FALSE)
-
-# full_run_string <-  
-#   paste0(
-#     shQuote(RSCRIPT_PATH, type = c("cmd")), " ", 
-#     shQuote(MYSCRIPT_PATH, type = c("cmd")), " ", 
-#     shQuote(email, type = c("cmd")), " ", 
-#     shQuote(PATH, type = c("cmd")), " ", 
-#     shQuote(NM, type = c("cmd")), " ", 
-#     shQuote(NM_s, type = c("cmd")), " ",
-#     shQuote(NP_FILE, type = c("cmd")))
-# print(paste0("full_run_string: ", full_run_string))
-# 
-# # this works, gets temporarily commented out so I can test w/o invoking the other stuff
-# system(full_run_string, wait = FALSE)
-
-
-
-args <- c(
-  MYSCRIPT_PATH,
-  email,
-  file.path(PATH),
-  NM,
-  NM_s,
-  NP_FILE
-)
-
-print("run ccvd")
-result <- processx::run(
-  command = RSCRIPT_PATH,  # The Rscript or other command
-  args = args,            # Arguments as a character vector
-  echo = TRUE
-)
-
-cat(result$stdout)
-if (result$stderr != "") {
-  cat("Error:", result$stderr)
+if (ENV_TYPE == "linux") {
+  run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ",
+   shQuote(email), " ",
+   shQuote(PATH), " ",
+   shQuote(NM), " ",
+   shQuote(NM_s), " ",
+   shQuote(NP_FILE))
+  debug_print(paste0("runString: ", run_string))
+  system(run_string, wait = FALSE)
+}
+else if (ENV_TYPE == "windows") {
+  args <- c(
+    MYSCRIPT_PATH,
+    email,
+    file.path(PATH),
+    NM,
+    NM_s,
+    NP_FILE
+  )
+  
+  print("run ppt")
+  result <- processx::run(
+    command = RSCRIPT_PATH,  # The Rscript or other command
+    args = args,            # Arguments as a character vector
+    echo = TRUE
+  )
+  
+  cat(result$stdout)
+  if (result$stderr != "") {
+    cat("Error:", result$stderr)
+  }
 }
 
 ### END! ###
