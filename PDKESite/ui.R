@@ -10,6 +10,24 @@
 library(shiny)
 library(leaflet)
 
+logo_files_funders <- c(
+  "logo-nidis.png",
+  "logo-NRCS.png",
+  "logo-ewcsig-sqr_10inprnt.jpg",
+  "logo-PI-CASC-marble-w-full-name.jpg",
+  "logo-cwrm.png"
+)
+
+logo_files_partners <- c(
+  "logo-USFS.png",
+  "logo-UH_Manoa.png",
+  "logo-SeaGrant.jpg",
+  "logo-clark-university.png",
+  "logo-mesonet-Ringshaped.jpg",
+  "logo-PDKE_Logo_Color_Rounded_Type-03.jpg",
+  "logo-HCDP_Text_Bottom_Color.jpg"
+)
+
 ui <- fluidPage(
   tags$head(
     tags$style(HTML("
@@ -35,6 +53,24 @@ ui <- fluidPage(
       }
       .inline-container h1 {
         margin: 0;
+      }
+      .logo-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center; /* Center horizontally */
+      }
+      .logo-item {
+        margin: 10px; /* Adjust spacing between logos */
+        max-width: 150px; /* Adjust maximum logo width */
+        max-height: 100px; /* Adjust maximum logo height */
+        flex: 0 0 auto; /* Prevent logos from stretching */
+      }
+      .logo-item img {
+        max-width: 100%;
+        max-height: 100%;
+        height: auto;
+        width: auto;
+        display: block; /* Remove extra space below images */
       }
     "))
   ),
@@ -116,24 +152,16 @@ ui <- fluidPage(
   
   # Header for the first row of images
   h3(""),
-  h3("Partners:"),
-  # Two rows of three images each below the main content
-  #For Partners: HCDP, USFS, UHM and Clark University
-  fluidRow(
-    column(1),
-    column(2, img(src = "logo-USFS.png", height = "150x", alt = "USFS Logo")),
-    column(2, img(src = "logo-UH_Manoa.png", height = "150px", alt = "UHM Logo")),
-    column(2, img(src = "logo-clark-university.png", height = "150px", alt = "Clark University Logo")),
-    column(4, img(src = "logo-HCDP_Text_Bottom_Color.jpg", height = "150px", alt = "HCDP Logo"))
-  ),
   h3("Funders:"),
-  #For Funders: NRCS, NIDIS, PI-CASC, EWC, CWRM
-  fluidRow(
-    column(1),
-    column(2, img(src = "logo-NRCS.png", height = "150px", alt = "NRCS Logo")),
-    column(2, img(src = "logo-nidis.png", height = "150px", alt = "NIDIS Logo")),
-    column(2, img(src = "logo-PI-CASC-marble-w-full-name.jpg", height = "150px", alt = "PI-CASC Logo")),
-    column(2, img(src = "logo-ewcsig-sqr_10inprnt.jpg", height = "150px", alt = "EWC Logo")),
-    column(2, img(src = "logo-cwrm.png", height = "150px", alt = "CWRM Logo"))
+  div(class = "logo-container",
+    lapply(logo_files_funders, function(file) {
+      div(class = "logo-item", img(src = file))
+    })
+  ),
+  h3("Partners:"),
+  div(class = "logo-container",
+    lapply(logo_files_partners, function(file) {
+      div(class = "logo-item", img(src = file))
+    })
   )
 )
