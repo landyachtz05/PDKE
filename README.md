@@ -6,6 +6,7 @@ Repository created for sharing code related to PDKE products.
 ## Setup:
 ### Download and install R and RStudio (free version)
 
+git clone https://github.com/landyachtz05/PDKE.git
 R: <https://cran.r-project.org/>  
 RStudio: <https://posit.co/products/open-source/rstudio/>
 
@@ -13,10 +14,12 @@ RStudio: <https://posit.co/products/open-source/rstudio/>
 
 Create a credentials.json file in the project's root directory.  It should look something like this:  
 > {  
+>   "ENV_TYPE": "linux",
 >   "PROJ_LIB_VAL": "/software/r9/matlab/R2021a/toolbox/map/mapproj/projdata/proj.db",  
 >   "RSCRIPT_PATH": "/usr/bin/Rscript",  
 >   "bearer": ""  
 > }  
+Set ENV_TYPE to either "linux" or "windows" depending on the box type you are running this on.
 Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search, 'sudo find / -name "proj.db"', or get it via installing proj at: <https://proj.org/en/stable/index.html>).  
 Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
 Ask the PDKE administrator for the bearer value.  
@@ -32,10 +35,19 @@ Ask the PDKE administrator for the bearer value.
 
 <https://drive.google.com/drive/u/1/folders/1QwQU3ulooAeSRmm6rNC8JMGo22aXdgzN>
 - Download the Shapefiles folder into the PDKESite directory, include the folder so the structure is PDKESite/Shapefiles.
+- In Shapefiles folder, make a folder called SelectedPolygon, so the structure is PDKESite/Shapefiles/SelectedPolygon.
+- In Shapefiles folder, make a folder called UserDefinedPolygon, so the structure is PDKESite/Shapefiles/UserDefinedPolygon.
 - Download the data folder, and it's contents, into the CCVD folder so the structure is CCVD/data.
 - Download the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.
 - Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.
 - Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.
+
+### if on an old jetstream instance that doesn't allow download, need to copy up the files:
+> scp -r /Users/jgeis/PDKE_testing/PDKESite/Shapefiles exouser@149.165.154.114:/srv/shiny-server/PDKE/PDKESite/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/CCVD_INPUTS exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/data exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/IMAGE exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/NEW_RF_MAPS exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
 
 ## To run the program
 
@@ -74,14 +86,71 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 - sudo apt-get install r-base 
 - RStudio is installed by default 
 - install devtools: sudo apt install r-cran-devtools
-- sudo R, 
-  - install.packages("rmarkdown", dep = TRUE)
-  - install.packages("leaflet", dep = TRUE)
-  - install.packages("shiny", dep = TRUE)
-  - install.packages("leaflet.extras", dep = TRUE)
-  - install.packages("sf", dep = TRUE)
-  - install.packages("jsonlite", dep = TRUE)
-  - install.packages("here", dep = TRUE)
+
+> sudo R, 
+> install.packages("rmarkdown", dep = TRUE)
+> install.packages("leaflet", dep = TRUE)
+> install.packages("shiny", dep = TRUE)
+> install.packages("leaflet.extras", dep = TRUE)
+> install.packages("sf", dep = TRUE)
+> install.packages("jsonlite", dep = TRUE)
+> install.packages("here", dep = TRUE)
+>
+> install.packages("gstat", dep = TRUE)
+> install.packages("raster", dep = TRUE)
+> install.packages("sp", dep = TRUE) 
+> install.packages("maptools", dep = TRUE)
+> install.packages("rgdal", dep = TRUE)
+> install.packages("RColorBrewer", dep = TRUE)
+> install.packages("gridExtra", dep = TRUE)
+> install.packages("ggplot2", dep = TRUE)
+> install.packages("grid", dep = TRUE)
+> install.packages("data.table", dep = TRUE)
+> install.packages("devtools", dep = TRUE)
+> install.packages("DescTools", dep = TRUE)
+> install.packages("lubridate", dep = TRUE)
+> install.packages("rgeos", dep = TRUE)
+> install.packages("latticeExtra", dep = TRUE)
+> install.packages("rasterVis", dep = TRUE)
+> install.packages("plotrix", dep = TRUE)
+> install.packages("plyr", dep = TRUE)
+> install.packages("dplyr", dep = TRUE)
+> install.packages("xts", dep = TRUE)
+> install.packages("timeSeries", dep = TRUE)
+> install.packages("ggfortify", dep = TRUE)
+> install.packages("changepoint", dep = TRUE)
+> install.packages("scales", dep = TRUE)
+> install.packages("reshape2", dep = TRUE)
+> install.packages("hydroTSM", dep = TRUE)
+> install.packages("tiff", dep = TRUE)
+> install.packages("lmomco", dep = TRUE)
+> install.packages("parallel", dep = TRUE)
+> install.packages("SPEI", dep = TRUE)
+> install.packages("sf", dep = TRUE)
+> install.packages("ggpubr", dep = TRUE)
+> install.packages("terrainr", dep = TRUE)
+> install.packages("ggmap", dep = TRUE)
+> install.packages("ggthemes", dep = TRUE)
+> install.packages("zoo", dep = TRUE)
+> install.packages("classInt", dep = TRUE)
+> install.packages("jsonlite", dep = TRUE)
+>
+> install.packages("magrittr", dep = TRUE)
+> install.packages("tidyverse", dep = TRUE)
+> install.packages("rvg", dep = TRUE)
+> install.packages("knitr", dep = TRUE)
+> install.packages("xtable", dep = TRUE)
+> install.packages("flextable", dep = TRUE)
+> install.packages("officer", dep = TRUE)
+> install.packages("mschart", dep = TRUE)
+> install.packages("purrr", dep = TRUE)
+> install.packages("pdftools", dep = TRUE)
+> install.packages("magick", dep = TRUE)
+> install.packages("httr", dep = TRUE)
+> install.packages("stringr", dep = TRUE)
+> install.packages("zip", dep = TRUE)
+> install.packages("tiff", repos="https://packagemanager.posit.co/cran/2023-10-13", dep = TRUE)
+
 - install markdown: sudo su - -c "R -e \"library(devtools); install_github('rstudio/rmarkdown')\""
 - install shiny r package: sudo su - -c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
 - install shiny server: <https://posit.co/download/shiny-server/>
@@ -89,13 +158,12 @@ CIS240457: AI Agents on Jetstream2 Training for UH
   - wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb
   - sudo gdebi shiny-server-1.5.23.1030-amd64.deb
 - Clone repo into /srv/shiny-server
-- edit the r server config file, should use </etc/shiny-server/shiny-server.conf> but had to edit cd /opt/shiny-server/config/default.config before it would stick.
-  - listen 80;  
-  - location / {  
-    site_dir /srv/shiny-server/PDKE/PDKESite;  
-    log_dir /var/log/shiny-server;  
-  - }
-
+- edit the r server config file, should use /etc/shiny-server/shiny-server.conf but had to edit /opt/shiny-server/config/default.config before it would stick.
+> listen 80;  
+> location / {  
+>   site_dir /srv/shiny-server/PDKE/PDKESite;  
+>   log_dir /var/log/shiny-server;  
+> }
 
 <https://docs.posit.co/shiny-server/#stopping-and-starting>  
 sudo systemctl start shiny-server  
@@ -145,9 +213,9 @@ Apache: /var/lib/apache2, /etc/apache2
 
 config file values:
 - /etc/shiny-server/shiny-server.conf  
-- listen 3838 (to do, change to 8080)  
-- location / (to do, try point at the PDKESite dir so can get rid of the subdir in the url, otherwise, move the shiny files into the project's root dir)  
-- site_dir /srv/shiny-server;  
+- listen 3838 (change to 8080)  
+- location / 
+- site_dir /srv/shiny-server/PDKE/PDKESite;
 - log_dir /var/log/shiny-server;  
 
 /opt/shiny-server  
@@ -166,3 +234,14 @@ Shiny Server will use the [default configuration](https://github.com/rstudio/shi
 
 sudo cp -R ~/MY-APP /srv/shiny-server/
 
+
+
+DEREK:
+1.) rgdal and rgeos
+2.) Koheo 1-2_2025_03_13_02_39_25  PDKE:  define Mean_CLIM 
+  Koheo 1-2_2025_03_13_02_39_25  PDKE:  INPUTS_FOLDER: /srv/shiny-server/PDKE//CCVD/CCVD_INPUTS/ 
+  Error in (function (file = if (onefile) "Rplots.pdf" else "Rplot%03d.pdf",  : 
+    cannot open file 'Rplots.pdf'
+  Calls: plot ... .plotraster2 -> .rasterImagePlot -> <Anonymous> -> <Anonymous>
+  Execution halted
+3.) email address for "contact us"

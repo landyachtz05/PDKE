@@ -13,9 +13,9 @@
 # 
 # Before running server.R, make sure you have a file called credentials.json
 # in the base level dir of the project dir and edit the values to match your 
-# environment.  The file should look something like this: 
+# environment.  The file should look like this: 
 # {
-#  "ENV_TYPE": "linux",
+#  
 #  "PROJ_LIB_VAL": "/opt/anaconda3/share/proj/",
 #  "RSCRIPT_PATH": "/Library/Frameworks/R.framework/Resources/bin/Rscript"
 # }
