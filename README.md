@@ -299,21 +299,21 @@ exouser@pdke:/var/log$ sudo find / -name sp.h
 /usr/lib/R/site-library/sp/include/sp.h
 
 # this worked to install rgdal
-download: 
-https://cran.r-project.org/src/contrib/Archive/rgdal/
-https://cran.r-project.org/src/contrib/Archive/rgeos/
-sudo R
-set working directory to where it was downloaded using setwd('/path/to/source/code/downloaded')
-setwd('/home/exouser/Downloads')
-install.packages("sp")
-install.packages("rgdal_1.6-7.tar.gz",
-                 repos=NULL,
-                 type = 'source',
-                 configure.args="--with-proj-include=/software/u22/r/4.4.1-old/lib/R/library/sp/include/")
-# this doesn't work for rgeos
-install.packages("rgeos_0.6-4.tar.gz",
-                 repos=NULL,
-                 type = 'source',
-                 configure.args="--with-proj-include=/usr/lib/R/site-library/sp/include/")
+download:   
+https://cran.r-project.org/src/contrib/Archive/rgdal/  
+https://cran.r-project.org/src/contrib/Archive/rgeos/  
+sudo R  
+set working directory to where it was downloaded using setwd('/path/to/source/code/downloaded')  
+setwd('/home/exouser/Downloads')  
+install.packages("sp")  
+install.packages("rgdal_1.6-7.tar.gz",  
+                 repos=NULL,  
+                 type = 'source',  
+                 configure.args="--with-proj-include=/software/u22/r/4.4.1-old/lib/R/library/sp/include/")  
+# this doesn't work for rgeos  
+install.packages("rgeos_0.6-4.tar.gz",  
+                 repos=NULL,  
+                 type = 'source',    
+                 configure.args="--with-proj-include=/usr/lib/R/site-library/sp/include/")  
                  
-                 https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz
+                 https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz  
