@@ -14,22 +14,24 @@ RStudio: <https://posit.co/products/open-source/rstudio/>
 
 Create a credentials.json file in the project's root directory.  It should look something like this:  
 > {  
->   "ENV_TYPE": "linux",
+>   "ENV_TYPE": "linux",  
 >   "PROJ_LIB_VAL": "/software/r9/matlab/R2021a/toolbox/map/mapproj/projdata/proj.db",  
 >   "RSCRIPT_PATH": "/usr/bin/Rscript",  
 >   "bearer": ""  
 > }  
-Set ENV_TYPE to either "linux" or "windows" depending on the box type you are running this on.
+Set ENV_TYPE to either "linux" or "windows" depending on the box type you are running this on.  
 Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search, 'sudo find / -name "proj.db"', or get it via installing proj at: <https://proj.org/en/stable/index.html>).  
 Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
 Ask the PDKE administrator for the bearer value.  
 
 ### Set up the folder structure
 
+- Make a folder called results in the project's root directory. 
 - Make a folder called CCVD in the project's root directory. 
 - In the CCVD directory, make a new folder called CCVD_OUTPUTS.  The structure should be CCVD/CCVD_OUTPUTS. 
 - In the CCVD directory, make a new folder called MINI_PPT.  The structure should be CCVD/MINI_PPT.  
-- In the CCVD directory, make a new folder called MINI_Phase2.  The structure should be CCVD/MINI_Phase2.  
+- In the CCVD directory, make a new folder called MINI_Phase2.  The structure should be CCVD/MINI_Phase2.
+
 
 ### Download files from Google Drive (ask Admin for access)
 
@@ -41,6 +43,8 @@ Ask the PDKE administrator for the bearer value.
 - Download the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.
 - Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.
 - Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.
+- ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/shapefile 
+
 
 ### if on an old jetstream instance that doesn't allow download, need to copy up the files:
 > scp -r /Users/jgeis/PDKE_testing/PDKESite/Shapefiles exouser@149.165.154.114:/srv/shiny-server/PDKE/PDKESite/
@@ -229,6 +233,7 @@ Tried using the workflow dir as it was supposed to let me automate github update
 
 Had to do an ln for shapefile access while in the main scripts when we started from PDKESite.  
 /srv/shiny-server/shapefile -> PDKESite/Shapefiles/  
+ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/shapefile 
 
 Shiny Server will use the [default configuration](https://github.com/rstudio/shiny-server/blob/master/config/default.config) unless an alternate configuration is provided at `/etc/shiny-server/shiny-server.conf`. Using the default configuration, Shiny Server will look for Shiny apps in `/srv/shiny-server/` and host them on port 3838.  
 
@@ -237,11 +242,65 @@ sudo cp -R ~/MY-APP /srv/shiny-server/
 
 
 DEREK:
-1.) rgdal and rgeos
+- Which version of R? Try set up anaconda env to match Derek's R
+1.) rgdal and rgeos - talk to Matt
+
 2.) Koheo 1-2_2025_03_13_02_39_25  PDKE:  define Mean_CLIM 
   Koheo 1-2_2025_03_13_02_39_25  PDKE:  INPUTS_FOLDER: /srv/shiny-server/PDKE//CCVD/CCVD_INPUTS/ 
   Error in (function (file = if (onefile) "Rplots.pdf" else "Rplot%03d.pdf",  : 
     cannot open file 'Rplots.pdf'
   Calls: plot ... .plotraster2 -> .rasterImagePlot -> <Anonymous> -> <Anonymous>
   Execution halted
+  Solved by setting PDKE permissions to 777, can't let this continue, need to figure out where the permissions issue is.  It's in MINI_Phase2
 3.) email address for "contact us"
+4.) Forest Reserves and Sanctuaries isn't showing anything.
+
+----------------------------
+Trying to figure out stack overflow issue on jetstream.
+
+pj_obj_create
+ulimit -s 16384
+
+Error: C stack usage  7969476 is too close to the limit
+
+7969812
+7972820 (3008)
+7976932 (4112)
+7969476
+
+exouser@pdke-shiny:/srv/shiny-server/PDKE$ ulimit -a
+real-time non-blocking time  (microseconds, -R) unlimited
+core file size              (blocks, -c) 0
+data seg size               (kbytes, -d) unlimited
+scheduling priority                 (-e) 0
+file size                   (blocks, -f) unlimited
+pending signals                     (-i) 120101
+max locked memory           (kbytes, -l) 3848984
+max memory size             (kbytes, -m) unlimited
+open files                          (-n) 1024
+pipe size                (512 bytes, -p) 8
+POSIX message queues         (bytes, -q) 819200
+real-time priority                  (-r) 0
+stack size                  (kbytes, -s) unlimited
+cpu time                   (seconds, -t) unlimited
+max user processes                  (-u) 120101
+virtual memory              (kbytes, -v) unlimited
+file locks                          (-x) unlimited
+
+
+* soft nofile 65536
+* hard nofile 65536
+* soft nproc 65536
+* hard nproc 65536
+
+download: https://cran.r-project.org/src/contrib/Archive/rgdal/
+sudo R
+set working directory to where it was downloaded using setwd('/path/to/source/code/downloaded')
+setwd('/home/exouser/Downloads')
+install using install.packages('rgdal_xxx.tar.gz', repos = NULL, type = 'source')
+install.packages('rgdal_1.6-7.tar.gz', repos = NULL, type = 'source')
+
+install.packages("rgdal_1.6-7.tar.gz",
+                 repos=NULL,
+                 type = 'source',
+                 configure.args="--with-proj-include=DIR")
