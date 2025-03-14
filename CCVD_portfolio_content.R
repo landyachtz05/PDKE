@@ -5273,7 +5273,7 @@ tail(spi4, 10)
 head(spi2)
 head(spi4)
 
-spi5 <- merge(spi2, spi4, all = T)
+spi5 <- merge(spi2, spi4, all = TRUE)
 spi5 <- spi5[order(as.Date(spi5$date)), ]
 head(spi5, 10)
 tail(spi5, 50)
@@ -5317,7 +5317,7 @@ for (x in events) {
   SPI_I <- SPI_I[c("date", "months", "intensity", "peak", "mean", "mag")]
   SPI_I
   
-  spi6 <- merge(spi6, SPI_I, by = "date", all.x = T)
+  spi6 <- merge(spi6, SPI_I, by = "date", all.x = TRUE)
   
   # merge intensity columns together
   if (x>1) {spi6$months<-ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)}
@@ -5591,7 +5591,7 @@ for (x in 1:nrow(event)) {
 spi4
 
 # merge event_ct back into full SPI dataset
-spi5 <- merge(spi2, spi4, all = T)
+spi5 <- merge(spi2, spi4, all = TRUE)
 
 # sort by date
 spi5 <- spi5[order(as.Date(spi5$date)), ]
@@ -5634,7 +5634,7 @@ for (x in events) {
   SPI_I <- SPI_I[c("date", "months", "intensity", "peak", "mean", "mag")]
   SPI_I
   
-  spi6 <- merge(spi6, SPI_I, by = "date", all.x = T)
+  spi6 <- merge(spi6, SPI_I, by = "date", all.x = TRUE)
   #
   # # sort by date
   # spi5<-spi5[order(as.Date(spi5$date)),]
@@ -5861,7 +5861,7 @@ for (x in 1:nrow(event)) {
 spi4
 
 # merge event_ct back into full SPI dataset
-spi5 <- merge(spi2, spi4, all = T)
+spi5 <- merge(spi2, spi4, all = TRUE)
 
 # sort by date
 spi5 <- spi5[order(as.Date(spi5$date)), ]
@@ -6687,7 +6687,7 @@ ggplot(dat.y, aes(x=date, y=mean)) +
 dev.off()
 
 ##### add annual mean values
-dat2 <- merge(dat, dat.y[, c("year", "mean", "min", "max")], by = "year", all.x = T)
+dat2 <- merge(dat, dat.y[, c("year", "mean", "min", "max")], by = "year", all.x = TRUE)
 head(dat2)
 tail(dat2)
 
@@ -6849,26 +6849,26 @@ if (ENV_TYPE == "linux") {
   system(run_string, wait = FALSE)
 }
 else if (ENV_TYPE == "windows") {
-  args <- c(
-    MYSCRIPT_PATH,
-    email,
-    file.path(PATH),
-    NM,
-    NM_s,
-    NP_FILE
-  )
-  
+args <- c(
+  MYSCRIPT_PATH,
+  email,
+  file.path(PATH),
+  NM,
+  NM_s,
+  NP_FILE
+)
+
   print("run ppt")
-  result <- processx::run(
-    command = RSCRIPT_PATH,  # The Rscript or other command
-    args = args,            # Arguments as a character vector
-    echo = TRUE
-  )
-  
-  cat(result$stdout)
-  if (result$stderr != "") {
-    cat("Error:", result$stderr)
-  }
+result <- processx::run(
+  command = RSCRIPT_PATH,  # The Rscript or other command
+  args = args,            # Arguments as a character vector
+  echo = TRUE
+)
+
+cat(result$stdout)
+if (result$stderr != "") {
+  cat("Error:", result$stderr)
+}
 }
 
 ### END! ###
