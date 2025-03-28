@@ -4,6 +4,10 @@ Pacific Drought Knowledge Exchange
 Repository created for sharing code related to PDKE products.
 
 ## Setup:
+
+### If Apache is running, kill it
+sudo /etc/init.d/apache2 stop
+
 ### Download and install R and RStudio (free version)
 
 git clone https://github.com/landyachtz05/PDKE.git
@@ -26,12 +30,13 @@ Ask the PDKE administrator for the bearer value.
 
 ### Set up the folder structure
 
-- Make a folder called results in the project's root directory. 
 - Make a folder called CCVD in the project's root directory. 
 - In the CCVD directory, make a new folder called CCVD_OUTPUTS.  The structure should be CCVD/CCVD_OUTPUTS. 
+- sudo chmod -R 777 CCVD_OUTPUTS
 - In the CCVD directory, make a new folder called MINI_PPT.  The structure should be CCVD/MINI_PPT.  
+- sudo chmod -R 777 MINI_PPT
 - In the CCVD directory, make a new folder called MINI_Phase2.  The structure should be CCVD/MINI_Phase2.
-
+- sudo chmod -R 777 MINI_Phase2
 
 ### Download files from Google Drive (ask Admin for access)
 
@@ -43,7 +48,10 @@ Ask the PDKE administrator for the bearer value.
 - Download the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.
 - Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.
 - Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.
-- ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/shapefile 
+- sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile 
+- sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results 
+
+
 
 
 ### if on an old jetstream instance that doesn't allow download, need to copy up the files:
@@ -298,7 +306,12 @@ exouser@pdke:/var/log$ sudo find / -name sp.h
 /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h
 /usr/lib/R/site-library/sp/include/sp.h
 
-# this worked to install rgdal
+# rgdal error
+In file included from OGR_write.cpp:11:
+rgdal.h:15:10: fatal error: sp.h: No such file or directory
+   15 | #include "sp.h"
+
+# this worked to solve above error and install rgdal
 download:   
 https://cran.r-project.org/src/contrib/Archive/rgdal/  
 https://cran.r-project.org/src/contrib/Archive/rgeos/  
@@ -310,10 +323,31 @@ install.packages("rgdal_1.6-7.tar.gz",
                  repos=NULL,  
                  type = 'source',  
                  configure.args="--with-proj-include=/software/u22/r/4.4.1-old/lib/R/library/sp/include/")  
-# this doesn't work for rgeos  
-install.packages("rgeos_0.6-4.tar.gz",  
-                 repos=NULL,  
-                 type = 'source',    
-                 configure.args="--with-proj-include=/usr/lib/R/site-library/sp/include/")  
+
+# rgeos error
+In file included from init.c:3:
+rgeos.h:59:10: fatal error: sp.h: No such file or directory
+   59 | #include "sp.h"
                  
-                 https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz  
+# solution
+apt-file search sp.h
+apt-file search sp_xports.c
+
+sudo mkdir /usr/local/lib/R/site-library/sp/include
+cd /usr/local/lib/R/site-library/sp/include
+sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h .
+sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp_xports.c .
+
+downloaded rgeos from https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz and put it in /home/exouser/Downloads
+
+sudo R
+install.packages("rgeos_0.6-4.tar.gz",  
+           repos=NULL,  
+           type = 'source')
+           
+------------
+
+Haleaha_2025_03_28_02_20_21  PDKE:  Frazier et al 2016 
+Warning: sf layer has inconsistent datum (+proj=longlat +datum=NAD83 +no_defs).
+Need '+proj=longlat +datum=WGS84'
+
