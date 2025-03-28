@@ -330,20 +330,20 @@ rgeos.h:59:10: fatal error: sp.h: No such file or directory
    59 | #include "sp.h"
                  
 # solution
-apt-file search sp.h
-apt-file search sp_xports.c
+apt-file search sp.h  
+apt-file search sp_xports.c  
 
-sudo mkdir /usr/local/lib/R/site-library/sp/include
-cd /usr/local/lib/R/site-library/sp/include
-sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h .
-sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp_xports.c .
+sudo mkdir /usr/local/lib/R/site-library/sp/include  
+cd /usr/local/lib/R/site-library/sp/include  
+sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h .  
+sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp_xports.c .  
 
-downloaded rgeos from https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz and put it in /home/exouser/Downloads
+downloaded rgeos from https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz and put it in /home/exouser/Downloads  
 
-sudo R
-install.packages("rgeos_0.6-4.tar.gz",  
-           repos=NULL,  
-           type = 'source')
+sudo R  
+install.packages("rgeos_0.6-4.tar.gz",    
+           repos=NULL,    
+           type = 'source')  
            
 ------------
 
