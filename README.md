@@ -15,59 +15,13 @@ git clone https://github.com/landyachtz05/PDKE.git
 R: <https://cran.r-project.org/>  
 RStudio: <https://posit.co/products/open-source/rstudio/>
 
-### Setup your credentials file
-
-Create a credentials.json file in the project's root directory.  It should look something like this:  
-> {  
->   "ENV_TYPE": "linux",  
->   "PROJ_LIB_VAL": "/software/r9/matlab/R2021a/toolbox/map/mapproj/projdata/proj.db",  
->   "RSCRIPT_PATH": "/usr/bin/Rscript",  
->   "bearer": ""  
-> }  
-Set ENV_TYPE to either "linux" or "windows" depending on the box type you are running this on.  
-Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search, 'sudo find / -name "proj.db"', or get it via installing proj at: <https://proj.org/en/stable/index.html>).  
-Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
-Ask the PDKE administrator for the bearer value.  
-
-### Set up the folder structure
-
-- Make a folder called CCVD in the project's root directory. 
-- In the CCVD directory, make a new folder called CCVD_OUTPUTS.  The structure should be CCVD/CCVD_OUTPUTS. 
-- sudo chmod -R 777 CCVD_OUTPUTS
-- In the CCVD directory, make a new folder called MINI_PPT.  The structure should be CCVD/MINI_PPT.  
-- sudo chmod -R 777 MINI_PPT
-- In the CCVD directory, make a new folder called MINI_Phase2.  The structure should be CCVD/MINI_Phase2.
-- sudo chmod -R 777 MINI_Phase2
-
-### Download files from Google Drive (ask Admin for access)
-
-<https://drive.google.com/drive/u/1/folders/1QwQU3ulooAeSRmm6rNC8JMGo22aXdgzN>
-- Download the Shapefiles folder into the PDKESite directory, include the folder so the structure is PDKESite/Shapefiles.
-- In Shapefiles folder, make a folder called SelectedPolygon, so the structure is PDKESite/Shapefiles/SelectedPolygon.
-- In Shapefiles folder, make a folder called UserDefinedPolygon, so the structure is PDKESite/Shapefiles/UserDefinedPolygon.
-- Download the data folder, and it's contents, into the CCVD folder so the structure is CCVD/data.
-- Download the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.
-- Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.
-- Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.
-- sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile 
-- sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results 
-
-
-
-
-### if on an old jetstream instance that doesn't allow download, need to copy up the files:
-> scp -r /Users/jgeis/PDKE_testing/PDKESite/Shapefiles exouser@149.165.154.114:/srv/shiny-server/PDKE/PDKESite/
-> scp -r /Users/jgeis/PDKE_testing/CCVD/CCVD_INPUTS exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
-> scp -r /Users/jgeis/PDKE_testing/CCVD/data exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
-> scp -r /Users/jgeis/PDKE_testing/CCVD/IMAGE exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
-> scp -r /Users/jgeis/PDKE_testing/CCVD/NEW_RF_MAPS exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
-
 ## To run the program
 
 ### Using RStudio on your local machine
 
 - Install r and RStudio 
 - Install r shiny: install.packages("shiny")
+- Go down to 'Setup your credentials file' and follow the instructions there, then come back here.
 - Open server.R and click the run button.  The GUI opens and you either select a pre-existing shapefile or create a new one by clicking on the map.  
 - Make sure the 'Name' and 'Short Name' fields are filled in.  
 - Enter your email address and click "Generate Data" button.  
@@ -99,8 +53,8 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 > sudo apt-get install r-base 
 - RStudio is installed by default 
 - install devtools: 
-> sudo apt install r-cran-devtools
-> sudo R 
+> sudo apt install r-cran-devtools  
+> sudo R  
 > install.packages("rmarkdown", dep = TRUE)  
 > install.packages("leaflet", dep = TRUE)  
 > install.packages("shiny", dep = TRUE)  
@@ -162,13 +116,16 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 > install.packages("zip", dep = TRUE)  
 > install.packages("tiff", repos="https://packagemanager.posit.co/cran/2023-10-13", dep = TRUE)  
 
-- install markdown: sudo su - -c "R -e \"library(devtools); install_github('rstudio/rmarkdown')\""
-- install shiny r package: sudo su - -c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
+- install markdown: 
+> sudo su - -c "R -e \"library(devtools); install_github('rstudio/rmarkdown')\""
+- install shiny r package: 
+> sudo su - -c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
 - install shiny server: <https://posit.co/download/shiny-server/>
-  - sudo apt-get install gdebi-core
-  - wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb
-  - sudo gdebi shiny-server-1.5.23.1030-amd64.deb
+> sudo apt-get install gdebi-core  
+> wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb  
+> sudo gdebi shiny-server-1.5.23.1030-amd64.deb  
 - Clone repo into /srv/shiny-server
+> git clone https://github.com/landyachtz05/PDKE.git 
 - edit the r server config file, should use /etc/shiny-server/shiny-server.conf but had to edit /opt/shiny-server/config/default.config before it would stick.
 > listen 80;  
 > location / {  
@@ -176,20 +133,65 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 >   log_dir /var/log/shiny-server;  
 > }
 
+
+### Setup your credentials file
+
+Create a credentials.json file in the project's root directory.  It should look something like this:  
+> {  
+>   "ENV_TYPE": "linux",  
+>   "PROJ_LIB_VAL": "/software/r9/matlab/R2021a/toolbox/map/mapproj/projdata/proj.db",  
+>   "RSCRIPT_PATH": "/usr/bin/Rscript",  
+>   "bearer": ""  
+> }  
+Set ENV_TYPE to either "linux" or "windows" depending on the box type you are running this on.  
+Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search, 'sudo find / -name "proj.db"', or get it via installing proj at: <https://proj.org/en/stable/index.html>).  
+Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
+Ask the PDKE administrator for the bearer value.  
+
+### Set up the folder structure
+
+- Make a folder called CCVD in the project's root directory. 
+- In the CCVD directory, make a new folder called CCVD_OUTPUTS.  The structure should be CCVD/CCVD_OUTPUTS. 
+- sudo chmod -R 777 CCVD_OUTPUTS
+- In the CCVD directory, make a new folder called MINI_PPT.  The structure should be CCVD/MINI_PPT.  
+- sudo chmod -R 777 MINI_PPT
+- In the CCVD directory, make a new folder called MINI_Phase2.  The structure should be CCVD/MINI_Phase2.
+- sudo chmod -R 777 MINI_Phase2
+
+### Download files from Google Drive (ask Admin for access)
+
+<https://drive.google.com/drive/u/1/folders/1QwQU3ulooAeSRmm6rNC8JMGo22aXdgzN>
+- Download the Shapefiles folder into the PDKESite directory, include the folder so the structure is PDKESite/Shapefiles.
+- In Shapefiles folder, make a folder called SelectedPolygon, so the structure is PDKESite/Shapefiles/SelectedPolygon.
+- In Shapefiles folder, make a folder called UserDefinedPolygon, so the structure is PDKESite/Shapefiles/UserDefinedPolygon.
+- Download the data folder, and it's contents, into the CCVD folder so the structure is CCVD/data.
+- Download the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.
+- Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.
+- Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.
+- sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile 
+- sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results 
+
+### if on an old jetstream instance that doesn't allow download, need to copy up the files:
+> scp -r /Users/jgeis/PDKE_testing/PDKESite/Shapefiles exouser@149.165.154.114:/srv/shiny-server/PDKE/PDKESite/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/CCVD_INPUTS exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/data exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/IMAGE exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
+> scp -r /Users/jgeis/PDKE_testing/CCVD/NEW_RF_MAPS exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/
+
 <https://docs.posit.co/shiny-server/#stopping-and-starting>  
-sudo systemctl start shiny-server  
-sudo systemctl stop shiny-server  
+> sudo systemctl start shiny-server  
+> sudo systemctl stop shiny-server  
 
 You can restart the server with:  
-sudo systemctl restart shiny-server  
+> sudo systemctl restart shiny-server  
 This command will shutdown all running Shiny processes, disconnect all open connections, and re-initialize the server.
 
 If you wish to reload the configuration but keep the server and all Shiny processes running without interruption, you can use the systemctl command to send a SIGHUP signal:  
-sudo systemctl kill -s HUP --kill-who=main shiny-server  
+> sudo systemctl kill -s HUP --kill-who=main shiny-server  
 This will cause the server to re-initialize, but will not interrupt the current processes or any of the open connections to the server.
 
 You can check the status of the shiny-server service using:  
-sudo systemctl status shiny-server
+> sudo systemctl status shiny-server
 
 
 
