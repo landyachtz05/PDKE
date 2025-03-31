@@ -130,9 +130,10 @@ rgdal.h:15:10: fatal error: sp.h: No such file or directory
 download the following and put them in /home/exouser/Downloads:     
 https://cran.r-project.org/src/contrib/Archive/rgdal/    
 https://cran.r-project.org/src/contrib/Archive/rgeos/    
+> sudo apt install libgdal-dev 
 > sudo R    
-set working directory to where it was downloaded using setwd('/path/to/source/code/downloaded')    
 > setwd('/home/exouser/Downloads')  
+> install.packages("gdal-config", dep = TRUE) 
 > install.packages("sp")  
 > install.packages("rgdal_1.6-7.tar.gz",  
 >                 repos=NULL,  
@@ -165,10 +166,12 @@ rgeos.h:59:10: fatal error: sp.h: No such file or directory
 > install.packages('shiny', repos='https://cran.rstudio.com/')  
 - install shiny server: <https://posit.co/download/shiny-server/>
 > sudo apt-get install gdebi-core  
-> wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb  
+> sudo wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb  
 > sudo gdebi shiny-server-1.5.23.1030-amd64.deb  
 - Clone repo into /srv/shiny-server
-> git clone https://github.com/landyachtz05/PDKE.git 
+> cd /srv/shiny-server
+> sudo git clone https://github.com/landyachtz05/PDKE.git 
+> sudo chown -R exouser:exouser PDKE
 - edit the r server config file, should use /etc/shiny-server/shiny-server.conf but had to edit /opt/shiny-server/config/default.config before it would stick.
 > listen 80;  
 > location / {  
@@ -192,14 +195,14 @@ Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript).
 Ask the PDKE administrator for the bearer value.  
 
 ### Set up the folder structure
-
-- Make a folder called CCVD in the project's root directory. 
-- In the CCVD directory, make a new folder called CCVD_OUTPUTS.  The structure should be CCVD/CCVD_OUTPUTS. 
-- sudo chmod -R 777 CCVD_OUTPUTS
-- In the CCVD directory, make a new folder called MINI_PPT.  The structure should be CCVD/MINI_PPT.  
-- sudo chmod -R 777 MINI_PPT
-- In the CCVD directory, make a new folder called MINI_Phase2.  The structure should be CCVD/MINI_Phase2.
-- sudo chmod -R 777 MINI_Phase2
+> mkdir /srv/shiny-server/PDKE/CCVD  
+> cd /srv/shiny-server/PDKE/CCVD  
+> mkdir /srv/shiny-server/PDKE/CCVD/CCVD_OUTPUTS  
+> sudo chmod -R 777 CCVD_OUTPUTS  
+> mkdir /srv/shiny-server/PDKE/CCVD/MINI_PPT  
+> sudo chmod -R 777 MINI_PPT  
+> mkdir /srv/shiny-server/PDKE/CCVD/MINI_Phase2  
+> sudo chmod -R 777 MINI_Phase2  
 
 ### Download files from Google Drive (ask Admin for access)
 
