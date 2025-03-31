@@ -208,14 +208,29 @@ Ask the PDKE administrator for the bearer value.
 
 <https://drive.google.com/drive/u/1/folders/1QwQU3ulooAeSRmm6rNC8JMGo22aXdgzN>
 - Download the Shapefiles folder into the PDKESite directory, include the folder so the structure is PDKESite/Shapefiles.
-- In Shapefiles folder, make a folder called SelectedPolygon, so the structure is PDKESite/Shapefiles/SelectedPolygon.
-- In Shapefiles folder, make a folder called UserDefinedPolygon, so the structure is PDKESite/Shapefiles/UserDefinedPolygon.
-- Download the data folder, and it's contents, into the CCVD folder so the structure is CCVD/data.
-- Download the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.
-- Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.
-- Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.
-- sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile 
-- sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results 
+> mv /home/exouser/Downloads/Shapefiles /srv/shiny-server/PDKE/PDKESite/  
+
+- In Shapefiles folder, make a folder called SelectedPolygon, so the structure is PDKESite/Shapefiles/SelectedPolygon.  
+> mkdir /srv/shiny-server/PDKE/PDKESite/Shapefiles/SelectedPolygon  
+
+- In Shapefiles folder, make a folder called UserDefinedPolygon, so the structure is PDKESite/Shapefiles/UserDefinedPolygon.  
+> mkdir /srv/shiny-server/PDKE/PDKESite/Shapefiles/UserDefinedPolygon  
+
+- Download the data folder, and it's contents, into the CCVD folder so the structure is CCVD/data.  
+> mv /home/exouser/Downloads/data /srv/shiny-server/PDKE/CCVD/  
+
+- Download the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.  
+> mv /home/exouser/Downloads/CCVD_INPUTS /srv/shiny-server/PDKE/CCVD/  
+
+- Download the IMAGE folder, and it's contents, into the CCVD folder so the structure is CCVD/IMAGE.  
+> mv /home/exouser/Downloads/IMAGE /srv/shiny-server/PDKE/CCVD/  
+
+- Download the NEW_RF_MAPS folder, and it's contents, into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.  
+> mv /home/exouser/Downloads/NEW_RF_MAPS /srv/shiny-server/PDKE/CCVD/  
+
+- Make links to the Shapefiles and MINI_PPT folders so they can be accessed from the web interface.  
+> sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile   
+> sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results   
 
 ### if on an old jetstream instance that doesn't allow download, need to copy up the files:
 > scp -r /Users/jgeis/PDKE_testing/PDKESite/Shapefiles exouser@149.165.154.114:/srv/shiny-server/PDKE/PDKESite/
