@@ -36,7 +36,7 @@ Note, as of 3/10/2025 we have a new Jetstream VM that we are going to use for se
 CIS240457: AI Agents on Jetstream2 Training for UH
 <https://jetstream2.exosphere.app/exosphere/projects/fa8f488bff214b96baf622f56818cace/regions/IU/overview>
 
-#### Setting up a new instance on Jetstream2:
+### Setting up a new instance on Jetstream2:
 
 - Login to Jetstream2: <https://jetstream2.exosphere.app/exosphere/projects>
 - Use "ACCESS CI (XSEDE)" for identity provider, not "University of Hawaii"
@@ -49,33 +49,30 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 - For “Enable Web Desktop?” Select: “Yes”
 - Create
 - RStudio is installed by default
-> sudo apt-get update
-> sudo apt-get install r-base 
-- RStudio is installed by default 
+> sudo apt-get update  
+> sudo apt-get install r-base  
 - install devtools: 
 > sudo apt install r-cran-devtools  
+- install R packages (I do each one separate so I can see if any fail):
 > sudo R  
+> install.packages("devtools", dep = TRUE)  
 > install.packages("rmarkdown", dep = TRUE)  
 > install.packages("leaflet", dep = TRUE)  
 > install.packages("shiny", dep = TRUE)  
 > install.packages("leaflet.extras", dep = TRUE)  
-> install.packages("sf", dep = TRUE)  
 > install.packages("jsonlite", dep = TRUE)  
 > install.packages("here", dep = TRUE)  
 > install.packages("gstat", dep = TRUE)  
 > install.packages("raster", dep = TRUE)  
 > install.packages("sp", dep = TRUE)   
 > install.packages("maptools", dep = TRUE)  
-> install.packages("rgdal", dep = TRUE)  
 > install.packages("RColorBrewer", dep = TRUE)  
 > install.packages("gridExtra", dep = TRUE)  
 > install.packages("ggplot2", dep = TRUE)  
 > install.packages("grid", dep = TRUE)  
 > install.packages("data.table", dep = TRUE)  
-> install.packages("devtools", dep = TRUE)  
 > install.packages("DescTools", dep = TRUE)  
 > install.packages("lubridate", dep = TRUE)  
-> install.packages("rgeos", dep = TRUE)  
 > install.packages("latticeExtra", dep = TRUE)  
 > install.packages("rasterVis", dep = TRUE)  
 > install.packages("plotrix", dep = TRUE)  
@@ -92,14 +89,12 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 > install.packages("lmomco", dep = TRUE)  
 > install.packages("parallel", dep = TRUE)  
 > install.packages("SPEI", dep = TRUE)  
-> install.packages("sf", dep = TRUE)  
 > install.packages("ggpubr", dep = TRUE)  
 > install.packages("terrainr", dep = TRUE)  
 > install.packages("ggmap", dep = TRUE)  
 > install.packages("ggthemes", dep = TRUE)  
 > install.packages("zoo", dep = TRUE)  
 > install.packages("classInt", dep = TRUE)  
-> install.packages("jsonlite", dep = TRUE)  
 > install.packages("magrittr", dep = TRUE)  
 > install.packages("tidyverse", dep = TRUE)  
 > install.packages("rvg", dep = TRUE)  
@@ -110,16 +105,64 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 > install.packages("mschart", dep = TRUE)  
 > install.packages("purrr", dep = TRUE)  
 > install.packages("pdftools", dep = TRUE)  
-> install.packages("magick", dep = TRUE)  
 > install.packages("httr", dep = TRUE)  
 > install.packages("stringr", dep = TRUE)  
-> install.packages("zip", dep = TRUE)  
+> install.packages("zip", dep = TRUE) 
+
+> install.packages("magick", dep = TRUE)  
 > install.packages("tiff", repos="https://packagemanager.posit.co/cran/2023-10-13", dep = TRUE)  
+
+> install.packages("sf", dep = TRUE)  
+> install.packages("rgdal", dep = TRUE)  
+> install.packages("rgeos", dep = TRUE)  
+
+#### rgdal error
+In file included from OGR_write.cpp:11:
+rgdal.h:15:10: fatal error: sp.h: No such file or directory
+   15 | #include "sp.h"
+
+#### this worked to solve above error and install rgdal
+- find sp.h somewhere on the system:  
+> sudo find / -name sp.h  
+> /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h  
+> /usr/lib/R/site-library/sp/include/sp.h  
+
+download the following and put them in /home/exouser/Downloads:     
+https://cran.r-project.org/src/contrib/Archive/rgdal/    
+https://cran.r-project.org/src/contrib/Archive/rgeos/    
+> sudo R    
+set working directory to where it was downloaded using setwd('/path/to/source/code/downloaded')    
+> setwd('/home/exouser/Downloads')  
+> install.packages("sp")  
+> install.packages("rgdal_1.6-7.tar.gz",  
+>                 repos=NULL,  
+>                 type = 'source',  
+>                 configure.args="--with-proj-include=/software/u22/r/4.4.1-old/lib/R/library/sp/include/")  
+
+#### rgeos error
+In file included from init.c:3:
+rgeos.h:59:10: fatal error: sp.h: No such file or directory
+   59 | #include "sp.h"
+                 
+#### solution
+> apt-file search sp.h  
+> apt-file search sp_xports.c  
+
+> sudo mkdir /usr/local/lib/R/site-library/sp/include  
+> cd /usr/local/lib/R/site-library/sp/include  
+> sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h .  
+> sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp_xports.c .  
+> sudo R  
+> install.packages("rgeos_0.6-4.tar.gz",    
+>           repos=NULL,    
+>           type = 'source')  
+
 
 - install markdown: 
 > sudo su - -c "R -e \"library(devtools); install_github('rstudio/rmarkdown')\""
 - install shiny r package: 
-> sudo su - -c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
+> sudo R   
+> install.packages('shiny', repos='https://cran.rstudio.com/')  
 - install shiny server: <https://posit.co/download/shiny-server/>
 > sudo apt-get install gdebi-core  
 > wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb  
@@ -303,48 +346,9 @@ file locks                          (-x) unlimited
 * hard nproc 65536
 
 
-exouser@pdke:/var/log$ sudo find / -name sp.h
-/software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h
-/usr/lib/R/site-library/sp/include/sp.h
 
-# rgdal error
-In file included from OGR_write.cpp:11:
-rgdal.h:15:10: fatal error: sp.h: No such file or directory
-   15 | #include "sp.h"
 
-# this worked to solve above error and install rgdal
-download:   
-https://cran.r-project.org/src/contrib/Archive/rgdal/  
-https://cran.r-project.org/src/contrib/Archive/rgeos/  
-sudo R  
-set working directory to where it was downloaded using setwd('/path/to/source/code/downloaded')  
-setwd('/home/exouser/Downloads')  
-install.packages("sp")  
-install.packages("rgdal_1.6-7.tar.gz",  
-                 repos=NULL,  
-                 type = 'source',  
-                 configure.args="--with-proj-include=/software/u22/r/4.4.1-old/lib/R/library/sp/include/")  
 
-# rgeos error
-In file included from init.c:3:
-rgeos.h:59:10: fatal error: sp.h: No such file or directory
-   59 | #include "sp.h"
-                 
-# solution
-apt-file search sp.h  
-apt-file search sp_xports.c  
-
-sudo mkdir /usr/local/lib/R/site-library/sp/include  
-cd /usr/local/lib/R/site-library/sp/include  
-sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h .  
-sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp_xports.c .  
-
-downloaded rgeos from https://cran.r-project.org/src/contrib/Archive/rgeos/rgeos_0.6-4.tar.gz and put it in /home/exouser/Downloads  
-
-sudo R  
-install.packages("rgeos_0.6-4.tar.gz",    
-           repos=NULL,    
-           type = 'source')  
            
 ------------
 
@@ -352,3 +356,11 @@ Haleaha_2025_03_28_02_20_21  PDKE:  Frazier et al 2016
 Warning: sf layer has inconsistent datum (+proj=longlat +datum=NAD83 +no_defs).
 Need '+proj=longlat +datum=WGS84'
 
+
+
+
+
+If cairo freetype2 are already installed, check that 'pkg-config' is in your
+PATH and PKG_CONFIG_PATH contains a cairo freetype2.pc file. If pkg-config
+is unavailable you can set INCLUDE_DIR and LIB_DIR manually via:
+R CMD INSTALL --configure-vars='INCLUDE_DIR=... LIB_DIR=...'
