@@ -29,7 +29,7 @@ PROJ_DEBUG = 3
 
 print("In CCVD_portfolio_ppt.R")
 
-BASE_DIR <- paste0(here(), "/") # Gets the project root
+BASE_DIR <- paste0(here()) # Gets the project root
 
 print(paste0("BASE_DIR: ", BASE_DIR))
 
@@ -55,7 +55,7 @@ if (length(args) > 4) {
   SHAPEFILE <- args[5] # the full path to the shapefile containing the shape that caused all this.
 }
 date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", SHAPEFILE)
-PROJECT_WITH_DATE = paste0(SNameF, "_", date_time_str)
+PROJECT_WITH_DATE = paste0(NameF, "_", date_time_str)
 
 debug_print <- function(content) {
   cat(file = stderr(), PROJECT_WITH_DATE, ", PDKE_PT2: ", content, "\n")
@@ -152,7 +152,7 @@ DOFAWimg <- external_img(src = DOFAWfile, height = 1, width = 1)
 DLNRfile <- paste0(I_FOLDER, "DLNR.jpg")
 DLNRimg <- external_img(src = DLNRfile, height = 1, width = 1)
 
-DPlanfile <- paste0(I_FOLDER, "DPlan.png")
+DPlanfile <- paste0(I_FOLDER, "DPlan.PNG")
 DPlanimg <- external_img(src = DPlanfile, height = 1, width = 1)
 
 PIDPfile <- paste0(I_FOLDER, "PIDP.png")
@@ -196,13 +196,13 @@ MODimg <- external_img(src = MODfile, height = 1, width = 1)
 LClegfile <- paste0(I_FOLDER, "LCMAP_legend.jpg")
 LClegimg <- external_img(src = LClegfile, height = 2, width = 1)
 
-Theromfile <- paste0(I_FOLDER, "therom.jpg")
+Theromfile <- paste0(I_FOLDER, "Therom.jpg")
 Theromimg <- external_img(src = Theromfile, height = 1, width = 1)
 
-RAtlasfile <- paste0(I_FOLDER, "RFAtlas.png")
+RAtlasfile <- paste0(I_FOLDER, "RFAtlas.PNG")
 RAtlasimg <- external_img(src = RAtlasfile, height = 1, width = 1)
 
-CoHfile <- paste0(I_FOLDER, "CoH.png")
+CoHfile <- paste0(I_FOLDER, "CoH.PNG")
 CoHmimg <- external_img(src = CoHfile, height = 1, width = 1)
 
 Droughtfile <- paste0(I_FOLDER, "Drought.jpg")
@@ -233,7 +233,7 @@ D_fivefile <- paste0(I_FOLDER, "types_of_drought2.png")
 D_fiveimg <- external_img(src = D_fivefile, height = 1, width = 1)
 
 #media
-D_AGfileM <- paste0(I_FOLDER, "Media1_SPI.MP4")
+D_AGfileM <- paste0(I_FOLDER, "Media1_SPI.mp4")
 D_AGimgM <- external_img(src = D_AGfileM, height = 1, width = 1)
 
 #ahupuaa image
@@ -2055,7 +2055,7 @@ p34 <- p
 S27_TIT <- block_list(
   fpar(ftext("Works Cited", FTXTT), fp_p = fp_par(text.align = "center")))
 
-Worksfile <- paste0(I_FOLDER, "Works2.jpg")
+Worksfile <- paste0(I_FOLDER, "Works2.JPG")
 Worksimg <- external_img(src = Worksfile, height = 1, width = 1)
 
 
@@ -2794,6 +2794,7 @@ create_zip_for_base_name <- function(directory, base_name, zip_file_name) {
   
   # Use regex to match files with the specified base name
   pattern <- paste0("^", base_name, "\\.")
+  debug_print(paste("pattern:", pattern))
   matched_files <- all_files[grepl(pattern, basename(all_files))]
   
   # Print matched files for verification
@@ -2807,7 +2808,8 @@ create_zip_for_base_name <- function(directory, base_name, zip_file_name) {
   
   # Create a unique temporary directory to avoid conflicts
   temp_dir <- file.path(tempdir(), "zip_temp")
-  dir.create(temp_dir, showWarnings = FALSE)
+  dir.create(temp_dir, showWarnings = TRUE, recursive = TRUE)
+  debug_print(paste0(temp_dir, " exists? ", dir.exists()))
   
   # Clear any existing files in the temp directory to avoid any mix-up
   file.remove(list.files(temp_dir, full.names = TRUE))
@@ -2851,13 +2853,13 @@ create_zip_for_base_name(shp_path, PROJECT_WITH_DATE, zip_file_name)
 
 # Define the request body
 # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
-ppt_link = paste0('http://149.165.154.114:3838/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+ppt_link = paste0('http://149.165.174.152/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
 pattern2 <- "(?<=Shapefiles/).*"
 shp_path2 <- str_extract(shp_path, pattern2)
 
 debug_print(paste0("shp_path2: ", shp_path2))
 
-shp_link = paste0('http://149.165.154.114:3838/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
+shp_link = paste0('http://149.165.174.152/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
 req <- list(
   "recepients" = c(email), # add hcdp@hawaii.edu
   "type" = "Info",

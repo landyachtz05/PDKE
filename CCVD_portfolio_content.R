@@ -87,7 +87,7 @@ read_credentials <- function(filepath) {
 ENV_TYPE = "windows"
 PROJ_LIB_IN <- "/usr/share/proj/"
 RSCRIPT_PATH <- "/usr/bin/Rscript"
-BASE_DIR <- paste0(here(), "/") # Gets the project root
+BASE_DIR <- paste0(here()) # Gets the project root
 
 credentials_file <- paste0(BASE_DIR, "/credentials.json")
 creds <- read_credentials(credentials_file)
@@ -778,6 +778,9 @@ png(
 # plot(HALE,add=T,col='blue')
 # plot(CoastM, add=T, border="brown")
 # par(mfrow=c(1,1))
+
+#Coast <- st_transform(Coast, crs = st_crs(MI3))
+#HALE <- st_transform(HALE, crs = st_crs(MI3))
 
 ggplot() +
   # geom_tile(data = dplyr::filter(HSd, !is.na(value)),
@@ -6848,27 +6851,27 @@ if (ENV_TYPE == "linux") {
   debug_print(paste0("runString: ", run_string))
   system(run_string, wait = FALSE)
 }
-else if (ENV_TYPE == "windows") {
-args <- c(
-  MYSCRIPT_PATH,
-  email,
-  file.path(PATH),
-  NM,
-  NM_s,
-  NP_FILE
-)
-
-  print("run ppt")
-result <- processx::run(
-  command = RSCRIPT_PATH,  # The Rscript or other command
-  args = args,            # Arguments as a character vector
-  echo = TRUE
-)
-
-cat(result$stdout)
-if (result$stderr != "") {
-  cat("Error:", result$stderr)
-}
+if (ENV_TYPE == "windows") {
+  args <- c(
+    MYSCRIPT_PATH,
+    email,
+    file.path(PATH),
+    NM,
+    NM_s,
+    NP_FILE
+  )
+  
+    print("run ppt")
+  result <- processx::run(
+    command = RSCRIPT_PATH,  # The Rscript or other command
+    args = args,            # Arguments as a character vector
+    echo = TRUE
+  )
+  
+  cat(result$stdout)
+  if (result$stderr != "") {
+    cat("Error:", result$stderr)
+  }
 }
 
 ### END! ###
