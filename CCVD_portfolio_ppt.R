@@ -91,7 +91,7 @@ debug_print(paste("1,P_FOLDER: ", P_FOLDER))
 #RANL[f]
 
 # VERSION
-ver <- 5.3
+ver <- 5.4
 
 # UNITS
 TUnit = "\u00B0F"
@@ -2809,7 +2809,7 @@ create_zip_for_base_name <- function(directory, base_name, zip_file_name) {
   # Create a unique temporary directory to avoid conflicts
   temp_dir <- file.path(tempdir(), "zip_temp")
   dir.create(temp_dir, showWarnings = TRUE, recursive = TRUE)
-  debug_print(paste0(temp_dir, " exists? ", dir.exists()))
+  debug_print(paste0(temp_dir, " exists? ", dir.exists(temp_dir)))
   
   # Clear any existing files in the temp directory to avoid any mix-up
   file.remove(list.files(temp_dir, full.names = TRUE))

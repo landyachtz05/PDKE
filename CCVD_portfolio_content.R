@@ -27,7 +27,7 @@ library(gstat)
 library(raster)
 library(sp) 
 library(maptools)
-library(rgdal)
+#library(rgdal)
 library(RColorBrewer)
 library(gridExtra)
 library(ggplot2)
@@ -36,7 +36,7 @@ library(data.table)
 library(devtools)
 library(DescTools)
 library(lubridate)
-library(rgeos)
+#library(rgeos)
 library(latticeExtra)
 library(rasterVis)
 library(plotrix)
@@ -197,33 +197,37 @@ debug_print("Coastal Shape Files")
 
 COAST_PATH <- paste0(INPUTS_FOLDER, "COAST/Coast_2/coast_geo_shp.dbf")
 debug_print(paste("1,COAST_PATH", COAST_PATH))
-Coast <- readOGR(COAST_PATH)
+Coast <- st_read(COAST_PATH)
 plot(Coast[which(Coast$COAST_GEO_ == 10), ])
 
-# ALL ISLANDS
-Coast_Crop <- crop(Coast , extent(-160.0, -154.8066, 18.91069, 22.23))
-Coast_Crop_T <- spTransform(Coast_Crop, crs(EXAMP))
+# Define the cropping extent as a bounding box
+bbox <- st_bbox(c(xmin = -160.0, xmax = -154.8066, ymin = 18.91069, ymax = 22.23), crs = st_crs(Coast))
+# Crop the `sf` object
+Coast_Crop <- st_crop(Coast, bbox)
+plot(Coast_Crop)
+
 # BIG ISLAND
-Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 14), ]
-Coast_BI <- spTransform(Coast_Crop, crs(EXAMP))
+Coast_BI <- st_transform(Coast_Crop[which(Coast_Crop$COAST_GEO_ == 14),], st_crs(EXAMP))
+plot(Coast_BI)
+
 # MAUI
-Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 10), ]
-Coast_MN <- spTransform(Coast_Crop, crs(EXAMP))
+Coast_MN <- st_transform(Coast_Crop[which(Coast_Crop$COAST_GEO_ == 10),], st_crs(EXAMP))
+plot(Coast_MN)
+
 #Molokai
-Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 9), ]
-Coast_MO <- spTransform(Coast_Crop, crs(EXAMP))
+Coast_MO <- st_transform(Coast_Crop[which(Coast_Crop$COAST_GEO_ == 9),], st_crs(EXAMP))
+
 #Lanai
-Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 11), ]
-Coast_LA <- spTransform(Coast_Crop, crs(EXAMP))
+Coast_LA <- st_transform(Coast_Crop[which(Coast_Crop$COAST_GEO_ == 11),], st_crs(EXAMP))
+
 #Oahu
-Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 5), ]
-Coast_OA <- spTransform(Coast_Crop, crs(EXAMP))
+Coast_OA <- st_transform(Coast_Crop[which(Coast_Crop$COAST_GEO_ == 5),], st_crs(EXAMP))
+
 #KAUI
-Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 2), ]
-Coast_KA <- spTransform(Coast_Crop, crs(EXAMP))
-#Kahoolawe
-Coast_Crop <- Coast[which(Coast$COAST_GEO_ == 13), ]
-Coast_KO <- spTransform(Coast_Crop, crs(EXAMP))
+Coast_KA <- st_transform(Coast_Crop[which(Coast_Crop$COAST_GEO_ == 2),], st_crs(EXAMP))
+
+#Kahoolawe 
+Coast_KO <- st_transform(Coast_Crop[which(Coast_Crop$COAST_GEO_ == 13),], st_crs(EXAMP))
 
 ############################################################
 
@@ -232,7 +236,7 @@ debug_print(file.exists(NP_FILE))
 
 # this now gets passed in via command line or GUI, do not hard-code
 #NP_ALL <- readOGR("F:/PDKE/CCVD/sites/honouliuli_national_historic_site.shp") 
-NP_ALL <- readOGR(NP_FILE)
+NP_ALL <- st_read(NP_FILE)
 
 # these all get passed in via command line or GUI, do not hard-code
 #HALE <- NP_ALL
@@ -247,72 +251,107 @@ HALE <- NP_ALL
 
 plot(HALE)
 
+# Ensure HALE is a POLYGON and extract coordinates properly
+HALE_df <- HALE %>%
+  st_cast("POLYGON") %>%  # Ensure proper geometry type
+  st_coordinates() %>%    # Extract coordinates
+  as.data.frame() %>%
+  rename(long = X, lat = Y)  # Rename for clarity
+
+# Add group information for ggplot
+HALE_df$group <- HALE_df$L1 
+
 ##########   Calculate area of AOI and buffer if it's too small
 debug_print("Calculate area of AOI and buffer if it's too small")
 
-HALE_planar <- spTransform(HALE, CRS("+proj=utm +zone=4 +datum=WGS84 +units=m +no_defs"))
-HALE_planar$area_m2 <- gArea(HALE_planar, byid = TRUE)
-HALE_planar$area_acres <- HALE_planar$area_m2 / 4046.85642
+# Reproject to UTM Zone 4 (if HALE is an sf object)
+HALE_planar <- st_transform(HALE, crs = "+proj=utm +zone=4 +datum=WGS84 +units=m +no_defs")
+# Calculate area in square meters
+HALE_planar$area_m2 <- st_area(HALE_planar)
+# Convert area to acres
+HALE_planar$area_acres <- as.numeric(HALE_planar$area_m2) / 4046.85642
 HALE_planar$area_acres
 
-if (HALE_planar$area_acres < 100) {
+if (as.numeric(HALE_planar$area_acres) < 100) {
   
-  # Calculate buffer distance for a square buffer of 50 acres
-  desired_area_acres <- 100
-  desired_area_m2 <- desired_area_acres * 4046.85642
+  # Define the target area in square meters
+  desired_area_m2 <- 100 * 4046.85642
+  
+  # Calculate the side length of a square with this area
+  side_length <- sqrt(desired_area_m2)
   
   # Get the centroid of the HALE polygon
-  centroid <- gCentroid(HALE_planar)
+  centroid <- st_centroid(HALE_planar)
   
-  # Convert 50 acres to square meters (1 acre = 4046.85642 m²)
-  buffer_size_m2 <- 100 * 4046.85642
+  # Extract centroid coordinates
+  centroid_coords <- st_coordinates(centroid)
   
-  # Calculate the length of one side of the square
-  side_length <- sqrt(buffer_size_m2)
+  # Create a square polygon around the centroid
+  square_coords <- matrix(c(
+    centroid_coords[1] - side_length / 2, centroid_coords[2] - side_length / 2,
+    centroid_coords[1] + side_length / 2, centroid_coords[2] - side_length / 2,
+    centroid_coords[1] + side_length / 2, centroid_coords[2] + side_length / 2,
+    centroid_coords[1] - side_length / 2, centroid_coords[2] + side_length / 2,
+    centroid_coords[1] - side_length / 2, centroid_coords[2] - side_length / 2 # Close the polygon
+  ), ncol = 2, byrow = TRUE)
   
-  # Create a square around the centroid
-  square_coords <- rbind(
-    c(centroid@coords[1] - side_length / 2, centroid@coords[2] - side_length / 2),
-    c(centroid@coords[1] + side_length / 2, centroid@coords[2] - side_length / 2),
-    c(centroid@coords[1] + side_length / 2, centroid@coords[2] + side_length / 2),
-    c(centroid@coords[1] - side_length / 2, centroid@coords[2] + side_length / 2),
-    c(centroid@coords[1] - side_length / 2, centroid@coords[2] - side_length / 2)  # Closing the polygon
-  )
+  # Convert to an `sf` polygon
+  square_buffer <- st_sfc(st_polygon(list(square_coords)), crs = st_crs(HALE_planar))
   
-  # Create the square polygon
-  square_buffer <- SpatialPolygons(list(Polygons(list(Polygon(square_coords)), ID = "1")))
+  # Convert to sf object
+  square_buffer <- st_sf(geometry = square_buffer)
   
-  # Assign the same projection to the square
-  proj4string(square_buffer) <- CRS("+proj=utm +zone=4 +datum=WGS84 +units=m +no_defs")
-  
+  # Assign the square buffer to HALE
   HALE <- square_buffer
   
-  # Plot the square buffer first
-  plot(square_buffer, col = 'red', border = 'darkred', main = "HALE and Square Buffer")
+  # Plot the square buffer in red
+  plot(st_geometry(square_buffer), col = 'red', border = 'darkred', main = "HALE and Square Buffer")
   
-  # Then plot the HALE polygon on top
-  plot(HALE_planar, col = 'blue', add = TRUE, border = 'darkblue')
+  # Then plot the HALE polygon on top in blue
+  plot(st_geometry(HALE_planar), col = 'blue', border = 'darkblue', add = TRUE)
 }
-
 
 
 ##########   Set island boundary
 debug_print("Set island boundary")
 
-if(ILE_s == "BI") {plot(Coast_BI, main = ILE) + plot(HALE ,add = T, col="red")}
-if(ILE_s == "MN") {plot(Coast_MN, main = ILE) + plot(HALE ,add = T, col="red")}
-if(ILE_s == "MO") {plot(Coast_MO, main = ILE) + plot(HALE ,add = T, col="red")}
-if(ILE_s == "LA") {plot(Coast_LA, main = ILE) + plot(HALE ,add = T, col="red")}
-if(ILE_s == "KO") {plot(Coast_KO, main = ILE) + plot(HALE ,add = T, col="red")}
-if(ILE_s == "OA") {plot(Coast_OA, main = ILE) + plot(HALE ,add = T, col="red")}
-if(ILE_s == "KA") {plot(Coast_KA, main = ILE) + plot(HALE ,add = T, col="red")}
+# Set island boundary and plot the corresponding coast
+if (ILE_s == "BI") { 
+  plot(st_geometry(Coast_BI), main = ILE)  # Plot the island boundary
+  plot(st_geometry(HALE), add = TRUE, col = "red")  # Overlay HALE geometry
+} 
+if (ILE_s == "MN") { 
+  plot(st_geometry(Coast_MN), main = ILE)
+  plot(st_geometry(HALE), add = TRUE, col = "red")  
+} 
+if (ILE_s == "MO") { 
+  plot(st_geometry(Coast_MO), main = ILE)
+  plot(st_geometry(HALE), add = TRUE, col = "red")  
+} 
+if (ILE_s == "LA") { 
+  plot(st_geometry(Coast_LA), main = ILE)
+  plot(st_geometry(HALE), add = TRUE, col = "red")  
+} 
+if (ILE_s == "KO") { 
+  plot(st_geometry(Coast_KO), main = ILE)
+  plot(st_geometry(HALE), add = TRUE, col = "red")  
+} 
+if (ILE_s == "OA") { 
+  plot(st_geometry(Coast_OA), main = ILE)
+  plot(st_geometry(HALE), add = TRUE, col = "red")  
+} 
+if (ILE_s == "KA") { 
+  plot(st_geometry(Coast_KA), main = ILE)
+  plot(st_geometry(HALE), add = TRUE, col = "red")  
+}
 
 ##################################################
 ##########   Define Units
 debug_print("Define Units")
 
 ##########   Assign AOI shapefile coordinates
-HALE <- spTransform(HALE, crs(EXAMP))
+HALE <- st_transform(HALE, crs = crs(EXAMP))
+HALE <- as_Spatial(HALE)
 
 ##########   SHAPE FILES FOR ANALYSIS
 UNIT_X <-   c(HALE, HALE)
@@ -418,9 +457,8 @@ u <- 1
 #FIRE_Shape <- readOGR(paste0(INPUTS_FOLDER,"StateFire_1999/fires_1999_2022/fires_1999_2022.shp"))
 FIRE_Shape_File <- paste0(INPUTS_FOLDER, "StateFire_1999/fires_1999_2022/fires_1999_2022.shp")
 debug_print(paste("17,FIRE_Shape_File", FIRE_Shape_File))
-FIRE_Shape <- readOGR(FIRE_Shape_File)
-FIRE_Shape_T <- spTransform(FIRE_Shape, crs(EXAMP))
-crs(FIRE_Shape_T) <- CRS(proj4string(EXAMP))
+FIRE_Shape <- st_read(FIRE_Shape_File)
+FIRE_Shape_T <- st_transform(FIRE_Shape, st_crs(EXAMP))
 # Fire_Mask <- mask(x = FIRE_Shape_T, mask = UNIT_X[[u]])
 # Fire_Crop <- crop(x = FIRE_Shape_T, y = extent(UNIT_X[[u]]))
 
@@ -438,17 +476,9 @@ debug_print(paste0("22.2, INPUTS_FOLDER: ", INPUTS_FOLDER))
 #F_Roads <- readOGR(paste0(INPUTS_FOLDER, "Forestry Roads/Forestry_Roads.shp"))
 F_Roads_File <- paste0(INPUTS_FOLDER, "Forestry Roads/Forestry_Roads.shp")
 debug_print(paste("23,F_Roads_File", F_Roads_File))
-F_Roads <- readOGR(F_Roads_File)
-F_Roads <- spTransform(F_Roads, crs(EXAMP))
-plot(F_Roads)
-
-##########   Trail Inventory
-# I_Trails <- readOGR(paste0(INPUTS_FOLDER,"Inventory Trails/InventoryTrails.shp"))
-I_Trails_File <- paste0(INPUTS_FOLDER, "Inventory Trails/InventoryTrails.shp")
-debug_print(paste("24,I_Trails_File", I_Trails_File))
-I_Trails <- readOGR(I_Trails_File)
-I_Trails <- spTransform(I_Trails, crs(EXAMP))
-plot(I_Trails)
+F_Roads <- st_read(F_Roads_File)
+F_Roads <- st_transform(F_Roads, st_crs(EXAMP))
+plot(F_Roads[1])
 
 ##########   Digital Elevation Model
 
@@ -467,11 +497,6 @@ crs(ELEV) <- "+proj=longlat +datum=WGS84 +no_defs"
 ##########  Hillshade
 HS <- raster(paste0(INPUTS_FOLDER, "hawaii_hillshade.tif"))
 crs(HS) <- "+proj=longlat +datum=WGS84 +no_defs"
-# plot(HS)
-
-# # convert to dataframe for plotting
-# HSd<-as.data.frame(HS, xy=T)
-# HSd<-na.omit(HSd)
 
 ##########  Landcover
 
@@ -483,31 +508,28 @@ LC2 = dir(
 )
 LC <- raster(LC2)
 crs(LC) <- "+proj=longlat +datum=WGS84 +no_defs"
-# plot(LC)
 
 ##########  Moku and Ahupuaa
 debug_print("Moku and Ahupuaa")
 
-MOKU = readOGR(paste0(INPUTS_FOLDER, "Moku.shp"))
-MOKU <- spTransform(MOKU, crs(EXAMP))
-# plot(MOKU)
+MOKU_file <- paste0(INPUTS_FOLDER, "Moku.shp")
+debug_print(paste0("MOKU_file: ", MOKU_file))
+MOKU <- st_read(MOKU_file) %>%
+  st_transform(st_crs(EXAMP))
 
 AHU_file <- paste0(INPUTS_FOLDER, "Ahupuaa3.shp")
 debug_print(paste0("AHU_file: ", AHU_file))
-AHU <- readOGR(AHU_file)
-AHU <- spTransform(AHU, crs(EXAMP))
-# plot(AHU)
+AHU <- st_read(AHU_file) %>%
+  st_transform(st_crs(EXAMP))
 
 ##########  Streams and Aquifers
 debug_print("Streams and Aquifers")
 
-STRM = readOGR(paste0(INPUTS_FOLDER, "NHD_H_Hawaii_State_Shape/NHD_Flowlines2.shp"))
-STRM <- spTransform(STRM, crs(EXAMP))
-STRM
+STRM <- st_read(paste0(INPUTS_FOLDER, "NHD_H_Hawaii_State_Shape/NHD_Flowlines2.shp")) %>%
+  st_transform(st_crs(EXAMP))
 
-AQU <- readOGR(paste0(INPUTS_FOLDER, "Aquifers/DOH_Aquifers_type_status.shp"))
-AQU <- spTransform(AQU, crs(EXAMP))
-AQU
+AQU <- st_read(paste0(INPUTS_FOLDER, "Aquifers/DOH_Aquifers_type_status.shp")) %>%
+  st_transform(st_crs(EXAMP))
 
 ##########  Downscaling
 debug_print("Downscaling")
@@ -601,8 +623,9 @@ debug_print(paste("29, PATH:", PATH))
 dir.create(PATH, showWarnings = TRUE, recursive = FALSE)
 debug_print(paste("29, PATH_WITH_PROJECT_NAME:", PATH_WITH_PROJECT_NAME))
 
-IS <- UNIT_I[u]       # Island
-SH <- UNIT_X[[u]]     # Shape File
+IS <- UNIT_I[1]       # Island
+HALE<-st_as_sf(HALE)
+SH <- HALE     # Shape File
 
 ##########   Export AOI shapefile
 
@@ -625,38 +648,24 @@ if(IS == "KA") {CoastM <- Coast_KA; Iname <- "Kauai"}
 if(IS == "KO") {CoastM <- Coast_KO; Iname <- "Kahoolawe"}
 if(IS == "ALL") {CoastM <- Coast_Crop_T; Iname <- "Hawaiian Islands"}
 
-# #########   Get terrain basemap for each island and whole state
-# if(IS == "BI") {mapBound <- c(-156.673, 18.839, -154.339, 20.343)}
-# if(IS == "MN") {mapBound <- c(-156.867, 20.457, -155.851, 21.121)}
-# if(IS == "MO") {mapBound <- c(-157.367, 20.916, -156.666, 21.373)}
-# if(IS == "LA") {mapBound <- c(-157.146, 20.688, -156.713, 20.968)}
-# if(IS == "OA") {mapBound <- c(-158.387, 21.195, -157.525, 21.765)}
-# if(IS == "KA") {mapBound <- c(-159.938, 21.776, -159.077, 22.357)}
-# if(IS == "KO") {mapBound <- c(-156.792, 20.431, -156.423, 20.673)}
-#
-# basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype="terrain")
-
-# # get extent of state-wide map
-# # Stamen map coverage was reduced for Hawaii region start October 2023...
-# sxmin<-extent(Coast_Crop_T)[1]
-# sxmax<-extent(Coast_Crop_T)[2]
-# symin<-extent(Coast_Crop_T)[3]
-# symax<-extent(Coast_Crop_T)[4]
-# mapBound_s <- c((sxmin*1.001),(symin*0.99),(sxmax*0.999),(symax*1.005))
-# mapBound_s
-#
-# basemap_state<-ggmap::get_stamenmap(bbox=mapBound_s, zoom = 8, maptype = "terrain-background")
-# ggmap::ggmap(basemap_state)
-
 ##########   GET Central Latitude and Longitude for shapefile
 
-Xmin <- extent(SH)[1]
-Xmax <- extent(SH)[2]
-ymin <- extent(SH)[3]
-ymax <- extent(SH)[4]
+# Ensure CoastM is a POLYGON and extract coordinates properly
+CoastM_df <- CoastM %>%
+  st_cast("POLYGON") %>%  # Ensure proper geometry
+  st_coordinates() %>%    # Extract coordinates
+  as.data.frame() %>% 
+  rename(long = X, lat = Y)  # Rename columns for plotting
 
-LONG <- round(mean(Xmin, Xmax), 3)
-LAT <- round(mean(ymin, ymax), 3)
+# Add group information for ggplot
+CoastM_df$group <- CoastM_df$L1  
+
+SH_sf <- st_as_sf(SH)
+SH_sf$geometry
+
+SH_centroid <- st_centroid(SH_sf$geometry)
+LAT <- st_coordinates(SH_centroid)[,2]  # Y coordinate (latitude)
+LONG <- st_coordinates(SH_centroid)[,1] # X coordinate (longitude)
 
 
 ##########   Make a Plot of Shapefile with Island Coast and LAT and LON
@@ -701,69 +710,42 @@ png(
 )
 
 ggplot() +
-  geom_polygon(data = Coast, aes(x=long,y=lat,group=group), col="black", fill="aliceblue", size= 0.5) +
-  geom_polygon(data = CoastM, aes(x=long,y=lat,group=group), col="brown", fill=NA, size = 0.5) +
-  geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 0.25) +
-  coord_fixed() +
-  theme_void()
+  geom_sf(data = Coast, fill = "aliceblue", color = "black", linewidth = 0.3) +  # Thicker outline for Coast
+  geom_sf(data = CoastM, fill = "aliceblue", color = "brown", linewidth = 0.3) + # Thicker outline for CoastM
+  geom_sf(data = HALE, fill = "aliceblue", color = "blue", linewidth = 0.5) +       # HALE in blue
+  theme_void() +  # Remove all background (gridlines, axes, etc.)
+  theme(legend.position = "none")  # Hide the legend if not needed
 
 dev.off()
-
-# par(mfrow=c(1,1))
-# plot(Coast_Crop_T, lwd=1,lty = "solid",axes=F,las=2)
-# plot(HALE,add=T,col='blue')
-# plot(CoastM, add=T, border="brown")
 
 ############# plot Moku
 debug_print("33, Plot Moku")
 
-# find which moku the study area is in
-# MI<-as.data.frame(gIntersects(MOKU,HALE,byid=T))
-# MI
-# MI2<-as.data.frame(colnames(MI[which(MI == TRUE)]))
-# colnames(MI2)<-c("objectID")
+# Ensure MOKU and HALE have the same CRS
+HALE <- st_transform(HALE, st_crs(MOKU))
 
-MIt <- as.data.frame(raster::intersect(MOKU, HALE))
-MI2 <- data.frame(MIt$objectid)
-MI2
-colnames(MI2) <- "ObjectID"
+# Perform the intersection using sf
+MIt <- st_intersection(MOKU, HALE)
 
-
-# # add 1 to the objectID's because they're off by 1...
-# MI2$objectID<-as.numeric(MI2$objectID) + 1
-# MI2
-#
-# # iterate through moku objectID's to make a list of them
-# r2<-c()
-# for (i in 1:nrow(MI2)) {
-#
-#   m<-MI2$objectID[i]
-#   r<-c(m)
-#   r2<-c(r2,r)
-# }
-# r2
+MI2<-data.frame(MIt$objectid)
+colnames(MI2)<-"ObjectID"
 
 # subset moku for study area
-MI3 <- MOKU[MI2$ObjectID, ]
-plot(MI3)
+MI3<-MOKU[MI2$ObjectID,]
 
 # get subsetted moku as a dataframe for text labels
-MId <- as(MI3, "data.frame")
+MId <- st_drop_geometry(MI3)
 write.csv(data.frame(MId),
   paste0(PATH_WITH_PROJECT_NAME, "Moku.csv"),
   row.names = F
 )
 
-# # get basemap at moku extent
-# mapBound <- c(xmin(MI3), ymin(MI3), xmax(MI3), ymax(MI3))
-# basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype = "terrain")
-# dpi=300
+bbox <- st_bbox(MI3)  # Get bounding box
 
-# get extent of Moku
-xm <- xmin(MI3)
-xma <- xmax(MI3)
-ym <- ymin(MI3) * 0.999
-yma <- ymax(MI3) * 1.0001
+xm <- bbox["xmin"]
+xma <- bbox["xmax"]
+ym <- bbox["ymin"] * 0.999
+yma <- bbox["ymax"] * 1.0001
 
 # make map
 png(
@@ -773,24 +755,13 @@ png(
   res = dpi
 )
 
-# par(mfrow=c(1,1))
-# plot(Coast_Crop_T, lwd=1,lty = "solid",axes=F,las=2)
-# plot(HALE,add=T,col='blue')
-# plot(CoastM, add=T, border="brown")
-# par(mfrow=c(1,1))
-
-#Coast <- st_transform(Coast, crs = st_crs(MI3))
-#HALE <- st_transform(HALE, crs = st_crs(MI3))
-
 ggplot() +
-  # geom_tile(data = dplyr::filter(HSd, !is.na(value)),
-  #           aes(x=x, y=y, fill=value), show.legend = F) +
-  # scale_fill_gradient("Elevation", low = "black", high="white", na.value = 0) +
-  geom_polygon(data = Coast, aes(x=long,y=lat,group=group), col="black", fill="aliceblue", alpha = 50, size= 1) +
-  geom_polygon(data = MI3, aes(x=long,y=lat,group=group), col="brown", fill=NA, size = 1) +
-  geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
-  geom_text(data = MId, aes(label = moku, x=cent_long, y=cent_lat), colour = "brown", size = 4, fontface = "bold") +
-  coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
+  geom_sf(data = Coast, col = "black", fill = "aliceblue", alpha = 0.5, linewidth = 1) +
+  geom_sf(data = MI3, col = "brown", fill = NA, linewidth = 1) +
+  geom_sf(data = HALE, col = "blue", fill = NA, linewidth = 1) +
+  geom_text(data = MId, aes(label = moku, x = cent_long, y = cent_lat), 
+            colour = "brown", size = 4, fontface = "bold") +
+  coord_sf(xlim = c(xm, xma), ylim = c(ym, yma)) +
   theme_void()
 
 dev.off()
@@ -799,47 +770,39 @@ dev.off()
 
 debug_print("34, Plot Ahupuaa")
 
-# Clip ahupuaa polygons to HALE polygons (removes all attribute data, use objectid 
-# to re-assign attribute data afterwards)
-# AI<-gIntersection(AHU, HALE, byid=T, id = as.character(AHU$objectid))
-# plot(AI)
-plot(HALE)
-plot(AHU)
-AIt<-as.data.frame(raster::intersect(AHU,HALE))
+# Ensure MOKU and HALE have the same CRS
+HALE <- st_transform(HALE, st_crs(AHU))
+
+# Perform the intersection using sf
+AIt <- st_intersection(AHU, HALE)
 AI2<-data.frame(AIt$objectid)
 AI2
 colnames(AI2)<-"ObjectID"
 
 # subset ahupuaa for study area
 AI3<-AHU[AI2$ObjectID,]
-plot(HALE, col = "red")
-plot(AI3, add=T)
 
 # clip polygons and calculate areas
 AI3_sf<-st_as_sf(AI3)
 HALE_sf<-st_as_sf(HALE)
-HALE_sf_validated <- st_make_valid(HALE_sf)
-HALE_area_m <- st_area(HALE_sf_validated)  # Total area of HALE in square meters
+HALE_area_m <- st_area(HALE_sf)  # Total area of HALE in square meters
 
-AI3_clipped <- st_intersection(AI3_sf, HALE_sf_validated)
-plot(AI3_clipped[2])
-
+AI3_clipped <- st_intersection(AI3_sf, HALE_sf)
 AI3_clipped$area_m <- st_area(AI3_clipped)
-AI3_clipped
 
 # get subsetted ahupuaa as a dataframe for text labels
 AId<-as.data.frame(AI3_clipped)
-AId
 
 AI3_clipped_df <- st_drop_geometry(AI3_clipped)
 
 write.csv(data.frame(AI3_clipped_df), paste0(PATH_WITH_PROJECT_NAME, "Ahupuaa.csv"),row.names = F)
 
-# get extent of Ahupuaa
-xm<-xmin(AI3)
-xma<-xmax(AI3)
-ym<-ymin(AI3)*0.999
-yma<-ymax(AI3)*1.0001
+bbox <- st_bbox(AI3)  # Get bounding box
+
+xm <- bbox["xmin"]
+xma <- bbox["xmax"]
+ym <- bbox["ymin"] * 0.999
+yma <- bbox["ymax"] * 1.0001
 
 dpi=300
 
@@ -852,11 +815,12 @@ png(
 )
 
 ggplot() +
-  geom_polygon(data = Coast, aes(x=long,y=lat,group=group), col="black", fill="aliceblue", alpha = 50, size= 1) +
-  geom_polygon(data = AI3, aes(x=long,y=lat,group=group), col="brown", fill=NA, size = 1) +
-  geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
-  geom_text(data = AId, aes(label = ahupuaa2, x=cent_long, y=cent_lat), size = 4, fontface = "bold") +
-  coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
+  geom_sf(data = Coast, col = "black", fill = "aliceblue", alpha = 0.5, linewidth = 1) +
+  geom_sf(data = AI3, col = "brown", fill = NA, linewidth = 1) +
+  geom_sf(data = HALE, col = "blue", fill = NA, linewidth = 1) +
+  geom_text(data = AId, aes(label = moku, x = cent_long, y = cent_lat), 
+            colour = "black", size = 4, fontface = "bold") +
+  coord_sf(xlim = c(xm, xma), ylim = c(ym, yma)) +
   theme_void()
 
 dev.off()
@@ -878,14 +842,31 @@ png(
 )
 
 par(mfrow=c(1,1))
-plot(CoastM,lwd=1,lty = "solid",axes=F,las=2)
-title(TITF , line = 0.5,cex.main = 1.5)
-plot(SH,add=TRUE,lwd=2,col="cyan")
+
+SH_df <- data.frame(
+  objectid = SH$objectid,
+  watershed_ = SH$watershed_,
+  name = SH$name,
+  lat = SH$lat,
+  long = SH$long,
+  st_areasha = SH$st_areasha,
+  st_perimet = SH$st_perimet
+)
+
+plot(st_geometry(CoastM), lwd = 1, lty = "solid", axes = FALSE, las = 2)
+title(TITF, line = 0.5, cex.main = 1.5)
+plot(st_geometry(SH_sf), add = TRUE, lwd = 2, col = "cyan")
 plot(FIRE_CropI,add=TRUE,col="darkred")
 
-
-legend("topright", legend = c("Fire Occurrence",UNIT_Ns[[u]]), pch=c(15,15),col=c("darkred","cyan"),
-  bty = "n", horiz = FALSE, inset = c(0.05, 0.05),cex=0.8)
+legend("topright", 
+       legend = c("Fire Occurrence", UNIT_Ns[[u]]), 
+       pch = c(20, 20), 
+       col = c("darkred", "cyan"),
+       bty = "n", 
+       horiz = FALSE, 
+       inset = c(-0.08, -0.08), 
+       cex = 0.8,          # Adjust text size
+       pt.cex = 2)         # Adjust symbol size (increase to make bigger)
 
 dev.off()
 
@@ -898,7 +879,6 @@ HSmoku <- mask(x = HS, mask = CoastM)
 HSmoku <- crop(x = HS, y = extent(CoastM))
 HSmoku[HSmoku == 0] <- NA
 
-# use this function I found online (https://stackoverflow.com/questions/47116217/overlay-raster-layer-on-map-in-ggplot2-in-r)
 gplot_data <- function(x, maxpixels = ncell(x))  {
   x <- raster::sampleRegular(x, maxpixels, asRaster = TRUE)
   coords <- raster::xyFromCell(x, seq_len(raster::ncell(x)))
@@ -917,67 +897,26 @@ gplot_data <- function(x, maxpixels = ncell(x))  {
 
 HSd <- gplot_data(HSmoku)
 
-# get extent of AOI
-xm <- xmin(HALE)
-xma <- xmax(HALE)
-ym <- ymin(HALE) * 0.9999
-yma <- ymax(HALE) * 1.0001
-#
-# # separate fire risk categories
-# FR1<-FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "101"),]
-# FR2<-FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "102"),]
-# FR3<-FRISK_Shape_T[which(FRISK_Shape_T$gridcode == "103"),]
-#
-# png(paste0(OUTPUTS_FOLDER,UNIT_N[u],"/",UNIT_N[u]," FireRisk.png"),width=5*dpi,height=5*dpi,res=dpi)
-#
-# par(mfrow=c(1,1))
-# ggplot() +
-#   geom_tile(data = dplyr::filter(HSd, !is.na(value)),
-#             aes(x=x, y=y, fill=value), show.legend = F) +
-#   scale_fill_gradient("Elevation", low = "black", high="white", na.value = 0) +
-#   geom_polygon(data = FR1, aes(x=long,y=lat, group=group), fill="yellow") +
-#   geom_polygon(data = FR2, aes(x=long,y=lat, group=group), fill="orange") +
-#   geom_polygon(data = FR3, aes(x=long,y=lat, group=group), fill="red") +
-#   geom_polygon(data = Coast, aes(x=long,y=lat,group=group), col="black", fill=NA, size = 1) +
-#   geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
-#
-#   coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
-#   theme_void()
-#
-# dev.off()
+bbox <- st_bbox(HALE)  # Get bounding box
 
-
-
-# par(mfrow=c(1,1))
-# ggplot() +
-#   geom_tile(data = dplyr::filter(HSd, !is.na(value)),
-#             aes(x=x, y=y, fill=value), show.legend = F) +
-#   scale_fill_gradient("Elevation", low = "black", high="white", na.value = 0) +
-#   geom_polygon(data = Coast, aes(x=long, y=lat, group=group),fill=NA,col="black",size=0.5) +
-#   geom_path(data = STRMi, aes(x=long,y=lat, group=group),col="deepskyblue1",size=1) +
-#   geom_path(data = STRMp, aes(x=long,y=lat,group=group),col="darkblue", size=1) +
-#   geom_path(data = STRMa, aes(x=long,y=lat, group=group),col="green",size=1) +
-#   geom_path(data = STRMc, aes(x=long,y=lat, group=group),col="orange",size=1) +
-#   geom_path(data = STRMpi, aes(x=long,y=lat, group=group),col="lightgrey",size=1) +
-#   geom_path(data = STRMco, aes(x=long,y=lat, group=group),col="yellow",size=1) +
-#   geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
-#   coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
-#   theme_void()
-#
-# dev.off()
+xm <- bbox["xmin"]
+xma <- bbox["xmax"]
+ym <- bbox["ymin"] * 0.999
+yma <- bbox["ymax"] * 1.0001
 
 ########### Elevation Extract and Map
 
 debug_print("36, Elevation")
 
-plot(CoastM)
 ELEV_MaskI <- mask(x = ELEV, mask = CoastM)
-plot(ELEV_MaskI)
 ELEV_CropI <- crop(x = ELEV_MaskI, y = extent(CoastM))
 
-#Mask For Geography
-ELEV_Mask <- mask(x = ELEV, mask = UNIT_X[[u]])
-ELEV_Crop <- crop(x = ELEV_Mask, y = extent(UNIT_X[[u]]))
+ELEV_Mask <- mask(x = ELEV, mask = HALE)
+
+# Crop the masked raster to the extent of the polygon UNIT_X[[u]]
+ELEV_Crop <- crop(x = ELEV_Mask, y = extent(HALE))
+
+# Calculate statistics (mean, max, and min) of the cropped raster
 ELEV_Mean <- round(cellStats(ELEV_Crop, 'mean'), 1)
 ELEV_Max <- round(cellStats(ELEV_Crop, 'max'), 1)
 ELEV_Min <- round(cellStats(ELEV_Crop, 'min'), 1)
@@ -995,7 +934,12 @@ Cell.DataCLR
 #BI_brksRH<-round(seq(RHLO, RHUP, length = 9),0)
 colfuncEL <- colorRampPalette(brewer.pal(9, "PuBuGn"))(100)
 
-SHAPE <- UNIT_X[[u]]
+# Load your raster (ELEV_CropI) and convert to a data frame
+elev_df <- as.data.frame(ELEV_CropI, xy = TRUE, na.rm = TRUE)
+
+# Convert the CoastM and HALE to sf objects if they aren't already
+CoastM_sf <- st_as_sf(CoastM)
+HALE_sf <- st_as_sf(HALE)
 
 debug_print(paste0("ELMap: ", PATH_WITH_PROJECT_NAME, "ELMap.png"))
 png(
@@ -1005,12 +949,22 @@ png(
   res = dpi
 )
 
-print(spplot(ELEV_CropI, col.regions = colfuncEL, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,
-  main=list(label=paste0("Elevation"," ",Iname," (",ELUnit2,")"),cex=0.8),
-  colorkey = list(space = "right", height = 1, labels=list(cex=0.6)))+
-    layer(sp.polygons(SHAPE,lwd=2)) +
-    layer(sp.polygons(CoastM,lwd=1)))
+ggplot() +
+  # Plot the elevation raster
+  geom_raster(data = elev_df, aes(x = x, y = y, fill = ned_dem)) +
+  scale_fill_gradientn(colors = colfuncEL, name = "Elev. (ft.)") +  # Use color ramp for elevation
+  # Plot the CoastM polygon layer
+  geom_sf(data = CoastM_sf, fill = NA, color = "black", size = 0.8) +
+  geom_sf(data = HALE_sf, fill = NA, color = "darkred", linewidth = 1) +
+  coord_sf() +  # Use coord_sf() to handle spatial data
+  theme_minimal() +
+  theme(legend.position = "right") +
+  labs(title = paste0("Elevation"," ",Iname," (",ELUnit2,")")) +
+  theme(axis.text = element_text(size = 8), 
+        axis.title = element_text(size = 10),
+        plot.title = element_text(hjust = 0.5, size = 14),
+        axis.title.x = element_blank(),  # Remove x-axis title
+        axis.title.y = element_blank())  # Remove y-axis title
 
 dev.off()
 
@@ -1019,15 +973,10 @@ debug_print("37, Landcover")
 
 LC_MaskI <- mask(x = LC, mask = CoastM)
 LC_CropI <- crop(x = LC_MaskI, y = extent(CoastM))
-LC_MaskI
-plot(LC)
-plot(CoastM)
 
 #Mask For Geography
-LC_Mask <- mask(x = LC, mask = UNIT_X[[u]])
-LC_Crop <- crop(x = LC_Mask, y = extent(UNIT_X[[u]]))
-
-plot(LC_Crop)
+LC_Mask <- mask(x = LC, mask = HALE)
+LC_Crop <- crop(x = LC_Mask, y = extent(HALE))
 
 #Convert raster to dataframe for stats
 LC_Crop2 <- as.data.frame(LC_Crop, xy = T)
@@ -1118,20 +1067,7 @@ print(ggplot(LC_ct2, aes(x=class_name, y=acres, fill=class_name)) +
 
 dev.off()
 
-#
-# Cell.DataCL[u,14:16] <- c(LC1,LC2,LC3)
-# Cell.DataCLR[1,12:14] <- c(LC1,LC2,LC3)
-
-SHAPE <- UNIT_X[[u]]
-
-### remove "0" values from raster
-LC_CropI2 <- reclassify(LC_CropI, cbind(0, NA))
-summary(LC_CropI2)
-
 # export map
-TITF <- paste0("Landcover", " ", Iname)
-
-dpi = 300
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "LCMap.png"),
@@ -1140,13 +1076,17 @@ png(
   res = dpi
 )
 
-par(mar=c(1,1,2,0.5))
-plot(LC_CropI2, legend=F, col=c("black","darkgoldenrod1","darkolivegreen1","darkgreen",
-  "aquamarine","blue","chocolate4"),
-  xaxt='n', yaxt='n')
-plot(CoastM, add=T)
-plot(SHAPE, lwd=1, border="red", lwd=2, add=T)
-title(TITF , line = 0.5,cex.main = 1.5)
+# Define land cover values and their corresponding colors
+landcover_values <- c(1, 2, 3, 4, 5, 6, 8)
+landcover_colors <- c("black", "darkgoldenrod1", "darkolivegreen1", 
+                      "darkgreen", "blue", "aquamarine", "chocolate4")
+
+# Ensure correct color assignment by explicitly setting the breaks and labels
+plot(LC_CropI, col=landcover_colors, breaks=c(0, landcover_values), 
+     legend=FALSE, xaxt="n", yaxt="n", bty="n")
+plot(st_geometry(CoastM), add=TRUE, border="black", col=NA, lwd=1)
+plot(st_geometry(HALE), add=TRUE, border="red", col=NA, lwd=2)
+title(main=paste0("Landcover", " ", Iname))
 
 dev.off()
 
@@ -1156,37 +1096,32 @@ dev.off()
 debug_print("38, Water Sources")
 
 ### Aquifers
-# AQ1<-as.data.frame(gIntersects(AQU, HALE, byid=T))
-# AQ2<-as.data.frame(colnames(AQ1[which(AQ1 == TRUE)]))
-# colnames(AQ2)<-c("objectID")
-# head(AQ2)
 
-AIt <- as.data.frame(raster::intersect(AQU, HALE))
-AI2 <- data.frame(AIt$objectid)
-colnames(AI2) <- "ObjectID"
+# Ensure MOKU and AQU have the same CRS
+HALE <- st_transform(HALE, st_crs(AQU))
+
+# Perform the intersection using sf
+AIt <- st_intersection(AQU, HALE[1])
+AI2<-data.frame(AIt$objectid)
+colnames(AI2)<-"ObjectID"
+
+AIi <- st_intersection(AQU, CoastM)
+AIi <- AIi[35]
+AIi <- st_cast(AIi, "POLYGON")
+
+# subset aquifers for study area
+AI3<-AI2[AI2$ObjectID,]
 
 # subset aquifers for study area
 AQ3 <- AQU[AI2$ObjectID, ]
-plot(AQ3)
-plot(HALE, add = T)
-
-
-AQ3 <- raster::intersect(AQU, HALE)
-plot(AQ3)
-AQ3
 
 # clip polygons and calculate centroid coordinates
-AQ3_sf <- st_as_sf(AQ3)
+AQ3_sf<-st_as_sf(AIt)
+AQ3_clipped<-AQ3_sf
 
-AQ3_clipped <- st_intersection(AQ3_sf, HALE_sf_validated)
-plot(AQ3_clipped[2])
-AQ3_clipped
+AQ3_clipped <- st_make_valid(AQ3_clipped)
 
-# I added the following line because it was getting an error "Loop 0 is not valid: Edge 257 is degenerate (duplicate vertex)"
-AQ3_validated <- st_make_valid(AQ3_clipped) # Fixes self-intersections and other issues
-AQ3_centroids <- st_centroid(AQ3_validated)
-#print(AQ3_centroids)
-
+AQ3_centroids <- st_centroid(AQ3_clipped)
 
 # Extract latitude and longitude from centroids
 centroid_coords <- st_coordinates(AQ3_centroids)
@@ -1196,16 +1131,19 @@ AQ3_clipped <- AQ3_clipped %>%
     cent_lat = centroid_coords[, 2]
   )
 
+# I added the following line because it was getting an error "Loop 0 is not valid: Edge 257 is degenerate (duplicate vertex)"
+AQ3_validated <- st_make_valid(AQ3_clipped) # Fixes self-intersections and other issues
+AQ3_centroids <- st_centroid(AQ3_validated)
+
 # subset for hydrology
-AQb <- AQ3[which(AQ3$typea1 == 1), ]
-AQh <- AQ3[which(AQ3$typea1 == 2), ]
+AQb<-AIt[which(AIt$typea1 == 1),]
+AQh<-AIt[which(AIt$typea1 == 2),]  
 
 # make data frame and only keep relevant columns
 # AQd<-as.data.frame(AQ3_clipped)
-AQd <- as.data.frame(AQ3)
-AQd <- as.data.frame(AQ3_clipped)
+AQd<-as.data.frame(AIt)
+AQd<-as.data.frame(AQ3_clipped)
 AQd<-subset(AQd, select = c("objectid","doh_aquife","typea1","typea3","stata1","strata3","cent_lat","cent_long"))
-AQd
 
 # translate type and status codes to text
 AQd$Hydrology <- NA
@@ -1234,27 +1172,23 @@ for (i in 1:nrow(AQd)) {
   
 }
 
-AQd
-
 # trim it down to the final table
 AQe<-subset(AQd, select = c("doh_aquife", "Hydrology", "Geology", "Salinity", "Use"))
 colnames(AQe)[1] = "DOH Aquifer"
-AQe
 write.csv(
   data.frame(AQe),
   paste0(PATH_WITH_PROJECT_NAME, "Aquifer.csv"),
   row.names = F
 )
 
-# get extent of Aquifers
-xm <- xmin(AQ3)
-xma <- xmax(AQ3)
-ym <- ymin(AQ3) * 0.999
-yma <- ymax(AQ3) * 1.0001
+bbox <- st_bbox(HALE)  # Get bounding box
+
+xm <- bbox["xmin"] * 0.9995
+xma <- bbox["xmax"] *1.0005
+ym <- bbox["ymin"] * 0.999
+yma <- bbox["ymax"] * 1.001
 
 # make map
-dpi = 300
-
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Aquifers.png"),
   width = 4 * dpi,
@@ -1263,95 +1197,64 @@ png(
 )
 par(mfrow = c(1, 1))
 
-# has conditionals based on which aquifer types are present
-if(nrow(data.frame(AQb))>0 && nrow(data.frame(AQh))>0) {
-  # print(ggmap(basemap, extent="device") +
-  ggplot() +
-    geom_polygon(data = CoastM, aes(x=long, y=lat, group=group), fill = "gray90", col="black") +
-    geom_polygon(data = AQb, aes(x=long,y=lat, group=group), fill="lightblue",col="black") +
-    geom_polygon(data = AQh, aes(x=long,y=lat, group=group), fill="grey",col="black") +
-    geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
-    geom_text(data = AQd, aes(label = doh_aquife, x=cent_long, y=cent_lat), size = 3, fontface = "bold") +
+ggplot() +
+    # Plot AIi as the bottom layer with conditional fill colors
+    geom_sf(data = AIi, aes(fill = factor(typea1)), color = "black", linewidth = 1) +
+    scale_fill_manual(values = c("1" = "lightblue", "2" = "grey")) +
+    # Plot CoastM with no fill and black outline
+    geom_sf(data = CoastM, fill = NA, color = "black") +
+    # Plot AQb with lightblue fill and black outline
+    geom_sf(data = AQb, fill = "lightblue", color = "black") +
+    # Plot AQh with grey fill and black outline
+    geom_sf(data = AQh, fill = "grey", color = "black") +
+    # Plot HALE with no fill and red outline
+    geom_sf(data = HALE, fill = NA, color = "red", linewidth = 1) +
+    # Add text labels from AQd using cent_lat and cent_long
+    geom_text(data = AQd, aes(x = cent_long, y = cent_lat, label = doh_aquife),
+              size = 3, fontface = "bold") +
+    # Set plot limits
+    coord_sf(xlim = c(xm, xma), ylim = c(ym, yma)) +
+    # Remove grid/ticks and legend
     theme_void() +
-    coord_sf(xlim = c(xm,xma), ylim=c(ym,yma))
-}
-
-if(nrow(data.frame(AQb))==0 && nrow(data.frame(AQh))>0) {
-  # print(ggmap(basemap, extent="device") +
-  ggplot() +
-    geom_polygon(data = CoastM, aes(x=long, y=lat, group=group), fill = "gray90", col="black") +
-    geom_polygon(data = AQh, aes(x=long,y=lat, group=group), fill="grey",col="black") +
-    geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
-    geom_text(data = AQd, aes(label = doh_aquife, x=cent_long, y=cent_lat), size = 3, fontface = "bold") +
-    theme_void() +
-    coord_sf(xlim = c(xm,xma), ylim=c(ym,yma))
-  
-}
-
-if(nrow(data.frame(AQb))>0 && nrow(data.frame(AQh))==0) {
-  # print(ggmap(basemap, extent="device") +
-  ggplot() +
-    geom_polygon(data = CoastM, aes(x=long, y=lat, group=group), fill = "gray90", col="black") +
-    geom_polygon(data = AQb, aes(x=long,y=lat, group=group), fill="lightblue",col="black") +
-    geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
-    geom_text(data = AQd, aes(label = doh_aquife, x=cent_long, y=cent_lat), size = 3, fontface = "bold") +
-    theme_void() +
-    coord_sf(xlim = c(xm,xma), ylim=c(ym,yma))
-  
-}
+    theme(legend.position = "none")
 
 dev.off()
 
 ################################################################################
 ### Streams, hydrologic features
 
-# # get basemap at buffered AOI extent
-# mapBound1 <- c((xmin(HALE)*1.00001), (ymin(HALE)*0.9999), (xmax(HALE)*0.99999), (ymax(HALE)*1.0001))
-# basemap<-ggmap::get_stamenmap(bbox=mapBound1, maptype = "terrain")
 debug_print("39, Streams")
 
+bbox <- st_bbox(HALE)  # Get bounding box
+
+xm <- as.numeric(bbox["xmin"]) * 1.00001
+xma <- as.numeric(bbox["xmax"]) * 0.99999
+ym <- as.numeric(bbox["ymin"]) * 0.9999
+yma <- as.numeric(bbox["ymax"]) * 1.0001
+
+# Create an sf bounding box object
+bbox_poly <- st_as_sfc(st_bbox(c(xmin = xm, xmax = xma, ymin = ym, ymax = yma), crs = st_crs(HALE)))
+
+bbox_extent <- extent(as.numeric(xm), as.numeric(xma), as.numeric(ym), as.numeric(yma))
+HS_crop <- crop(HS, bbox_extent)
+
 # subset for feature types
-STRMi <- STRM[which(STRM$fcode == 46003), ]
-STRMp <- STRM[which(STRM$fcode == 46006), ]
-STRMa <- STRM[which(STRM$fcode == 55800), ]
-STRMc <- STRM[which(STRM$Feature_Ty == "CANAL/DITCH"), ]
-STRMpi <- STRM[which(STRM$Feature_Ty == "PIPELINE"), ]
-STRMco <- STRM[which(STRM$Feature_Ty == "CONNECTOR"), ]
+STRM <- st_transform(STRM, st_crs(HS))
+STRMa<-STRM[which(STRM$fcode == 55800),]
+STRMp<-STRM[which(STRM$fcode == 46006),]
+STRMi<-STRM[which(STRM$fcode == 46003),]
+STRMc<-STRM[which(STRM$Feature_Ty == "CANAL/DITCH"),]
+STRMpi<-STRM[which(STRM$Feature_Ty == "PIPELINE"),]
+STRMco<-STRM[which(STRM$Feature_Ty == "CONNECTOR"),]
 
-### prepare hillshade for plotting
-#clip to island
-HSmoku <- mask(x = HS, mask = CoastM)
-
-HSmoku <- crop(x = HS, y = extent(CoastM))
-HSmoku[HSmoku == 0] <- NA
-
-# use this function I found online (https://stackoverflow.com/questions/47116217/overlay-raster-layer-on-map-in-ggplot2-in-r)
-gplot_data <- function(x, maxpixels = ncell(x))  {
-  x <- raster::sampleRegular(x, maxpixels, asRaster = TRUE)
-  coords <- raster::xyFromCell(x, seq_len(raster::ncell(x)))
-  ## Extract values
-  dat <- utils::stack(as.data.frame(raster::getValues(x)))
-  names(dat) <- c('value', 'variable')
-  
-  dat <- dplyr::as.tbl(data.frame(coords, dat))
-  
-  if (!is.null(levels(x))) {
-    dat <- dplyr::left_join(dat, levels(x)[[1]], 
-                            by = c("value" = "ID"))
-  }
-  dat
-}
-
-HSd <- gplot_data(HSmoku)
-
-# get extent of AOI again
-xm <- xmin(HALE)
-xma <- xmax(HALE)
-ym <- ymin(HALE) * 0.9999
-yma <- ymax(HALE) * 1.0001
+# Clip each stream layer to the HS extent
+STRMa_clipped <- st_intersection(STRMa, bbox_poly)
+STRMp_clipped <- st_intersection(STRMp, bbox_poly)
+STRMi_clipped <- st_intersection(STRMi, bbox_poly)
+STRMc_clipped <- st_intersection(STRMc, bbox_poly)
+STRMpi_clipped <- st_intersection(STRMpi, bbox_poly)
 
 # make map
-dpi = 300
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Streams.png"),
   width = 4 * dpi,
@@ -1359,55 +1262,42 @@ png(
   res = dpi
 )
 
-par(mfrow = c(1, 1))
-ggplot() +
-  geom_tile(data = dplyr::filter(HSd, !is.na(value)),
-    aes(x=x, y=y, fill=value), show.legend = F) +
-  scale_fill_gradient("Elevation", low = "black", high="white", na.value = 0) +
-  geom_polygon(data = Coast, aes(x=long, y=lat, group=group),fill=NA,col="black",size=0.5) +
-  geom_path(data = STRMi, aes(x=long,y=lat, group=group),col="deepskyblue1",size=1) +
-  geom_path(data = STRMp, aes(x=long,y=lat,group=group),col="darkblue", size=1) +
-  geom_path(data = STRMa, aes(x=long,y=lat, group=group),col="green",size=1) +
-  geom_path(data = STRMc, aes(x=long,y=lat, group=group),col="orange",size=1) +
-  geom_path(data = STRMpi, aes(x=long,y=lat, group=group),col="lightgrey",size=1) +
-  geom_path(data = STRMco, aes(x=long,y=lat, group=group),col="yellow",size=1) +
-  geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="red", fill=NA, size = 1) +
-  coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
-  theme_void()
+par(mar = c(0, 0, 0, 0))  # No margins
+
+plot(HS_crop, col = gray.colors(255), legend = FALSE, 
+     axes = FALSE, box = FALSE)
+
+plot(st_geometry(STRMa_clipped), col = "green", lwd = 2, add = TRUE)
+plot(st_geometry(STRMp_clipped), col = "blue", lwd = 2, add = TRUE)
+plot(st_geometry(STRMi_clipped), col = "lightblue1", lwd = 2, add = TRUE)
+plot(st_geometry(STRMc_clipped), col = "orange", lwd = 2, add = TRUE)
+plot(st_geometry(STRMpi_clipped), col = "black", lwd = 2, add = TRUE)
+plot(st_geometry(STRMc_clipped), col = "yellow", lwd = 2, add = TRUE)
+
+plot(st_geometry(HALE), add = TRUE, border = "red", lwd = 2)  # Add HALE boundary
+
 
 dev.off()
 
 # clip features to study area
+# Perform the intersection using sf
+ST <- st_intersection(STRM, HALE[1])
 
-ST <- gIntersects(STRM, HALE)
-
-if (ST == "FALSE") {
-  ht <- data.frame()
+if(nrow(ST) == 0) {
+  ht<-data.frame()
 }
 
-if (ST != "FALSE") {
+if(nrow(ST) != 0) {
   
-  ST <- try(crop(STRM, HALE))
-  plot(ST)
-  
-  if (typeof(ST) == "character") {
-    ht <- data.frame()
-  }
-  
-  if (typeof(ST) != "character") {
-    
-    # make dataframe of features
-    STdf <- as(ST, "data.frame")
-    
-    # get all hydrologic types present
-    ht <- unique(STdf$Feature_Ty)
-    for (i in 1:length(ht)){
-      if(ht[i] == "ARTIFICIAL PATH"){ht[i]<-"Managed Waterway"}
-      if(ht[i] == "CANAL/DITCH"){ht[i]<-"Canal/Ditch"}
-      if(ht[i] == "STREAM/RIVER"){ht[i]<-"Stream"}
-      if(ht[i] == "PIPELINE"){ht[i]<-"Pipeline"}
-      if(ht[i] == "CONNECTOR"){ht[i]<-"Pipeline"}
-    }
+  # get all hydrologic types present
+  ht<-unique(ST$Feature_Ty)
+  ht
+  for (i in 1:length(ht)){
+    if(ht[i] == "ARTIFICIAL PATH"){ht[i]<-"Managed Waterway"}
+    if(ht[i] == "CANAL/DITCH"){ht[i]<-"Canal/Ditch"}
+    if(ht[i] == "STREAM/RIVER"){ht[i]<-"Stream"}
+    if(ht[i] == "PIPELINE"){ht[i]<-"Pipeline"}
+    if(ht[i] == "CONNECTOR"){ht[i]<-"Pipeline"}
   }
 }
 
@@ -1421,7 +1311,6 @@ write.csv(
   row.names = F
 )
 
-
 ########## Rainfall Stations near AOI
 debug_print("40, Rain Station Locations")
 
@@ -1431,43 +1320,40 @@ sn <- read.csv(paste0(INPUTS_FOLDER, "rain_stations_links.csv"))
 # load stations point shapefile, tranform points and polygons to planar projection
 rain_stations_file <- paste0(INPUTS_FOLDER, "rain_stations.shp")
 debug_print(rain_stations_file)
-sl <- readOGR(rain_stations_file)
-# sl <- spTransform(sl, crs(EXAMP))
+sl <- st_read(rain_stations_file)
 
-utmStr <- "+proj=utm +zone=%d +datum=NAD83 +units=m +no_defs +ellps=GRS80"
-crs <- CRS(sprintf(utmStr, 4))
-sl <- spTransform(sl, crs)
-HALE1 <- spTransform(HALE, crs)
+# Convert SpatialPointsDataFrame (sp object) to sf object
+sl_sf <- st_as_sf(sl)
 
-head(sl)
-summary(sl)
-unique(sl$Network)
+# Ensure both layers have the same CRS (preferably projected for accuracy)
+projected_crs <- "+proj=utm +zone=4 +datum=NAD83 +units=m +no_defs"
+sl_proj <- st_transform(sl_sf, crs = projected_crs)
+HALE_proj <- st_transform(HALE, crs = projected_crs)
 
-# calculate distance from each point to the AOI polygon
-sd <- as.data.frame(apply(gDistance(sl, HALE1, byid = TRUE), 2, min))
-sd <- cbind(sl$SKN, data.frame(sd, row.names = NULL))
-colnames(sd) <- c("SKN", "distance")
-head(sd)
+# Compute distances from each point in sl_proj to the HALE_proj polygon
+distances <- st_distance(sl_proj, HALE_proj)
+
+# Convert to a data frame
+sd <- data.frame(SKN = sl_proj$SKN, distance = as.numeric(distances))
+head(sd, 20)
 
 # sort by distance
-sd <- sd[order(sd$distance), ]
+sd<-sd[order(sd$distance),]
 head(sd)
 
 # convert station points shp into dataframe
-summary(sl)
-sld <- as.data.frame(sl)
+sld<-as.data.frame(sl_proj)
 head(sld)
 
 # make table of 3 closest stations and join network links
-s1 <- sld[which(sld$SKN == sd[1, ]$SKN), ]
-s2 <- sld[which(sld$SKN == sd[2, ]$SKN), ]
-s3 <- sld[which(sld$SKN == sd[3, ]$SKN), ]
-st2 <- rbind(s1, s2, s3)
+s1<-sld[which(sld$SKN == sd[1,]$SKN),]
+s2<-sld[which(sld$SKN == sd[2,]$SKN),]
+s3<-sld[which(sld$SKN == sd[3,]$SKN),]
+st2<-rbind(s1,s2,s3)
 st2
-st <- st2[c("Station_Na", "Network")]
-st <- join(st, sn)
-colnames(st) <- c("Station Name", "Network", "Website")
-st
+st<-st2[c("Station_Na","Network")]
+st<-join(st,sn)
+colnames(st)<-c("Station Name","Network","Website")
 
 # export table
 write.csv(st,
@@ -1475,15 +1361,14 @@ write.csv(st,
   row.names = F)
 
 # ### Make map of island with station and AOI
-# # get basemap at island extent
-# mapBound <- c(xmin(CoastM), ymin(CoastM), xmax(CoastM), ymax(CoastM))
-# basemap<-ggmap::get_stamenmap(bbox=mapBound, maptype = "terrain-background")
+HS_masked <- mask(HS, CoastM)
 
-# get extent of island
-xm <- xmin(CoastM)
-xma <- xmax(CoastM)
-ym <- ymin(CoastM)
-yma <- ymax(CoastM)
+bbox <- st_bbox(CoastM)  # Get bounding box
+
+xm <- as.numeric(bbox["xmin"])
+xma <- as.numeric(bbox["xmax"])
+ym <- as.numeric(bbox["ymin"])
+yma <- as.numeric(bbox["ymax"])
 
 # make map
 png(
@@ -1493,17 +1378,15 @@ png(
   res = dpi
 )
 
-par(mfrow = c(1, 1))
+# Plot
+par(mar = c(0, 2, 0, 0))  # bottom, left, top, right
 
-ggplot() +
-  geom_tile(data = dplyr::filter(HSd, !is.na(value)),
-    aes(x=x, y=y, fill=value), show.legend = F) +
-  scale_fill_gradient("Elevation", low = "black", high="white", na.value = 0) +
-  geom_polygon(data = HALE, aes(x=long,y=lat,group=group), col="blue", fill=NA, size = 1) +
-  geom_point(data = sld, aes(x=LON,y=LAT), col="black", size = 1.5) +
-  geom_point(data = st2, aes(x=LON,y=LAT), color="black", fill="orange", shape = 21, size = 2) +
-  coord_sf(xlim = c(xm,xma), ylim=c(ym,yma)) +
-  theme_void()
+plot(HS_masked, col = gray.colors(255), legend = FALSE, 
+     xlim = c(xm, xma), ylim = c(ym, yma), 
+     axes = FALSE, box = FALSE) 
+points(sld$LON, sld$LAT, col = "black", pch = 16, cex = 0.7)
+points(st2$LON, st2$LAT, col = "orange", pch = 16, cex = 0.7)
+plot(HALE$geometry, add = TRUE, border = "blue", lwd = 2)
 
 dev.off()
 
@@ -1529,92 +1412,92 @@ Cell.CL_Year
 debug_print("42, Solar Radiation")
 
 Jan <- raster(Mean_CLIM[58])
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropKD <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropKD <- crop(x = Jan_Mask, y = extent(HALE))
 JanMKD   <- round(cellStats(Jan_CropKD, 'mean'), 0)
 JanMKDx   <- round(cellStats(Jan_CropKD, 'max'), 0)
 JanMKDn   <- round(cellStats(Jan_CropKD, 'min'), 0)
 
 Feb <- raster(Mean_CLIM[57])
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropKD <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropKD <- crop(x = Feb_Mask, y = extent(HALE))
 FebMKD   <- round(cellStats(Feb_CropKD, 'mean'), 0)
 FebMKDx   <- round(cellStats(Feb_CropKD, 'max'), 0)
 FebMKDn   <- round(cellStats(Feb_CropKD, 'min'), 0)
 
 Mar <- raster(Mean_CLIM[61])
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropKD <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropKD <- crop(x = Mar_Mask, y = extent(HALE))
 MarMKD   <- round(cellStats(Mar_CropKD, 'mean'), 0)
 MarMKDx   <- round(cellStats(Mar_CropKD, 'max'), 0)
 MarMKDn   <- round(cellStats(Mar_CropKD, 'min'), 0)
 
 Apr <- raster(Mean_CLIM[54])
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropKD <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropKD <- crop(x = Apr_Mask, y = extent(HALE))
 AprMKD   <- round(cellStats(Apr_CropKD, 'mean'), 0)
 AprMKDx   <- round(cellStats(Apr_CropKD, 'max'), 0)
 AprMKDn   <- round(cellStats(Apr_CropKD, 'min'), 0)
 
 May <- raster(Mean_CLIM[62])
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropKD <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropKD <- crop(x = May_Mask, y = extent(HALE))
 MayMKD   <- round(cellStats(May_CropKD, 'mean'), 0)
 MayMKDx   <- round(cellStats(May_CropKD, 'max'), 0)
 MayMKDn   <- round(cellStats(May_CropKD, 'min'), 0)
 
 Jun <- raster(Mean_CLIM[60])
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropKD <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropKD <- crop(x = Jun_Mask, y = extent(HALE))
 JunMKD   <- round(cellStats(Jun_CropKD, 'mean'), 0)
 JunMKDx   <- round(cellStats(Jun_CropKD, 'max'), 0)
 JunMKDn   <- round(cellStats(Jun_CropKD, 'min'), 0)
 
 Jul <- raster(Mean_CLIM[59])
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropKD <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropKD <- crop(x = Jul_Mask, y = extent(HALE))
 JulMKD   <- round(cellStats(Jul_CropKD, 'mean'), 0)
 JulMKDx   <- round(cellStats(Jul_CropKD, 'max'), 0)
 JulMKDn   <- round(cellStats(Jul_CropKD, 'min'), 0)
 
 Aug <- raster(Mean_CLIM[55])
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropKD <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropKD <- crop(x = Aug_Mask, y = extent(HALE))
 AugMKD   <- round(cellStats(Aug_CropKD, 'mean'), 0)
 AugMKDx   <- round(cellStats(Aug_CropKD, 'max'), 0)
 AugMKDn   <- round(cellStats(Aug_CropKD, 'min'), 0)
 
 Sep <- raster(Mean_CLIM[65])
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropKD <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropKD <- crop(x = Sep_Mask, y = extent(HALE))
 SepMKD   <- round(cellStats(Sep_CropKD, 'mean'), 0)
 SepMKDx   <- round(cellStats(Sep_CropKD, 'max'), 0)
 SepMKDn   <- round(cellStats(Sep_CropKD, 'min'), 0)
 
 Oct <- raster(Mean_CLIM[64])
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropKD <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropKD <- crop(x = Oct_Mask, y = extent(HALE))
 OctMKD   <- round(cellStats(Oct_CropKD, 'mean'), 0)
 OctMKDx   <- round(cellStats(Oct_CropKD, 'max'), 0)
 OctMKDn   <- round(cellStats(Oct_CropKD, 'min'), 0)
 
 Nov <- raster(Mean_CLIM[63])
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropKD <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropKD <- crop(x = Nov_Mask, y = extent(HALE))
 NovMKD   <- round(cellStats(Nov_CropKD, 'mean'), 0)
 NovMKDx   <- round(cellStats(Nov_CropKD, 'max'), 0)
 NovMKDn   <- round(cellStats(Nov_CropKD, 'min'), 0)
 
 Dec <- raster(Mean_CLIM[56])
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropKD <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropKD <- crop(x = Dec_Mask, y = extent(HALE))
 DecMKD   <- round(cellStats(Dec_CropKD, 'mean'), 0)
 DecMKDx   <- round(cellStats(Dec_CropKD, 'max'), 0)
 DecMKDn   <- round(cellStats(Dec_CropKD, 'min'), 0)
 
 Ann <- raster(Mean_CLIM[53])
-Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
-Ann_CropKD <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
+Ann_Mask <- mask(x = Ann, mask = HALE)
+Ann_CropKD <- crop(x = Ann_Mask, y = extent(HALE))
 AnnMKD   <- round(cellStats(Ann_CropKD, 'mean'), 0)
 AnnMKDx   <- round(cellStats(Ann_CropKD, 'max'), 0)
 AnnMKDn   <- round(cellStats(Ann_CropKD, 'min'), 0)
@@ -1633,92 +1516,92 @@ Cell.CL_Year
 debug_print("43, Soil Moisture")
 
 Jan <- raster(Mean_CLIM[45])
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropSM <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropSM <- crop(x = Jan_Mask, y = extent(HALE))
 JanMSM   <- round(cellStats(Jan_CropSM, 'mean'), 2)
 JanMSMx   <- round(cellStats(Jan_CropSM, 'max'), 2)
 JanMSMn   <- round(cellStats(Jan_CropSM, 'min'), 2)
 
 Feb <- raster(Mean_CLIM[44])
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropSM <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropSM <- crop(x = Feb_Mask, y = extent(HALE))
 FebMSM   <- round(cellStats(Feb_CropSM, 'mean'), 2)
 FebMSMx   <- round(cellStats(Feb_CropSM, 'max'), 2)
 FebMSMn   <- round(cellStats(Feb_CropSM, 'min'), 2)
 
 Mar <- raster(Mean_CLIM[48])
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropSM <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropSM <- crop(x = Mar_Mask, y = extent(HALE))
 MarMSM   <- round(cellStats(Mar_CropSM, 'mean'), 2)
 MarMSMx   <- round(cellStats(Mar_CropSM, 'max'), 2)
 MarMSMn   <- round(cellStats(Mar_CropSM, 'min'), 2)
 
 Apr <- raster(Mean_CLIM[41])
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropSM <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropSM <- crop(x = Apr_Mask, y = extent(HALE))
 AprMSM   <- round(cellStats(Apr_CropSM, 'mean'), 2)
 AprMSMx   <- round(cellStats(Apr_CropSM, 'max'), 2)
 AprMSMn   <- round(cellStats(Apr_CropSM, 'min'), 2)
 
 May <- raster(Mean_CLIM[49])
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropSM <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropSM <- crop(x = May_Mask, y = extent(HALE))
 MayMSM   <- round(cellStats(May_CropSM, 'mean'), 2)
 MayMSMx   <- round(cellStats(May_CropSM, 'max'), 2)
 MayMSMn   <- round(cellStats(May_CropSM, 'min'), 2)
 
 Jun <- raster(Mean_CLIM[47])
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropSM <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropSM <- crop(x = Jun_Mask, y = extent(HALE))
 JunMSM   <- round(cellStats(Jun_CropSM, 'mean'), 2)
 JunMSMx   <- round(cellStats(Jun_CropSM, 'max'), 2)
 JunMSMn   <- round(cellStats(Jun_CropSM, 'min'), 2)
 
 Jul <- raster(Mean_CLIM[46])
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropSM <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropSM <- crop(x = Jul_Mask, y = extent(HALE))
 JulMSM   <- round(cellStats(Jul_CropSM, 'mean'), 2)
 JulMSMx   <- round(cellStats(Jul_CropSM, 'max'), 2)
 JulMSMn   <- round(cellStats(Jul_CropSM, 'min'), 2)
 
 Aug <- raster(Mean_CLIM[42])
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropSM <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropSM <- crop(x = Aug_Mask, y = extent(HALE))
 AugMSM   <- round(cellStats(Aug_CropSM, 'mean'), 2)
 AugMSMx   <- round(cellStats(Aug_CropSM, 'max'), 2)
 AugMSMn   <- round(cellStats(Aug_CropSM, 'min'), 2)
 
 Sep <- raster(Mean_CLIM[52])
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropSM <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropSM <- crop(x = Sep_Mask, y = extent(HALE))
 SepMSM   <- round(cellStats(Sep_CropSM, 'mean'), 2)
 SepMSMx   <- round(cellStats(Sep_CropSM, 'max'), 2)
 SepMSMn   <- round(cellStats(Sep_CropSM, 'min'), 2)
 
 Oct <- raster(Mean_CLIM[51])
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropSM <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropSM <- crop(x = Oct_Mask, y = extent(HALE))
 OctMSM   <- round(cellStats(Oct_CropSM, 'mean'), 2)
 OctMSMx   <- round(cellStats(Oct_CropSM, 'max'), 2)
 OctMSMn   <- round(cellStats(Oct_CropSM, 'min'), 2)
 
 Nov <- raster(Mean_CLIM[50])
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropSM <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropSM <- crop(x = Nov_Mask, y = extent(HALE))
 NovMSM   <- round(cellStats(Nov_CropSM, 'mean'), 2)
 NovMSMx   <- round(cellStats(Nov_CropSM, 'max'), 2)
 NovMSMn   <- round(cellStats(Nov_CropSM, 'min'), 2)
 
 Dec <- raster(Mean_CLIM[43])
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropSM <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropSM <- crop(x = Dec_Mask, y = extent(HALE))
 DecMSM   <- round(cellStats(Dec_CropSM, 'mean'), 2)
 DecMSMx   <- round(cellStats(Dec_CropSM, 'max'), 2)
 DecMSMn   <- round(cellStats(Dec_CropSM, 'min'), 2)
 
 Ann <- raster(Mean_CLIM[40])
-Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
-Ann_CropSM <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
+Ann_Mask <- mask(x = Ann, mask = HALE)
+Ann_CropSM <- crop(x = Ann_Mask, y = extent(HALE))
 AnnMSM   <- round(cellStats(Ann_CropSM, 'mean'), 2)
 AnnMSMx   <- round(cellStats(Ann_CropSM, 'max'), 2)
 AnnMSMn   <- round(cellStats(Ann_CropSM, 'min'), 2)
@@ -1737,104 +1620,104 @@ Cell.CL_Year
 debug_print("44, EVAPOTRANSPIRATION")
 
 Jan <- raster(Mean_CLIM[19])
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropET <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropET <- crop(x = Jan_Mask, y = extent(HALE))
 if (RFUnit == " in") { Jan_CropET <- Jan_CropET  * 0.0393701 }
 JanMET   <- round(cellStats(Jan_CropET, 'mean'), 0)
 JanMETx   <- round(cellStats(Jan_CropET, 'max'), 0)
 JanMETn   <- round(cellStats(Jan_CropET, 'min'), 0)
 
 Feb <- raster(Mean_CLIM[18])
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropET <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropET <- crop(x = Feb_Mask, y = extent(HALE))
 if (RFUnit == " in") { Feb_CropET <- Feb_CropET  * 0.0393701 }
 FebMET   <- round(cellStats(Feb_CropET, 'mean'), 0)
 FebMETx   <- round(cellStats(Feb_CropET, 'max'), 0)
 FebMETn   <- round(cellStats(Feb_CropET, 'min'), 0)
 
 Mar <- raster(Mean_CLIM[22])
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropET <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropET <- crop(x = Mar_Mask, y = extent(HALE))
 if (RFUnit == " in") { Mar_CropET <- Mar_CropET  * 0.0393701 }
 MarMET   <- round(cellStats(Mar_CropET, 'mean'), 0)
 MarMETx   <- round(cellStats(Mar_CropET, 'max'), 0)
 MarMETn   <- round(cellStats(Mar_CropET, 'min'), 0)
 
 Apr <- raster(Mean_CLIM[15])
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropET <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropET <- crop(x = Apr_Mask, y = extent(HALE))
 if (RFUnit == " in") { Apr_CropET <- Apr_CropET  * 0.0393701 }
 AprMET   <- round(cellStats(Apr_CropET, 'mean'), 0)
 AprMETx   <- round(cellStats(Apr_CropET, 'max'), 0)
 AprMETn   <- round(cellStats(Apr_CropET, 'min'), 0)
 
 May <- raster(Mean_CLIM[23])
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropET <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropET <- crop(x = May_Mask, y = extent(HALE))
 if (RFUnit == " in") { May_CropET <- May_CropET  * 0.0393701 }
 MayMET   <- round(cellStats(May_CropET, 'mean'), 0)
 MayMETx   <- round(cellStats(May_CropET, 'max'), 0)
 MayMETn   <- round(cellStats(May_CropET, 'min'), 0)
 
 Jun <- raster(Mean_CLIM[21])
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropET <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropET <- crop(x = Jun_Mask, y = extent(HALE))
 if (RFUnit == " in") { Jun_CropET <- Jun_CropET  * 0.0393701 }
 JunMET   <- round(cellStats(Jun_CropET, 'mean'), 0)
 JunMETx   <- round(cellStats(Jun_CropET, 'max'), 0)
 JunMETn   <- round(cellStats(Jun_CropET, 'min'), 0)
 
 Jul <- raster(Mean_CLIM[20])
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropET <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropET <- crop(x = Jul_Mask, y = extent(HALE))
 if (RFUnit == " in") { Jul_CropET <- Jul_CropET  * 0.0393701 }
 JulMET   <- round(cellStats(Jul_CropET, 'mean'), 0)
 JulMETx   <- round(cellStats(Jul_CropET, 'max'), 0)
 JulMETn   <- round(cellStats(Jul_CropET, 'min'), 0)
 
 Aug <- raster(Mean_CLIM[16])
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropET <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropET <- crop(x = Aug_Mask, y = extent(HALE))
 if (RFUnit == " in") { Aug_CropET <- Aug_CropET  * 0.0393701 }
 AugMET   <- round(cellStats(Aug_CropET, 'mean'), 0)
 AugMETx   <- round(cellStats(Aug_CropET, 'max'), 0)
 AugMETn   <- round(cellStats(Aug_CropET, 'min'), 0)
 
 Sep <- raster(Mean_CLIM[26])
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropET <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropET <- crop(x = Sep_Mask, y = extent(HALE))
 if (RFUnit == " in") { Sep_CropET <- Sep_CropET  * 0.0393701 }
 SepMET   <- round(cellStats(Sep_CropET, 'mean'), 0)
 SepMETx   <- round(cellStats(Sep_CropET, 'max'), 0)
 SepMETn   <- round(cellStats(Sep_CropET, 'min'), 0)
 
 Oct <- raster(Mean_CLIM[25])
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropET <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropET <- crop(x = Oct_Mask, y = extent(HALE))
 if (RFUnit == " in") { Oct_CropET <- Oct_CropET  * 0.0393701 }
 OctMET   <- round(cellStats(Oct_CropET, 'mean'), 0)
 OctMETx   <- round(cellStats(Oct_CropET, 'max'), 0)
 OctMETn   <- round(cellStats(Oct_CropET, 'min'), 0)
 
 Nov <- raster(Mean_CLIM[24])
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropET <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropET <- crop(x = Nov_Mask, y = extent(HALE))
 if (RFUnit == " in") { Nov_CropET <- Nov_CropET  * 0.0393701 }
 NovMET   <- round(cellStats(Nov_CropET, 'mean'), 0)
 NovMETx   <- round(cellStats(Nov_CropET, 'max'), 0)
 NovMETn   <- round(cellStats(Nov_CropET, 'min'), 0)
 
 Dec <- raster(Mean_CLIM[17])
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropET <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropET <- crop(x = Dec_Mask, y = extent(HALE))
 if (RFUnit == " in") { Dec_CropET <- Dec_CropET  * 0.0393701 }
 DecMET   <- round(cellStats(Dec_CropET, 'mean'), 0)
 DecMETx   <- round(cellStats(Dec_CropET, 'max'), 0)
 DecMETn   <- round(cellStats(Dec_CropET, 'min'), 0)
 
 Ann <- raster(Mean_CLIM[14])
-Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
-Ann_CropET <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
+Ann_Mask <- mask(x = Ann, mask = HALE)
+Ann_CropET <- crop(x = Ann_Mask, y = extent(HALE))
 if (RFUnit == " in") { Ann_CropET <- Ann_CropET  * 0.0393701 }
 AnnMET   <- round(cellStats(Ann_CropET, 'mean'), 0)
 AnnMETx   <- round(cellStats(Ann_CropET, 'max'), 0)
@@ -1850,98 +1733,96 @@ ETLo <- min(JanMETn,FebMETn,MarMETn,AprMETn,MayMETn,JunMETn,JulMETn,AugMETn,SepM
 Cell.CL_Year[7, 2:14] <- MEANET2
 Cell.CL_Year
 
-plot(Aug)
-
 ##########   Cloud Frequency
 debug_print("45, Cloud Frequency")
 
 Jan <- raster(Mean_CLIM[6])
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropCF <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropCF <- crop(x = Jan_Mask, y = extent(HALE))
 JanMCF   <- round(cellStats(Jan_CropCF, 'mean'), 2)
 JanMCFx   <- round(cellStats(Jan_CropCF, 'max'), 2)
 JanMCFn   <- round(cellStats(Jan_CropCF, 'min'), 2)
 
 Feb <- raster(Mean_CLIM[5])
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropCF <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropCF <- crop(x = Feb_Mask, y = extent(HALE))
 FebMCF   <- round(cellStats(Feb_CropCF, 'mean'), 2)
 FebMCFx   <- round(cellStats(Feb_CropCF, 'max'), 2)
 FebMCFn   <- round(cellStats(Feb_CropCF, 'min'), 2)
 
 Mar <- raster(Mean_CLIM[9])
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropCF <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropCF <- crop(x = Mar_Mask, y = extent(HALE))
 MarMCF   <- round(cellStats(Mar_CropCF, 'mean'), 2)
 MarMCFx   <- round(cellStats(Mar_CropCF, 'max'), 2)
 MarMCFn   <- round(cellStats(Mar_CropCF, 'min'), 2)
 
 Apr <- raster(Mean_CLIM[2])
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropCF <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropCF <- crop(x = Apr_Mask, y = extent(HALE))
 AprMCF   <- round(cellStats(Apr_CropCF, 'mean'), 2)
 AprMCFx   <- round(cellStats(Apr_CropCF, 'max'), 2)
 AprMCFn   <- round(cellStats(Apr_CropCF, 'min'), 2)
 
 May <- raster(Mean_CLIM[10])
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropCF <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropCF <- crop(x = May_Mask, y = extent(HALE))
 MayMCF   <- round(cellStats(May_CropCF, 'mean'), 2)
 MayMCFx   <- round(cellStats(May_CropCF, 'max'), 2)
 MayMCFn   <- round(cellStats(May_CropCF, 'min'), 2)
 
 Jun <- raster(Mean_CLIM[8])
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropCF <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropCF <- crop(x = Jun_Mask, y = extent(HALE))
 JunMCF   <- round(cellStats(Jun_CropCF, 'mean'), 2)
 JunMCFx   <- round(cellStats(Jun_CropCF, 'max'), 2)
 JunMCFn   <- round(cellStats(Jun_CropCF, 'min'), 2)
 
 Jul <- raster(Mean_CLIM[7])
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropCF <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropCF <- crop(x = Jul_Mask, y = extent(HALE))
 JulMCF   <- round(cellStats(Jul_CropCF, 'mean'), 2)
 JulMCFx   <- round(cellStats(Jul_CropCF, 'max'), 2)
 JulMCFn   <- round(cellStats(Jul_CropCF, 'min'), 2)
 
 Aug <- raster(Mean_CLIM[3])
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropCF <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropCF <- crop(x = Aug_Mask, y = extent(HALE))
 AugMCF   <- round(cellStats(Aug_CropCF, 'mean'), 2)
 AugMCFx   <- round(cellStats(Aug_CropCF, 'max'), 2)
 AugMCFn   <- round(cellStats(Aug_CropCF, 'min'), 2)
 
 Sep <- raster(Mean_CLIM[13])
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropCF <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropCF <- crop(x = Sep_Mask, y = extent(HALE))
 SepMCF   <- round(cellStats(Sep_CropCF, 'mean'), 2)
 SepMCFx   <- round(cellStats(Sep_CropCF, 'max'), 2)
 SepMCFn   <- round(cellStats(Sep_CropCF, 'min'), 2)
 
 Oct <- raster(Mean_CLIM[12])
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropCF <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropCF <- crop(x = Oct_Mask, y = extent(HALE))
 OctMCF   <- round(cellStats(Oct_CropCF, 'mean'), 2)
 OctMCFx   <- round(cellStats(Oct_CropCF, 'max'), 2)
 OctMCFn   <- round(cellStats(Oct_CropCF, 'min'), 2)
 
 Nov <- raster(Mean_CLIM[11])
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropCF <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropCF <- crop(x = Nov_Mask, y = extent(HALE))
 NovMCF   <- round(cellStats(Nov_CropCF, 'mean'), 2)
 NovMCFx   <- round(cellStats(Nov_CropCF, 'max'), 2)
 NovMCFn   <- round(cellStats(Nov_CropCF, 'min'), 2)
 
 Dec <- raster(Mean_CLIM[4])
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropCF <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropCF <- crop(x = Dec_Mask, y = extent(HALE))
 DecMCF   <- round(cellStats(Dec_CropCF, 'mean'), 2)
 DecMCFx   <- round(cellStats(Dec_CropCF, 'max'), 2)
 DecMCFn   <- round(cellStats(Dec_CropCF, 'min'), 2)
 
 Ann <- raster(Mean_CLIM[1])
-Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
-Ann_CropCF <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
+Ann_Mask <- mask(x = Ann, mask = HALE)
+Ann_CropCF <- crop(x = Ann_Mask, y = extent(HALE))
 AnnMCF   <- round(cellStats(Ann_CropCF, 'mean'), 2)
 AnnMCFx   <- round(cellStats(Ann_CropCF, 'max'), 2)
 AnnMCFn   <- round(cellStats(Ann_CropCF, 'min'), 2)
@@ -1962,104 +1843,104 @@ Cell.CL_Year
 debug_print("46, MEAN TEMPERATURE")
 
 Jan <- raster(Mean_CLIM[71])
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropTA <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropTA <- crop(x = Jan_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jan_CropTA <- (Jan_CropTA * 1.8) + 32 }
 JanMTA   <- round(cellStats(Jan_CropTA, 'mean'), 1)
 JanMTAx   <- round(cellStats(Jan_CropTA, 'max'), 1)
 JanMTAn   <- round(cellStats(Jan_CropTA, 'min'), 1)
 
 Feb <- raster(Mean_CLIM[70])
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropTA <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropTA <- crop(x = Feb_Mask, y = extent(HALE))
 if (TUnit == "°F") { Feb_CropTA <- (Feb_CropTA * 1.8) + 32 }
 FebMTA   <- round(cellStats(Feb_CropTA, 'mean'), 1)
 FebMTAx   <- round(cellStats(Feb_CropTA, 'max'), 1)
 FebMTAn   <- round(cellStats(Feb_CropTA, 'min'), 1)
 
 Mar <- raster(Mean_CLIM[74])
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropTA <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropTA <- crop(x = Mar_Mask, y = extent(HALE))
 if (TUnit == "°F") { Mar_CropTA <- (Mar_CropTA * 1.8) + 32 }
 MarMTA   <- round(cellStats(Mar_CropTA, 'mean'), 1)
 MarMTAx   <- round(cellStats(Mar_CropTA, 'max'), 1)
 MarMTAn   <- round(cellStats(Mar_CropTA, 'min'), 1)
 
 Apr <- raster(Mean_CLIM[67])
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropTA <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropTA <- crop(x = Apr_Mask, y = extent(HALE))
 if (TUnit == "°F") { Apr_CropTA <- (Apr_CropTA * 1.8) + 32 }
 AprMTA   <- round(cellStats(Apr_CropTA, 'mean'), 1)
 AprMTAx   <- round(cellStats(Apr_CropTA, 'max'), 1)
 AprMTAn   <- round(cellStats(Apr_CropTA, 'min'), 1)
 
 May <- raster(Mean_CLIM[75])
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropTA <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropTA <- crop(x = May_Mask, y = extent(HALE))
 if (TUnit == "°F") { May_CropTA <- (May_CropTA * 1.8) + 32 }
 MayMTA   <- round(cellStats(May_CropTA, 'mean'), 1)
 MayMTAx   <- round(cellStats(May_CropTA, 'max'), 1)
 MayMTAn   <- round(cellStats(May_CropTA, 'min'), 1)
 
 Jun <- raster(Mean_CLIM[73])
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropTA <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropTA <- crop(x = Jun_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jun_CropTA <- (Jun_CropTA * 1.8) + 32 }
 JunMTA   <- round(cellStats(Jun_CropTA, 'mean'), 1)
 JunMTAx   <- round(cellStats(Jun_CropTA, 'max'), 1)
 JunMTAn   <- round(cellStats(Jun_CropTA, 'min'), 1)
 
 Jul <- raster(Mean_CLIM[72])
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropTA <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropTA <- crop(x = Jul_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jul_CropTA <- (Jul_CropTA * 1.8) + 32 }
 JulMTA   <- round(cellStats(Jul_CropTA, 'mean'), 1)
 JulMTAx   <- round(cellStats(Jul_CropTA, 'max'), 1)
 JulMTAn   <- round(cellStats(Jul_CropTA, 'min'), 1)
 
 Aug <- raster(Mean_CLIM[68])
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropTA <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropTA <- crop(x = Aug_Mask, y = extent(HALE))
 if (TUnit == "°F") { Aug_CropTA <- (Aug_CropTA * 1.8) + 32 }
 AugMTA   <- round(cellStats(Aug_CropTA, 'mean'), 1)
 AugMTAx   <- round(cellStats(Aug_CropTA, 'max'), 1)
 AugMTAn   <- round(cellStats(Aug_CropTA, 'min'), 1)
 
 Sep <- raster(Mean_CLIM[78])
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropTA <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropTA <- crop(x = Sep_Mask, y = extent(HALE))
 if (TUnit == "°F") { Sep_CropTA <- (Sep_CropTA * 1.8) + 32 }
 SepMTA   <- round(cellStats(Sep_CropTA, 'mean'), 1)
 SepMTAx   <- round(cellStats(Sep_CropTA, 'max'), 1)
 SepMTAn   <- round(cellStats(Sep_CropTA, 'min'), 1)
 
 Oct <- raster(Mean_CLIM[77])
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropTA <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropTA <- crop(x = Oct_Mask, y = extent(HALE))
 if (TUnit == "°F") { Oct_CropTA <- (Oct_CropTA * 1.8) + 32 }
 OctMTA   <- round(cellStats(Oct_CropTA, 'mean'), 1)
 OctMTAx   <- round(cellStats(Oct_CropTA, 'max'), 1)
 OctMTAn   <- round(cellStats(Oct_CropTA, 'min'), 1)
 
 Nov <- raster(Mean_CLIM[76])
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropTA <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropTA <- crop(x = Nov_Mask, y = extent(HALE))
 if (TUnit == "°F") { Nov_CropTA <- (Nov_CropTA * 1.8) + 32 }
 NovMTA   <- round(cellStats(Nov_CropTA, 'mean'), 1)
 NovMTAx   <- round(cellStats(Nov_CropTA, 'max'), 1)
 NovMTAn   <- round(cellStats(Nov_CropTA, 'min'), 1)
 
 Dec <- raster(Mean_CLIM[69])
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropTA <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropTA <- crop(x = Dec_Mask, y = extent(HALE))
 if (TUnit == "°F") { Dec_CropTA <- (Dec_CropTA * 1.8) + 32 }
 DecMTA   <- round(cellStats(Dec_CropTA, 'mean'), 1)
 DecMTAx   <- round(cellStats(Dec_CropTA, 'max'), 1)
 DecMTAn   <- round(cellStats(Dec_CropTA, 'min'), 1)
 
 Ann <- raster(Mean_CLIM[66])
-Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
-Ann_CropTA <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
+Ann_Mask <- mask(x = Ann, mask = HALE)
+Ann_CropTA <- crop(x = Ann_Mask, y = extent(HALE))
 if (TUnit == "°F") { Ann_CropTA <- (Ann_CropTA * 1.8) + 32 }
 AnnMTA   <- round(cellStats(Ann_CropTA, 'mean'), 1)
 AnnMTAx   <- round(cellStats(Ann_CropTA, 'max'), 1)
@@ -2079,8 +1960,8 @@ debug_print("47, MAX TEMPERATURE")
 
 Jan <- raster(Mean_CLIM[84])
 crs(Jan) <- crs(EXAMP)
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropTX <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropTX <- crop(x = Jan_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jan_CropTX <- (Jan_CropTX * 1.8) + 32 }
 JanMTX  <- round(cellStats(Jan_CropTX , 'mean'), 1)
 JanMTXx   <- round(cellStats(Jan_CropTX, 'max'), 1)
@@ -2088,8 +1969,8 @@ JanMTXn   <- round(cellStats(Jan_CropTX, 'min'), 1)
 
 Feb <- raster(Mean_CLIM[83])
 crs(Feb) <- crs(EXAMP)
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropTX  <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropTX  <- crop(x = Feb_Mask, y = extent(HALE))
 if (TUnit == "°F") { Feb_CropTX <- (Feb_CropTX * 1.8) + 32 }
 FebMTX   <- round(cellStats(Feb_CropTX , 'mean'), 1)
 FebMTXx   <- round(cellStats(Feb_CropTX, 'max'), 1)
@@ -2097,8 +1978,8 @@ FebMTXn   <- round(cellStats(Feb_CropTX, 'min'), 1)
 
 Mar <- raster(Mean_CLIM[87])
 crs(Mar) <- crs(EXAMP)
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropTX  <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropTX  <- crop(x = Mar_Mask, y = extent(HALE))
 if (TUnit == "°F") { Mar_CropTX <- (Mar_CropTX * 1.8) + 32 }
 MarMTX   <- round(cellStats(Mar_CropTX , 'mean'), 1)
 MarMTXx   <- round(cellStats(Mar_CropTX, 'max'), 1)
@@ -2106,8 +1987,8 @@ MarMTXn   <- round(cellStats(Mar_CropTX, 'min'), 1)
 
 Apr <- raster(Mean_CLIM[80])
 crs(Apr) <- crs(EXAMP)
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropTX  <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropTX  <- crop(x = Apr_Mask, y = extent(HALE))
 if (TUnit == "°F") { Apr_CropTX <- (Apr_CropTX * 1.8) + 32 }
 AprMTX   <- round(cellStats(Apr_CropTX , 'mean'), 1)
 AprMTXx   <- round(cellStats(Apr_CropTX, 'max'), 1)
@@ -2115,8 +1996,8 @@ AprMTXn   <- round(cellStats(Apr_CropTX, 'min'), 1)
 
 May <- raster(Mean_CLIM[88])
 crs(May) <- crs(EXAMP)
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropTX  <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropTX  <- crop(x = May_Mask, y = extent(HALE))
 if (TUnit == "°F") { May_CropTX <- (May_CropTX * 1.8) + 32 }
 MayMTX    <- round(cellStats(May_CropTX, 'mean'), 1)
 MayMTXx   <- round(cellStats(May_CropTX, 'max'), 1)
@@ -2124,8 +2005,8 @@ MayMTXn   <- round(cellStats(May_CropTX, 'min'), 1)
 
 Jun <- raster(Mean_CLIM[86])
 crs(Jun) <- crs(EXAMP)
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropTX  <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropTX  <- crop(x = Jun_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jun_CropTX <- (Jun_CropTX * 1.8) + 32 }
 JunMTX   <- round(cellStats(Jun_CropTX , 'mean'), 1)
 JunMTXx   <- round(cellStats(Jun_CropTX, 'max'), 1)
@@ -2133,8 +2014,8 @@ JunMTXn   <- round(cellStats(Jun_CropTX, 'min'), 1)
 
 Jul <- raster(Mean_CLIM[85])
 crs(Jul) <- crs(EXAMP)
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropTX  <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropTX  <- crop(x = Jul_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jul_CropTX <- (Jul_CropTX * 1.8) + 32 }
 JulMTX    <- round(cellStats(Jul_CropTX, 'mean'), 1)
 JulMTXx   <- round(cellStats(Jul_CropTX, 'max'), 1)
@@ -2142,8 +2023,8 @@ JulMTXn   <- round(cellStats(Jul_CropTX, 'min'), 1)
 
 Aug <- raster(Mean_CLIM[81])
 crs(Aug) <- crs(EXAMP)
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropTX  <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropTX  <- crop(x = Aug_Mask, y = extent(HALE))
 if (TUnit == "°F") { Aug_CropTX <- (Aug_CropTX * 1.8) + 32 }
 AugMTX   <- round(cellStats(Aug_CropTX, 'mean'), 1)
 AugMTXx   <- round(cellStats(Aug_CropTX, 'max'), 1)
@@ -2151,8 +2032,8 @@ AugMTXn   <- round(cellStats(Aug_CropTX, 'min'), 1)
 
 Sep <- raster(Mean_CLIM[91])
 crs(Sep) <- crs(EXAMP)
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropTX  <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropTX  <- crop(x = Sep_Mask, y = extent(HALE))
 if (TUnit == "°F") { Sep_CropTX <- (Sep_CropTX * 1.8) + 32 }
 SepMTX   <- round(cellStats(Sep_CropTX, 'mean'), 1)
 SepMTXx   <- round(cellStats(Sep_CropTX, 'max'), 1)
@@ -2160,8 +2041,8 @@ SepMTXn   <- round(cellStats(Sep_CropTX, 'min'), 1)
 
 Oct <- raster(Mean_CLIM[90])
 crs(Oct) <- crs(EXAMP)
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropTX  <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropTX  <- crop(x = Oct_Mask, y = extent(HALE))
 if (TUnit == "°F") { Oct_CropTX <- (Oct_CropTX * 1.8) + 32 }
 OctMTX   <- round(cellStats(Oct_CropTX, 'mean'), 1)
 OctMTXx   <- round(cellStats(Oct_CropTX, 'max'), 1)
@@ -2169,8 +2050,8 @@ OctMTXn   <- round(cellStats(Oct_CropTX, 'min'), 1)
 
 Nov <- raster(Mean_CLIM[89])
 crs(Nov) <- crs(EXAMP)
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropTX  <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropTX  <- crop(x = Nov_Mask, y = extent(HALE))
 if (TUnit == "°F") { Nov_CropTX <- (Nov_CropTX * 1.8) + 32 }
 NovMTX   <- round(cellStats(Nov_CropTX, 'mean'), 1)
 NovMTXx   <- round(cellStats(Nov_CropTX, 'max'), 1)
@@ -2178,8 +2059,8 @@ NovMTXn   <- round(cellStats(Nov_CropTX, 'min'), 1)
 
 Dec <- raster(Mean_CLIM[82])
 crs(Dec) <- crs(EXAMP)
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropTX  <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropTX  <- crop(x = Dec_Mask, y = extent(HALE))
 if (TUnit == "°F") { Dec_CropTX <- (Dec_CropTX * 1.8) + 32 }
 DecMTX   <- round(cellStats(Dec_CropTX, 'mean'), 1)
 DecMTXx   <- round(cellStats(Dec_CropTX, 'max'), 1)
@@ -2187,8 +2068,8 @@ DecMTXn   <- round(cellStats(Dec_CropTX, 'min'), 1)
 
 Ann <- raster(Mean_CLIM[79])
 crs(Ann) <- crs(EXAMP)
-Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
-Ann_CropTX <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
+Ann_Mask <- mask(x = Ann, mask = HALE)
+Ann_CropTX <- crop(x = Ann_Mask, y = extent(HALE))
 if (TUnit == "°F") { Ann_CropTX <- (Ann_CropTX * 1.8) + 32 }
 AnnMTX   <- round(cellStats(Ann_CropTX, 'mean'), 1)
 AnnMTXx   <- round(cellStats(Ann_CropTX, 'max'), 1)
@@ -2210,8 +2091,8 @@ debug_print("48, MIN TEMPERATURE")
 
 Jan <- raster(Mean_CLIM[97])
 crs(Jan) <- crs(EXAMP)
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropTN <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropTN <- crop(x = Jan_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jan_CropTN <- (Jan_CropTN * 1.8) + 32 }
 JanMTN   <- round(cellStats(Jan_CropTN, 'mean'), 1)
 JanMTNx   <- round(cellStats(Jan_CropTN , 'max'), 1)
@@ -2221,8 +2102,8 @@ summary(Jan_CropTN)
 plot(Jan_CropTN)
 Feb <- raster(Mean_CLIM[96])
 crs(Feb) <- crs(EXAMP)
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropTN <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropTN <- crop(x = Feb_Mask, y = extent(HALE))
 if (TUnit == "°F") { Feb_CropTN <- (Feb_CropTN * 1.8) + 32 }
 FebMTN  <- round(cellStats(Feb_CropTN, 'mean'), 1)
 FebMTNx   <- round(cellStats(Feb_CropTN , 'max'), 1)
@@ -2230,8 +2111,8 @@ FebMTNn   <- round(cellStats(Feb_CropTN , 'min'), 1)
 
 Mar <- raster(Mean_CLIM[100])
 crs(Mar) <- crs(EXAMP)
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropTN <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropTN <- crop(x = Mar_Mask, y = extent(HALE))
 if (TUnit == "°F") { Mar_CropTN <- (Mar_CropTN * 1.8) + 32 }
 MarMTN   <- round(cellStats(Mar_CropTN, 'mean'), 1)
 MarMTNx   <- round(cellStats(Mar_CropTN , 'max'), 1)
@@ -2239,8 +2120,8 @@ MarMTNn   <- round(cellStats(Mar_CropTN , 'min'), 1)
 
 Apr <- raster(Mean_CLIM[93])
 crs(Apr) <- crs(EXAMP)
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropTN <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropTN <- crop(x = Apr_Mask, y = extent(HALE))
 if (TUnit == "°F") { Apr_CropTN <- (Apr_CropTN * 1.8) + 32 }
 AprMTN   <- round(cellStats(Apr_CropTN, 'mean'), 1)
 AprMTNx   <- round(cellStats(Apr_CropTN , 'max'), 1)
@@ -2248,8 +2129,8 @@ AprMTNn   <- round(cellStats(Apr_CropTN , 'min'), 1)
 
 May <- raster(Mean_CLIM[101])
 crs(May) <- crs(EXAMP)
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropTN <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropTN <- crop(x = May_Mask, y = extent(HALE))
 if (TUnit == "°F") { May_CropTN <- (May_CropTN * 1.8) + 32 }
 MayMTN   <- round(cellStats(May_CropTN, 'mean'), 1)
 MayMTNx   <- round(cellStats(May_CropTN , 'max'), 1)
@@ -2257,8 +2138,8 @@ MayMTNn   <- round(cellStats(May_CropTN , 'min'), 1)
 
 Jun <- raster(Mean_CLIM[99])
 crs(Jun) <- crs(EXAMP)
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropTN <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropTN <- crop(x = Jun_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jun_CropTN <- (Jun_CropTN * 1.8) + 32 }
 JunMTN   <- round(cellStats(Jun_CropTN, 'mean'), 1)
 JunMTNx   <- round(cellStats(Jun_CropTN , 'max'), 1)
@@ -2266,8 +2147,8 @@ JunMTNn   <- round(cellStats(Jun_CropTN , 'min'), 1)
 
 Jul <- raster(Mean_CLIM[98])
 crs(Jul) <- crs(EXAMP)
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropTN <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropTN <- crop(x = Jul_Mask, y = extent(HALE))
 if (TUnit == "°F") { Jul_CropTN <- (Jul_CropTN * 1.8) + 32 }
 JulMTN   <- round(cellStats(Jul_CropTN, 'mean'), 1)
 JulMTNx   <- round(cellStats(Jul_CropTN , 'max'), 1)
@@ -2275,8 +2156,8 @@ JulMTNn   <- round(cellStats(Jul_CropTN , 'min'), 1)
 
 Aug <- raster(Mean_CLIM[94])
 crs(Aug) <- crs(EXAMP)
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropTN <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropTN <- crop(x = Aug_Mask, y = extent(HALE))
 if (TUnit == "°F") { Aug_CropTN <- (Aug_CropTN * 1.8) + 32 }
 AugMTN   <- round(cellStats(Aug_CropTN, 'mean'), 1)
 AugMTNx   <- round(cellStats(Aug_CropTN , 'max'), 1)
@@ -2284,8 +2165,8 @@ AugMTNn   <- round(cellStats(Aug_CropTN , 'min'), 1)
 
 Sep <- raster(Mean_CLIM[104])
 crs(Sep) <- crs(EXAMP)
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropTN <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropTN <- crop(x = Sep_Mask, y = extent(HALE))
 if (TUnit == "°F") { Sep_CropTN <- (Sep_CropTN * 1.8) + 32 }
 SepMTN   <- round(cellStats(Sep_CropTN, 'mean'), 1)
 SepMTNx   <- round(cellStats(Sep_CropTN , 'max'), 1)
@@ -2293,8 +2174,8 @@ SepMTNn   <- round(cellStats(Sep_CropTN , 'min'), 1)
 
 Oct <- raster(Mean_CLIM[103])
 crs(Oct) <- crs(EXAMP)
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropTN <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropTN <- crop(x = Oct_Mask, y = extent(HALE))
 if (TUnit == "°F") { Oct_CropTN <- (Oct_CropTN * 1.8) + 32 }
 OctMTN   <- round(cellStats(Oct_CropTN, 'mean'), 1)
 OctMTNx   <- round(cellStats(Oct_CropTN , 'max'), 1)
@@ -2302,8 +2183,8 @@ OctMTNn   <- round(cellStats(Oct_CropTN , 'min'), 1)
 
 Nov <- raster(Mean_CLIM[102])
 crs(Nov) <- crs(EXAMP)
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropTN <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropTN <- crop(x = Nov_Mask, y = extent(HALE))
 if (TUnit == "°F") { Nov_CropTN <- (Nov_CropTN * 1.8) + 32 }
 NovMTN   <- round(cellStats(Nov_CropTN, 'mean'), 1)
 NovMTNx   <- round(cellStats(Nov_CropTN , 'max'), 1)
@@ -2311,8 +2192,8 @@ NovMTNn   <- round(cellStats(Nov_CropTN , 'min'), 1)
 
 Dec <- raster(Mean_CLIM[95])
 crs(Dec) <- crs(EXAMP)
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropTN <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropTN <- crop(x = Dec_Mask, y = extent(HALE))
 if (TUnit == "°F") { Dec_CropTN <- (Dec_CropTN * 1.8) + 32 }
 DecMTN   <- round(cellStats(Dec_CropTN, 'mean'), 1)
 DecMTNx   <- round(cellStats(Dec_CropTN , 'max'), 1)
@@ -2320,8 +2201,8 @@ DecMTNn   <- round(cellStats(Dec_CropTN , 'min'), 1)
 
 Ann <- raster(Mean_CLIM[92])
 crs(Ann) <- crs(EXAMP)
-Ann_Mask <- mask(x = Ann, mask = UNIT_X[[u]])
-Ann_CropTN <- crop(x = Ann_Mask, y = extent(UNIT_X[[u]]))
+Ann_Mask <- mask(x = Ann, mask = HALE)
+Ann_CropTN <- crop(x = Ann_Mask, y = extent(HALE))
 if (TUnit == "°F") { Ann_CropTN <- (Ann_CropTN * 1.8) + 32 }
 AnnMTN   <- round(cellStats(Ann_CropTN, 'mean'), 1)
 AnnMTNx   <- round(cellStats(Ann_CropTN , 'max'), 1)
@@ -2342,92 +2223,92 @@ TnLO <- min(JanMTNn,FebMTNn,MarMTNn,AprMTNn,MayMTNn,JunMTNn,JulMTNn,AugMTNn,SepM
 debug_print("49, RELATIVE HUMIDITY")
 
 Jan <- raster(Mean_CLIM[32])
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropRH <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropRH <- crop(x = Jan_Mask, y = extent(HALE))
 JanMRH    <- round(cellStats(Jan_CropRH , 'mean'), 0)
 JanMRHx   <- round(cellStats(Jan_CropRH  , 'max'), 0)
 JanMRHn   <- round(cellStats(Jan_CropRH  , 'min'), 0)
 
 Feb <- raster(Mean_CLIM[31])
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropRH  <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropRH  <- crop(x = Feb_Mask, y = extent(HALE))
 FebMRH    <- round(cellStats(Feb_CropRH , 'mean'), 0)
 FebMRHx   <- round(cellStats(Feb_CropRH  , 'max'), 0)
 FebMRHn   <- round(cellStats(Feb_CropRH  , 'min'), 0)
 
 Mar <- raster(Mean_CLIM[35])
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropRH  <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropRH  <- crop(x = Mar_Mask, y = extent(HALE))
 MarMRH    <- round(cellStats(Mar_CropRH , 'mean'), 0)
 MarMRHx   <- round(cellStats(Mar_CropRH  , 'max'), 0)
 MarMRHn   <- round(cellStats(Mar_CropRH  , 'min'), 0)
 
 Apr <- raster(Mean_CLIM[28])
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropRH  <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropRH  <- crop(x = Apr_Mask, y = extent(HALE))
 AprMRH    <- round(cellStats(Apr_CropRH , 'mean'), 0)
 AprMRHx   <- round(cellStats(Apr_CropRH  , 'max'), 0)
 AprMRHn   <- round(cellStats(Apr_CropRH  , 'min'), 0)
 
 May <- raster(Mean_CLIM[36])
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropRH  <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropRH  <- crop(x = May_Mask, y = extent(HALE))
 MayMRH   <- round(cellStats(May_CropRH, 'mean'), 0)
 MayMRHx   <- round(cellStats(May_CropRH  , 'max'), 0)
 MayMRHn   <- round(cellStats(May_CropRH  , 'min'), 0)
 
 Jun <- raster(Mean_CLIM[34])
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropRH  <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropRH  <- crop(x = Jun_Mask, y = extent(HALE))
 JunMRH    <- round(cellStats(Jun_CropRH, 'mean'), 0)
 JunMRHx   <- round(cellStats(Jun_CropRH  , 'max'), 0)
 JunMRHn   <- round(cellStats(Jun_CropRH  , 'min'), 0)
 
 Jul <- raster(Mean_CLIM[33])
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropRH  <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropRH  <- crop(x = Jul_Mask, y = extent(HALE))
 JulMRH   <- round(cellStats(Jul_CropRH, 'mean'), 0)
 JulMRHx   <- round(cellStats(Jul_CropRH  , 'max'), 0)
 JulMRHn   <- round(cellStats(Jul_CropRH  , 'min'), 0)
 
 Aug <- raster(Mean_CLIM[29])
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropRH  <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropRH  <- crop(x = Aug_Mask, y = extent(HALE))
 AugMRH   <- round(cellStats(Aug_CropRH, 'mean'), 0)
 AugMRHx   <- round(cellStats(Aug_CropRH  , 'max'), 0)
 AugMRHn   <- round(cellStats(Aug_CropRH  , 'min'), 0)
 
 Sep <- raster(Mean_CLIM[39])
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropRH  <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropRH  <- crop(x = Sep_Mask, y = extent(HALE))
 SepMRH <- round(cellStats(Sep_CropRH, 'mean'), 0)
 SepMRHx   <- round(cellStats(Sep_CropRH  , 'max'), 0)
 SepMRHn   <- round(cellStats(Sep_CropRH  , 'min'), 0)
 
 Oct <- raster(Mean_CLIM[38])
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropRH  <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropRH  <- crop(x = Oct_Mask, y = extent(HALE))
 OctMRH <- round(cellStats(Oct_CropRH, 'mean'), 0)
 OctMRHx   <- round(cellStats(Oct_CropRH  , 'max'), 0)
 OctMRHn   <- round(cellStats(Oct_CropRH  , 'min'), 0)
 
 Nov <- raster(Mean_CLIM[37])
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropRH  <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropRH  <- crop(x = Nov_Mask, y = extent(HALE))
 NovMRH <- round(cellStats(Nov_CropRH , 'mean'), 0)
 NovMRHx   <- round(cellStats(Nov_CropRH  , 'max'), 0)
 NovMRHn   <- round(cellStats(Nov_CropRH  , 'min'), 0)
 
 Dec <- raster(Mean_CLIM[30])
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropRH  <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropRH  <- crop(x = Dec_Mask, y = extent(HALE))
 DecMRH    <- round(cellStats(Dec_CropRH, 'mean'), 0)
 DecMRHx   <- round(cellStats(Dec_CropRH  , 'max'), 0)
 DecMRHn   <- round(cellStats(Dec_CropRH  , 'min'), 0)
 
 ANN <- raster(Mean_CLIM[27])
-ANN_Mask <- mask(x = ANN, mask = UNIT_X[[u]])
-ANN_CropRH  <- crop(x = ANN_Mask, y = extent(UNIT_X[[u]]))
+ANN_Mask <- mask(x = ANN, mask = HALE)
+ANN_CropRH  <- crop(x = ANN_Mask, y = extent(HALE))
 ANNMRH    <- round(cellStats(ANN_CropRH, 'mean'), 0)
 ANNMRHx   <- round(cellStats(ANN_CropRH  , 'max'), 0)
 ANNMRHn   <- round(cellStats(ANN_CropRH  , 'min'), 0)
@@ -2454,24 +2335,24 @@ debug_print("50, OTHER CLIMATE VARIABLES")
 
 #See Varible "ANN_CropRH" for example
 RH_P <- raster(Mean_CLIM[27])
-RH_P_Mask <- mask(x = RH_P, mask = UNIT_X[[u]])
-RH_P_Crop <- crop(x = RH_P_Mask, y = extent(UNIT_X[[u]]))
+RH_P_Mask <- mask(x = RH_P, mask = HALE)
+RH_P_Crop <- crop(x = RH_P_Mask, y = extent(HALE))
 RH_P_M   <- round(cellStats(RH_P_Crop, 'mean'), 0)
 RHUPA   <- round(cellStats(RH_P_Crop  , 'max'), 1)
 RHLOA   <- round(cellStats(RH_P_Crop  , 'min'), 1)
 
 Tair_P <- raster(Mean_CLIM[66])
 names(Tair_P) = "Mean Air Temp."
-Tair_P_Mask <- mask(x = Tair_P, mask = UNIT_X[[u]])
-Tair_P_Crop <- crop(x = Tair_P_Mask, y = extent(UNIT_X[[u]]))
+Tair_P_Mask <- mask(x = Tair_P, mask = HALE)
+Tair_P_Crop <- crop(x = Tair_P_Mask, y = extent(HALE))
 if (TUnit == "°F") { Tair_P_Crop <- (Tair_P_Crop * 1.8) + 32 }
 Tair_P_M   <- round(cellStats(Tair_P_Crop, 'mean'), 1)
 Tair_PName <- names(Tair_P)
 
 SM_P <- raster(Mean_CLIM[40])
 names(SM_P) = "Soil Moisture"
-SM_P_Mask <- mask(x = SM_P, mask = UNIT_X[[u]])
-SM_P_Crop <- crop(x = SM_P_Mask, y = extent(UNIT_X[[u]]))
+SM_P_Mask <- mask(x = SM_P, mask = HALE)
+SM_P_Crop <- crop(x = SM_P_Mask, y = extent(HALE))
 SM_P_M   <- round(cellStats(SM_P_Crop, 'mean'), 2)
 SM_PName <- names(SM_P)
 SMUP   <- round(cellStats(SM_P_Crop  , 'max'), 2)
@@ -2479,8 +2360,8 @@ SMLO   <- round(cellStats(SM_P_Crop  , 'min'), 2)
 
 CF_P <- raster(Mean_CLIM[1])
 names(CF_P) = "Cloud Freq"
-CF_P_Mask <- mask(x = CF_P, mask = UNIT_X[[u]])
-CF_P_Crop <- crop(x = CF_P_Mask, y = extent(UNIT_X[[u]]))
+CF_P_Mask <- mask(x = CF_P, mask = HALE)
+CF_P_Crop <- crop(x = CF_P_Mask, y = extent(HALE))
 CF_P_M   <- round(cellStats(CF_P_Crop, 'mean'), 2)
 CF_PName <- names(CF_P)
 CFUP   <- round(cellStats(CF_P_Crop  , 'max'), 2)
@@ -2489,8 +2370,8 @@ CFLO   <- round(cellStats(CF_P_Crop  , 'min'), 2)
 Tmax_P <- raster(Mean_CLIM[79])
 crs(Tmax_P)  <- crs(EXAMP)
 names(Tmax_P) = "Max Air Temp."
-Tmax_P_Mask <- mask(x = Tmax_P, mask = UNIT_X[[u]])
-Tmax_P_Crop <- crop(x = Tmax_P_Mask, y = extent(UNIT_X[[u]]))
+Tmax_P_Mask <- mask(x = Tmax_P, mask = HALE)
+Tmax_P_Crop <- crop(x = Tmax_P_Mask, y = extent(HALE))
 if (TUnit == "°F") { Tmax_P_Crop <- (Tmax_P_Crop  * 1.8) + 32 }
 Tmax_P_M   <- round(cellStats(Tmax_P_Crop, 'mean'), 1)
 Tmax_PName <- names(Tmax_P)
@@ -2498,16 +2379,16 @@ Tmax_PName <- names(Tmax_P)
 Tmin_P <- raster(Mean_CLIM[92])
 crs(Tmin_P)  <- crs(EXAMP)
 names(Tmin_P) = "Mean Air Temp."
-Tmin_P_Mask <- mask(x = Tmin_P, mask = UNIT_X[[u]])
-Tmin_P_Crop <- crop(x = Tmin_P_Mask, y = extent(UNIT_X[[u]]))
+Tmin_P_Mask <- mask(x = Tmin_P, mask = HALE)
+Tmin_P_Crop <- crop(x = Tmin_P_Mask, y = extent(HALE))
 if (TUnit == "°F") { Tmin_P_Crop <- (Tmin_P_Crop  * 1.8) + 32 }
 Tmin_P_M   <- round(cellStats(Tmin_P_Crop, 'mean'), 1)
 Tmin_PName <- names(Tmin_P)
 
 KD_P <- raster(Mean_CLIM[53])
 names(KD_P) = "Solar Radiation."
-KD_P_Mask <- mask(x = KD_P, mask = UNIT_X[[u]])
-KD_P_Crop <- crop(x = KD_P_Mask, y = extent(UNIT_X[[u]]))
+KD_P_Mask <- mask(x = KD_P, mask = HALE)
+KD_P_Crop <- crop(x = KD_P_Mask, y = extent(HALE))
 KD_P_M   <- round(cellStats(KD_P_Crop, 'mean'), 0)
 KD_PName <- names(KD_P)
 KDUP   <- round(cellStats(KD_P_Crop  , 'max'), 0)
@@ -2515,8 +2396,8 @@ KDLO   <- round(cellStats(KD_P_Crop  , 'min'), 0)
 
 ET_P <- raster(Mean_CLIM[14])
 names(ET_P) = "Evaporation"
-ET_P_Mask <- mask(x = ET_P, mask = UNIT_X[[u]])
-ET_P_Crop <- crop(x = ET_P_Mask, y = extent(UNIT_X[[u]]))
+ET_P_Mask <- mask(x = ET_P, mask = HALE)
+ET_P_Crop <- crop(x = ET_P_Mask, y = extent(HALE))
 if (RFUnit == " in") { ET_P_Crop <- ET_P_Crop * 0.0393701 }
 ET_P_M   <- round(cellStats(ET_P_Crop , 'mean'), 0)
 ET_PName <- names(ET_P)
@@ -2525,8 +2406,8 @@ ETLO   <- round(cellStats(ET_P_Crop  , 'min'), 0)
 
 VPD_P <- raster(Mean_CLIM[105])
 names(VPD_P) = "VPD"
-VPD_P_Mask <- mask(x = VPD_P, mask = UNIT_X[[u]])
-VPD_P_Crop <- crop(x = VPD_P_Mask, y = extent(UNIT_X[[u]]))
+VPD_P_Mask <- mask(x = VPD_P, mask = HALE)
+VPD_P_Crop <- crop(x = VPD_P_Mask, y = extent(HALE))
 if (RFUnit == " in") { VPD_P_Crop <- VPD_P_Crop * 0.0393701 }
 VPD_P_M   <- round(cellStats(VPD_P_Crop, 'mean'), 0)
 VPD_PName <- names(VPD_P)
@@ -2535,8 +2416,8 @@ VPDLO   <- round(cellStats(VPD_P_Crop  , 'min'), 0)
 
 WS_P <- raster(paste0(INPUTS_FOLDER, "Mean Climate/Wind/wind_sd_avg.tif"))
 names(WS_P) = "Windspeed"
-WS_P_Mask <- mask(x = WS_P, mask = UNIT_X[[u]])
-WS_P_Crop <- crop(x = WS_P_Mask, y = extent(UNIT_X[[u]]))
+WS_P_Mask <- mask(x = WS_P, mask = HALE)
+WS_P_Crop <- crop(x = WS_P_Mask, y = extent(HALE))
 #convert from m/sec to mph
 WS_P_Crop <- WS_P_Crop * 2.237
 WS_P_M   <- round(cellStats(WS_P_Crop, 'mean'), 0)
@@ -2548,104 +2429,104 @@ WSLO   <- round(cellStats(WS_P_Crop  , 'min'), 1)
 debug_print("51, MEAN RAINFALL Data")
 
 Jan <- raster(MeanRF_ALL[1])
-Jan_Mask <- mask(x = Jan, mask = UNIT_X[[u]])
-Jan_CropRF <- crop(x = Jan_Mask, y = extent(UNIT_X[[u]]))
+Jan_Mask <- mask(x = Jan, mask = HALE)
+Jan_CropRF <- crop(x = Jan_Mask, y = extent(HALE))
 if (RFUnit == " in") { Jan_CropRF  <- Jan_CropRF  * 0.0393701 }
 JanMRF    <- round(cellStats(Jan_CropRF, 'mean'), 1)
 JanMRFx   <- round(cellStats(Jan_CropRF  , 'max'), 1)
 JanMRFn   <- round(cellStats(Jan_CropRF  , 'min'), 1)
 
 Feb <- raster(MeanRF_ALL[2])
-Feb_Mask <- mask(x = Feb, mask = UNIT_X[[u]])
-Feb_CropRF <- crop(x = Feb_Mask, y = extent(UNIT_X[[u]]))
+Feb_Mask <- mask(x = Feb, mask = HALE)
+Feb_CropRF <- crop(x = Feb_Mask, y = extent(HALE))
 if (RFUnit == " in") { Feb_CropRF  <- Feb_CropRF  * 0.0393701 }
 FebMRF   <- round(cellStats(Feb_CropRF, 'mean'), 1)
 FebMRFx   <- round(cellStats(Feb_CropRF  , 'max'), 1)
 FebMRFn   <- round(cellStats(Feb_CropRF  , 'min'), 1)
 
 Mar <- raster(MeanRF_ALL[3])
-Mar_Mask <- mask(x = Mar, mask = UNIT_X[[u]])
-Mar_CropRF <- crop(x = Mar_Mask, y = extent(UNIT_X[[u]]))
+Mar_Mask <- mask(x = Mar, mask = HALE)
+Mar_CropRF <- crop(x = Mar_Mask, y = extent(HALE))
 if (RFUnit == " in") { Mar_CropRF  <- Mar_CropRF  * 0.0393701 }
 MarMRF   <- round(cellStats(Mar_CropRF, 'mean'), 1)
 MarMRFx   <- round(cellStats(Mar_CropRF  , 'max'), 1)
 MarMRFn   <- round(cellStats(Mar_CropRF  , 'min'), 1)
 
 Apr <- raster(MeanRF_ALL[4])
-Apr_Mask <- mask(x = Apr, mask = UNIT_X[[u]])
-Apr_CropRF <- crop(x = Apr_Mask, y = extent(UNIT_X[[u]]))
+Apr_Mask <- mask(x = Apr, mask = HALE)
+Apr_CropRF <- crop(x = Apr_Mask, y = extent(HALE))
 if (RFUnit == " in") { Apr_CropRF  <- Apr_CropRF  * 0.0393701 }
 AprMRF   <- round(cellStats(Apr_CropRF, 'mean'), 1)
 AprMRFx   <- round(cellStats(Apr_CropRF  , 'max'), 1)
 AprMRFn   <- round(cellStats(Apr_CropRF  , 'min'), 1)
 
 May <- raster(MeanRF_ALL[5])
-May_Mask <- mask(x = May, mask = UNIT_X[[u]])
-May_CropRF <- crop(x = May_Mask, y = extent(UNIT_X[[u]]))
+May_Mask <- mask(x = May, mask = HALE)
+May_CropRF <- crop(x = May_Mask, y = extent(HALE))
 if (RFUnit == " in") { May_CropRF  <- May_CropRF  * 0.0393701 }
 MayMRF   <- round(cellStats(May_CropRF, 'mean'), 1)
 MayMRFx   <- round(cellStats(May_CropRF  , 'max'), 1)
 MayMRFn   <- round(cellStats(May_CropRF  , 'min'), 1)
 
 Jun <- raster(MeanRF_ALL[6])
-Jun_Mask <- mask(x = Jun, mask = UNIT_X[[u]])
-Jun_CropRF <- crop(x = Jun_Mask, y = extent(UNIT_X[[u]]))
+Jun_Mask <- mask(x = Jun, mask = HALE)
+Jun_CropRF <- crop(x = Jun_Mask, y = extent(HALE))
 if (RFUnit == " in") { Jun_CropRF  <- Jun_CropRF  * 0.0393701 }
 JunMRF   <- round(cellStats(Jun_CropRF, 'mean'), 1)
 JunMRFx   <- round(cellStats(Jun_CropRF  , 'max'), 1)
 JunMRFn   <- round(cellStats(Jun_CropRF  , 'min'), 1)
 
 Jul <- raster(MeanRF_ALL[7])
-Jul_Mask <- mask(x = Jul, mask = UNIT_X[[u]])
-Jul_CropRF <- crop(x = Jul_Mask, y = extent(UNIT_X[[u]]))
+Jul_Mask <- mask(x = Jul, mask = HALE)
+Jul_CropRF <- crop(x = Jul_Mask, y = extent(HALE))
 if (RFUnit == " in") { Jul_CropRF  <- Jul_CropRF  * 0.0393701 }
 JulMRF   <- round(cellStats(Jul_CropRF, 'mean'), 1)
 JulMRFx   <- round(cellStats(Jul_CropRF  , 'max'), 1)
 JulMRFn   <- round(cellStats(Jul_CropRF  , 'min'), 1)
 
 Aug <- raster(MeanRF_ALL[8])
-Aug_Mask <- mask(x = Aug, mask = UNIT_X[[u]])
-Aug_CropRF <- crop(x = Aug_Mask, y = extent(UNIT_X[[u]]))
+Aug_Mask <- mask(x = Aug, mask = HALE)
+Aug_CropRF <- crop(x = Aug_Mask, y = extent(HALE))
 if (RFUnit == " in") { Aug_CropRF  <- Aug_CropRF  * 0.0393701 }
 AugMRF   <- round(cellStats(Aug_CropRF, 'mean'), 1)
 AugMRFx   <- round(cellStats(Aug_CropRF  , 'max'), 1)
 AugMRFn   <- round(cellStats(Aug_CropRF  , 'min'), 1)
 
 Sep <- raster(MeanRF_ALL[9])
-Sep_Mask <- mask(x = Sep, mask = UNIT_X[[u]])
-Sep_CropRF <- crop(x = Sep_Mask, y = extent(UNIT_X[[u]]))
+Sep_Mask <- mask(x = Sep, mask = HALE)
+Sep_CropRF <- crop(x = Sep_Mask, y = extent(HALE))
 if (RFUnit == " in") { Sep_CropRF  <- Sep_CropRF  * 0.0393701 }
 SepMRF   <- round(cellStats(Sep_CropRF, 'mean'), 1)
 SepMRFx   <- round(cellStats(Sep_CropRF  , 'max'), 1)
 SepMRFn   <- round(cellStats(Sep_CropRF  , 'min'), 1)
 
 Oct <- raster(MeanRF_ALL[10])
-Oct_Mask <- mask(x = Oct, mask = UNIT_X[[u]])
-Oct_CropRF <- crop(x = Oct_Mask, y = extent(UNIT_X[[u]]))
+Oct_Mask <- mask(x = Oct, mask = HALE)
+Oct_CropRF <- crop(x = Oct_Mask, y = extent(HALE))
 if (RFUnit == " in") { Oct_CropRF  <- Oct_CropRF  * 0.0393701 }
 OctMRF   <- round(cellStats(Oct_CropRF, 'mean'), 1)
 OctMRFx   <- round(cellStats(Oct_CropRF  , 'max'), 1)
 OctMRFn   <- round(cellStats(Oct_CropRF  , 'min'), 1)
 
 Nov <- raster(MeanRF_ALL[11])
-Nov_Mask <- mask(x = Nov , mask = UNIT_X[[u]])
-Nov_CropRF <- crop(x = Nov_Mask, y = extent(UNIT_X[[u]]))
+Nov_Mask <- mask(x = Nov , mask = HALE)
+Nov_CropRF <- crop(x = Nov_Mask, y = extent(HALE))
 if (RFUnit == " in") { Nov_CropRF  <- Nov_CropRF  * 0.0393701 }
 NovMRF   <- round(cellStats(Nov_CropRF, 'mean'), 1)
 NovMRFx   <- round(cellStats(Nov_CropRF  , 'max'), 1)
 NovMRFn   <- round(cellStats(Nov_CropRF  , 'min'), 1)
 
 Dec <- raster(MeanRF_ALL[12])
-Dec_Mask <- mask(x = Dec, mask = UNIT_X[[u]])
-Dec_CropRF <- crop(x = Dec_Mask, y = extent(UNIT_X[[u]]))
+Dec_Mask <- mask(x = Dec, mask = HALE)
+Dec_CropRF <- crop(x = Dec_Mask, y = extent(HALE))
 if (RFUnit == " in") { Dec_CropRF  <- Dec_CropRF  * 0.0393701 }
 DecMRF   <- round(cellStats(Dec_CropRF, 'mean'), 1)
 DecMRFx   <- round(cellStats(Dec_CropRF  , 'max'), 1)
 DecMRFn   <- round(cellStats(Dec_CropRF  , 'min'), 1)
 
 ANN <- raster(MeanRF_ALL[13])
-ANN_Mask <- mask(x = ANN, mask = UNIT_X[[u]])
-ANN_CropRF <- crop(x = ANN_Mask, y = extent(UNIT_X[[u]]))
+ANN_Mask <- mask(x = ANN, mask = HALE)
+ANN_CropRF <- crop(x = ANN_Mask, y = extent(HALE))
 if (RFUnit == " in") { ANN_CropRF  <- ANN_CropRF  * 0.0393701 }
 ANNMRFM   <- round(cellStats(ANN_CropRF, 'mean'), 0)
 ANNUP   <- round(cellStats(ANN_CropRF  , 'max'), 0)
@@ -2779,177 +2660,176 @@ dev.off()
 #Mean Rainfall
 debug_print("53, Figure for Other Climate Variables ")
 
-# Decide on a Break for Rainfall
-RNGERF <- RFUP - RFLO
-if (RNGERF > 8.99) {
-  BI_brksRF<-round(seq(RFLO, RFUP, length = 10),0);
+# Decide on a Break for Rainfall 
+RNGERF <- RFUP-RFLO 
+if (RNGERF > 8.99){
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 10),0);
   colfuncRF<-colorRampPalette(brewer.pal(10,"YlGnBu"))(50)
 }
 if (RNGERF < 9 && RNGERF > 7.99 ){
-  BI_brksRF<-round(seq(RFLO, RFUP, length = 9),0);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 9),0);
   colfuncRF<-colorRampPalette(brewer.pal(9,"YlGnBu"))(50)
 }
 if (RNGERF < 8 && RNGERF > 6.99 ){
-  BI_brksRF<-round(seq(RFLO, RFUP, length = 8),0);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 8),0);
   colfuncRF<-colorRampPalette(brewer.pal(8,"YlGnBu"))(50)
 }
 if (RNGERF < 7 && RNGERF > 5.99 ){
-  BI_brksRF<-round(seq(RFLO, RFUP, length = 7),0);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 7),0);
   colfuncRF<-colorRampPalette(brewer.pal(7,"YlGnBu"))(50)
 }
 if (RNGERF < 6 && RNGERF > 4.99 ){
-  BI_brksRF<-round(seq(RFLO, RFUP, length = 5),0);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 5),0);
   colfuncRF<-colorRampPalette(brewer.pal(5,"YlGnBu"))(50)
 }
 if (RNGERF < 5 && RNGERF > 3.99 ){
-  BI_brksRF<-round(seq(RFLO, RFUP, length = 5),0);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 5),0);
   colfuncRF<-colorRampPalette(brewer.pal(5,"YlGnBu"))(50)
 }
 if (RNGERF < 4 && RNGERF > 2.99 ){
-  BI_brksRF<-round(seq(0, RFUP, length = 4),1);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 4),1);
   colfuncRF<-colorRampPalette(brewer.pal(4,"YlGnBu"))(50)
 }
 if (RNGERF < 3 && RNGERF > 1.99 ){
-  BI_brksRF<-round(seq(0, RFUP, length = 3),1);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 3),1);
   colfuncRF<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
 }
 if (RNGERF < 2 && RNGERF > 0.99 ){
-  BI_brksRF<-round(seq(0, RFUP, length = 3),1);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 3),1);
   colfuncRF<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
 }
 if (RNGERF < 2 && RNGERF > 0 ){
-  BI_brksRF<-round(seq(0, 3, length = 3),1);
+  BI_brksRF<-round(seq(RFLO - 0.1, RFUP + 0.1, length = 3),1);
   colfuncRF<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
 }
-
-RNGERF
 
 #Mean Rainfall
 debug_print("53, Mean Rainfall")
 
-# Decide on a Break for Rainfall
-RNGERFA <- ANNUP - ANNLO
+# Decide on a Break for Rainfall 
+RNGERFA <- ANNUP-ANNLO 
+
 if (RNGERFA >= 10){
-  BI_brksRFA<-round(seq(ANNLO, ANNUP, length = 11),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(9,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO - 0.1, ANNUP + 0.1, length = 11),0);
+  colfuncRFA <- colorRampPalette((RColorBrewer::brewer.pal(9, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 10 && RNGERFA > 8.99 ){
-  BI_brksRFA<-round(seq(ANNLO, ANNUP, length = 10),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(9,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 10),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(9, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 9 && RNGERFA > 7.99 ){
-  BI_brksRFA<-round(seq(ANNLO, ANNUP, length = 9),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(9,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 9),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(9, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 8 && RNGERFA > 6.99 ){
-  BI_brksRFA<-round(seq(ANNLO, ANNUP, length = 8),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(8,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 8),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(8, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 7 && RNGERFA > 5.99 ){
-  BI_brksRFA<-round(seq(ANNLO, ANNUP, length = 7),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(7,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 7),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(7, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 6 && RNGERFA > 4.99 ){
-  BI_brksRFA<-round(seq(0, ANNUP, length = 6),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(6,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 6),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(6, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 5 && RNGERFA > 3.99 ){
-  BI_brksRFA<-round(seq(0, ANNUP, length = 5),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(5,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 5),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(5, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 4 && RNGERFA > 0.99 ){
-  BI_brksRFA<-round(seq(0, ANNUP, length = 3),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(4,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 3),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(4, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 if (RNGERFA < 4 && RNGERFA < 0.99 ){
-  BI_brksRFA<-round(seq(0, ANNUP, length = 3),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 3),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(3, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
-
 if (RNGERFA < 3){
-  BI_brksRFA<-round(seq(RFLO, RFUP, length = 3),0);
-  colfuncRFA<-colorRampPalette(brewer.pal(3,"YlGnBu"))(50)
+  BI_brksRFA<-round(seq(ANNLO-0.1, ANNUP+0.1, length = 3),0);
+  colfuncRFA<-colorRampPalette((RColorBrewer::brewer.pal(3, "YlGnBu")))(length(BI_brksRFA) - 1)
 }
 
-#Use Same Scale for TA
-if (!is.infinite(TnLO)) {
-  BI_brksTA <- round(seq(TnLO, TxUP, length = 9), 0)
-  colfuncTA <- colorRampPalette(brewer.pal(9, "YlOrRd"))(50)
+#Use Same Scale for TA 
+if(!is.infinite(TnLO)) {
+  BI_brksTA<-round(seq(TnLO-0.1, TxUP+0.1, length = 9),0)
+  colfuncTA <-colorRampPalette(brewer.pal(9,"YlOrRd"))(50)
 }
 
-if (is.infinite(TnLO)) {
-  BI_brksTA <- round(seq(TaLo, TaUP, length = 9), 0)
-  colfuncTA <- colorRampPalette(brewer.pal(9, "YlOrRd"))(50)
+if(is.infinite(TnLO)) {
+  BI_brksTA<-round(seq(TaLo-0.1, TaUP+0.1, length = 9),0)
+  colfuncTA <-colorRampPalette(brewer.pal(9,"YlOrRd"))(50) 
 }
 
-#For RH
-RNGERH <- RHUP - RHLO
-if (RNGERH > 8) {
-  BI_brksRH <- round(seq(RHLO, RHUP, length = 9), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(9, "BuPu"))(50)
+#For RH 
+RNGERH <- RHUP+0.1-RHLO-0.1 
+if (RNGERH > 8){
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = 9),0)
+  colfuncRH <-colorRampPalette(brewer.pal(9,"BuPu"))(50)
 }
 # RH
-if (RNGERH < 9 && RNGERH > 7.99) {
-  BI_brksRH <- round(seq(RHLO, RHUP, length = 8), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(8, "BuPu"))(50)
+if (RNGERH < 9 && RNGERH > 7.99 ){
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = 8),0)
+  colfuncRH <-colorRampPalette(brewer.pal(8,"BuPu"))(50)
 }
-if (RNGERH < 8 && RNGERH > 6.99) {
-  BI_brksRH <- round(seq(RHLO, RHUP, length = 7), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(7, "BuPu"))(50)
+if (RNGERH < 8 && RNGERH > 6.99 ){
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = 7),0)
+  colfuncRH <-colorRampPalette(brewer.pal(7,"BuPu"))(50)
 }
-if (RNGERH < 7 && RNGERH > 5.99) {
-  BI_brksRH <- round(seq(RHLO, RHUP, length = 6), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(6, "BuPu"))(50)
+if (RNGERH < 7 && RNGERH > 5.99 ){
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = 6),0)
+  colfuncRH <-colorRampPalette(brewer.pal(6,"BuPu"))(50)
 }
-if (RNGERH < 6 && RNGERH > 4.99) {
-  BI_brksRH <- round(seq(RHLO, RHUP, length = 5), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(5, "BuPu"))(50)
+if (RNGERH < 6 && RNGERH > 4.99 ){
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = 5),0)
+  colfuncRH <-colorRampPalette(brewer.pal(5,"BuPu"))(50)
 }
-if (RNGERH < 5 && RNGERH > 3.99) {
-  BI_brksRH <- round(seq(RHLO, RHUP, length = 4), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(4, "BuPu"))(50)
+if (RNGERH < 5 && RNGERH > 3.99 ){
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = 4),0)
+  colfuncRH <-colorRampPalette(brewer.pal(4,"BuPu"))(50)
 }
-if (RNGERH < 4 && RNGERH > 2.99) {
-  BI_brksRH <- round(seq(RHLO, RHUP, length = 4), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(4, "BuPu"))(50)
+if (RNGERH < 4 && RNGERH > 2.99 ){
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = 4),0)
+  colfuncRH <-colorRampPalette(brewer.pal(4,"BuPu"))(50)
 }
-if (RNGERH < 2.99) {
-  l <- round((RHUP - RHLO), 0)
-  BI_brksRH <- round(seq(RHLO, RHUP, length = l), 0)
-  colfuncRH <- colorRampPalette(brewer.pal(l, "BuPu"))(50)
+if (RNGERH < 2.99){
+  l<-round((RHUP-RHLO),0)
+  BI_brksRH<-round(seq(RHLO - 0.1, RHUP + 0.1, length = l),0)
+  colfuncRH <-colorRampPalette(brewer.pal(l,"BuPu"))(50)
 }
 
 #For SM
-BI_brksSM <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
-colfuncSM <- colorRampPalette(brewer.pal(9, "YlGn"))(50)
+BI_brksSM<-c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+colfuncSM <-colorRampPalette(brewer.pal(9,"YlGn"))(50)
 
 #For KD (Solar)
-if ((KDUP - KDLO) >= 9) {
-  BI_brksKD <- round(seq(KDLO, KDUP, length = 9), 0)
-  colfuncKD <- colorRampPalette(brewer.pal(9, "OrRd"))(50)
+if((KDUP - KDLO)>=9){
+  BI_brksKD<-round(seq(KDLO - 0.1, KDUP + 0.1, length = 9),0)
+  colfuncKD <-colorRampPalette(brewer.pal(9,"OrRd"))(50)
 }
-if ((KDUP - KDLO) < 9) {
-  BI_brksKD <- round(seq(KDLO, KDUP, length = (KDUP - KDLO)), 0)
-  colfuncKD <- colorRampPalette(brewer.pal(3, "OrRd"))(50)
+if((KDUP - KDLO)<9){
+  BI_brksKD<-round(seq(KDLO - 0.1, KDUP + 0.1, length = (KDUP +1 - KDLO -1)),0)
+  colfuncKD <-colorRampPalette(brewer.pal(3,"OrRd"))(50)
 }
-if ((KDUP - KDLO) <= 1) {
-  KDUP <- KDLO + 1
-  KDLO <- KDLO - 1
-  BI_brksKD <- round(seq(KDLO, KDUP, length = 2), 0)
-  colfuncKD <- colorRampPalette(brewer.pal(3, "OrRd"))(50)
+if((KDUP - KDLO)<=1){
+  KDUP<-KDLO+1
+  KDLO<-KDLO-1
+  BI_brksKD<-round(seq(KDLO, KDUP, length = 2),0)
+  colfuncKD <-colorRampPalette(brewer.pal(3,"OrRd"))(50)
 }
 
 #For CF
-BI_brksCF <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
-colfuncCF <- colorRampPalette(brewer.pal(9, "PuRd"))(50)
+BI_brksCF<-c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
+colfuncCF <-colorRampPalette(brewer.pal(9,"PuRd"))(50)
 #For ET
-BI_brksET <- round(seq(ETLO, ETUP, length = 9), 0)
-if (ETUP - ETLO < 9) { BI_brksET <- round(seq(ETLO, ETUP, length = 9), 1) }
-if(ETUP-ETLO == 0) {BI_brksET<-c((ETLO-0.5),ETLO,(ETLO+0.5))}
-colfuncET <- colorRampPalette(brewer.pal(9, "PuBu"))(50)
+BI_brksET<-round(seq(ETLO-0.1, ETUP+0.1, length = 9),0)
+colfuncET <-colorRampPalette(brewer.pal(9,"PuBu"))(50)
 #For WS
-BI_brksWS <- round(seq(WSLO, WSUP, length = 9), 2)
-colfuncWS <- colorRampPalette(brewer.pal(9, "Purples"))(50)
+BI_brksWS<-round(seq(WSLO, WSUP, length = 9),2)
+colfuncWS <-colorRampPalette(brewer.pal(9,"Purples"))(50)
+
+ANN_CropRF_df <- as.data.frame(ANN_CropRF, xy = TRUE, na.rm = TRUE)
+brks<- round(((max(BI_brksRFA) - min(BI_brksRFA))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_RF.png"),
@@ -2957,13 +2837,36 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-spplot(ANN_CropRF, col.regions = colfuncRF, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRFA,
-  main=list(label=paste0("Rainfall (",ANNMRFM ,RFUnit,")"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=2)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+colnames(ANN_CropRF_df)[3] <- "staterf_mmann"
+head(ANN_CropRF_df)
+
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = ANN_CropRF_df, aes(x = x, y = y, fill = staterf_mmann)) +
+  scale_fill_gradientn(colors = colfuncRFA, limits = range(BI_brksRFA),
+                       na.value = "transparent", breaks = seq(min(BI_brksRFA), max(BI_brksRFA), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  # Customize the plot
+  coord_sf() +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 20),  # Increase legend text size
+    panel.grid = element_blank(),  # Remove gridlines
+    axis.text = element_blank(),   # Remove axis text (tick labels)
+    axis.ticks = element_blank(),  # Remove axis ticks
+    axis.title = element_blank(),  # Remove axis titles
+    plot.title = element_text(hjust = 0.5, size = 24)
+  ) +
+  labs(
+    title = paste0("Rainfall (", ANNMRFM, RFUnit, ")"),
+    fill = NULL  # Remove legend title
+  )
 dev.off()
+
+Tair_P_Crop_df<-as.data.frame(Tair_P_Crop, xy = TRUE, na.rm = TRUE)
+brks<- round(((max(BI_brksTA) - min(BI_brksTA))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_TA.png"),
@@ -2971,14 +2874,34 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-spplot(Tair_P_Crop, 
-  col.regions = colfuncTA, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-  main=list(label=paste0("Air Temperature (",Tair_P_M ,TUnit2,")"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=2)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = Tair_P_Crop_df, aes(x = x, y = y, fill = Mean.Air.Temp.)) +
+  scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                       na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  # Customize the plot
+  coord_sf() +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 20),  # Increase legend text size
+    panel.grid = element_blank(),  # Remove gridlines
+    axis.text = element_blank(),   # Remove axis text (tick labels)
+    axis.ticks = element_blank(),  # Remove axis ticks
+    axis.title = element_blank(),  # Remove axis titles
+    plot.title = element_text(hjust = 0.5, size = 24)
+  ) +
+  labs(
+    title = paste0("Air Temperature (",Tair_P_M ,TUnit2,")"),
+    fill = NULL  # Remove legend title
+  )
+
 dev.off()
+
+RH_P_Crop_df<-as.data.frame(RH_P_Crop, xy = TRUE, na.rm = TRUE)
+brks<- round(((max(BI_brksRH) - min(BI_brksRH))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_RH.png"),
@@ -2986,13 +2909,33 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-spplot(RH_P_Crop, col.regions = colfuncRH, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-  main=list(label=paste0("Relative Humidity (",RH_P_M ," %)"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=2)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = RH_P_Crop_df, aes(x = x, y = y, fill = rh_ann)) +
+  scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                       na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  # Customize the plot
+  coord_sf() +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 20),  # Increase legend text size
+    panel.grid = element_blank(),  # Remove gridlines
+    axis.text = element_blank(),   # Remove axis text (tick labels)
+    axis.ticks = element_blank(),  # Remove axis ticks
+    axis.title = element_blank(),  # Remove axis titles
+    plot.title = element_text(hjust = 0.5, size = 24)
+  ) +
+  labs(
+    title = paste0("Relative Humidity (",RH_P_M ," %)"),
+    fill = NULL  # Remove legend title
+  )
 dev.off()
+
+KD_P_Crop_df<-as.data.frame(KD_P_Crop, xy = TRUE, na.rm = TRUE)
+brks<- round(((max(BI_brksKD) - min(BI_brksKD))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_SR.png"),
@@ -3000,210 +2943,395 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-spplot(KD_P_Crop, col.regions = colfuncKD, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksKD,
-  main=list(label=paste0("Solar Radiation (",KD_P_M ," W/m2)"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=2)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = KD_P_Crop_df, aes(x = x, y = y, fill = Solar.Radiation.)) +
+  scale_fill_gradientn(colors = colfuncKD, limits = range(BI_brksKD),
+                       na.value = "transparent", breaks = seq(min(BI_brksKD), max(BI_brksKD), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  # Customize the plot
+  coord_sf() +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 20),  # Increase legend text size
+    panel.grid = element_blank(),  # Remove gridlines
+    axis.text = element_blank(),   # Remove axis text (tick labels)
+    axis.ticks = element_blank(),  # Remove axis ticks
+    axis.title = element_blank(),  # Remove axis titles
+    plot.title = element_text(hjust = 0.5, size = 22)
+  ) +
+  labs(
+    title = paste0("Solar Radiation (",KD_P_M ," W/m2)"),
+    fill = NULL  # Remove legend title
+  )
 dev.off()
 
+SM_P_Crop_df<-as.data.frame(SM_P_Crop, xy = TRUE, na.rm = TRUE)
+brks<- round(((max(BI_brksSM) - min(BI_brksSM))/4),1)
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_SM.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
 )
-spplot(SM_P_Crop, col.regions = colfuncSM, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSM,
-  main=list(label=paste0("Soil Moisture (",SM_P_M ,")"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=2)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = SM_P_Crop_df, aes(x = x, y = y, fill = Soil.Moisture)) +
+  scale_fill_gradientn(colors = colfuncSM, limits = range(BI_brksSM),
+                       na.value = "transparent", breaks = seq(min(BI_brksSM), max(BI_brksSM), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  # Customize the plot
+  coord_sf() +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 20),  # Increase legend text size
+    panel.grid = element_blank(),  # Remove gridlines
+    axis.text = element_blank(),   # Remove axis text (tick labels)
+    axis.ticks = element_blank(),  # Remove axis ticks
+    axis.title = element_blank(),  # Remove axis titles
+    plot.title = element_text(hjust = 0.5, size = 24)
+  ) +
+  labs(
+    title = paste0("Soil Moisture (",SM_P_M ,")"),
+    fill = NULL  # Remove legend title
+  )
 dev.off()
 
+ET_P_Crop_df<-as.data.frame(ET_P_Crop, xy = TRUE, na.rm = TRUE)
+brks<- round(((max(BI_brksET) - min(BI_brksET))/4),1)
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_ET.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
 )
-spplot(ET_P_Crop, col.regions = colfuncET, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksET,
-  main=list(label=paste0("Evapotranspiration (",ET_P_M ,RFUnit,")"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=2)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = ET_P_Crop_df, aes(x = x, y = y, fill = Evaporation)) +
+  scale_fill_gradientn(colors = colfuncET, limits = range(BI_brksET),
+                       na.value = "transparent", breaks = seq(min(BI_brksET), max(BI_brksET), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  # Customize the plot
+  coord_sf() +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 20),  # Increase legend text size
+    panel.grid = element_blank(),  # Remove gridlines
+    axis.text = element_blank(),   # Remove axis text (tick labels)
+    axis.ticks = element_blank(),  # Remove axis ticks
+    axis.title = element_blank(),  # Remove axis titles
+    plot.title = element_text(hjust = 0.5, size = 18)
+  ) +
+  labs(
+    title = paste0("Evapotranspiration (",ET_P_M ,RFUnit,")"),
+    fill = NULL  # Remove legend title
+  )
 dev.off()
 
+WS_P_Crop_df<-as.data.frame(WS_P_Crop, xy = TRUE, na.rm = TRUE)
+brks<- round(((max(BI_brksWS) - min(BI_brksWS))/4),1)
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_WS.png"),
   width = 5 * dpi,
   height = 5 * dpi,
   res = dpi
 )
-spplot(WS_P_Crop, col.regions = colfuncWS, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksWS,
-  main=list(label=paste0("Windspeed (",WS_P_M," mph)"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=2)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = WS_P_Crop_df, aes(x = x, y = y, fill = Windspeed)) +
+  scale_fill_gradientn(colors = colfuncWS, limits = range(BI_brksWS),
+                       na.value = "transparent", breaks = seq(min(BI_brksWS), max(BI_brksWS), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  # Customize the plot
+  coord_sf() +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 20),  # Increase legend text size
+    panel.grid = element_blank(),  # Remove gridlines
+    axis.text = element_blank(),   # Remove axis text (tick labels)
+    axis.ticks = element_blank(),  # Remove axis ticks
+    axis.title = element_blank(),  # Remove axis titles
+    plot.title = element_text(hjust = 0.5, size = 24)
+  ) +
+  labs(
+    title = paste0("Windspeed (",WS_P_M," mph)"),
+    fill = NULL  # Remove legend title
+  )
 dev.off()
 
 ##########  Temperature Maps Figure
 debug_print("54, Temperature Maps Figure ")
 
-if (length(values(Jan_CropTA)) > 1) {
-  png(
-    paste0(PATH_WITH_PROJECT_NAME, "TA12.png"),
-    width = 5 * dpi,
-    height = 5 * dpi,
-    res = dpi
-  )
-  
-  title1 = textGrob(
-    paste("Monthly Temperature:", UNIT_Ns[u]),
-    gp = gpar(
-      col = "darkred",
-      fontface = "bold",
-      fontsize = 15
-    )
-  )
-  grid.arrange(top = title1,
-    spplot(Jan_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("JAN (",JanMTA ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Feb_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("FEB (",FebMTA ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Mar_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("MAR (",MarMTA  ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Apr_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("APR (",AprMTA  ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(May_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("MAY (",MayMTA ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Jun_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("JUN (",JunMTA  ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Jul_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("JUL (",JulMTA  ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Aug_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("AUG (",AugMTA ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Sep_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("SEP (",SepMTA  ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Oct_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("OCT (",OctMTA  ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Nov_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("NOV (",NovMTA  ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Dec_CropTA, col.regions = colfuncTA, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-      main=list(label=paste0("DEC (",DecMTA ,TUnit2,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)))
-  
-  dev.off()
-}
+Jan_CropTA_df<-as.data.frame(Jan_CropTA, xy = TRUE, na.rm = TRUE)
+Feb_CropTA_df<-as.data.frame(Feb_CropTA, xy = TRUE, na.rm = TRUE)
+Mar_CropTA_df<-as.data.frame(Mar_CropTA, xy = TRUE, na.rm = TRUE)
+Apr_CropTA_df<-as.data.frame(Apr_CropTA, xy = TRUE, na.rm = TRUE)
+May_CropTA_df<-as.data.frame(May_CropTA, xy = TRUE, na.rm = TRUE)
+Jun_CropTA_df<-as.data.frame(Jun_CropTA, xy = TRUE, na.rm = TRUE)
+Jul_CropTA_df<-as.data.frame(Jul_CropTA, xy = TRUE, na.rm = TRUE)
+Aug_CropTA_df<-as.data.frame(Aug_CropTA, xy = TRUE, na.rm = TRUE)
+Sep_CropTA_df<-as.data.frame(Sep_CropTA, xy = TRUE, na.rm = TRUE)
+Oct_CropTA_df<-as.data.frame(Oct_CropTA, xy = TRUE, na.rm = TRUE)
+Nov_CropTA_df<-as.data.frame(Nov_CropTA, xy = TRUE, na.rm = TRUE)
+Dec_CropTA_df<-as.data.frame(Dec_CropTA, xy = TRUE, na.rm = TRUE)
 
-if (length(values(Jan_CropTA)) <= 1) {
+brks<- round(((max(BI_brksTA) - min(BI_brksTA))/2),1)
+
   png(
     paste0(PATH_WITH_PROJECT_NAME, "TA12.png"),
     width = 5 * dpi,
     height = 5 * dpi,
     res = dpi
   )
-  par(mfrow = c(4, 3))
-  plot(SHAPE)
-  plot(Jan_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Feb_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Mar_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Apr_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(May_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Jun_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Jul_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Aug_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Sep_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Oct_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Nov_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Dec_CropTA, col = colfuncTA, add = T)
-  plot(SHAPE, add = T)
-  mtext(paste("Monthly Temperature:", UNIT_Ns[u]), side = 3, line = - 2, outer = TRUE)
+  
+  title1=textGrob(paste("Monthly Temperature:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15))  
+  grid.arrange(top = title1,
+   #JAN
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Jan_CropTA_df, aes(x = x, y = y, fill = tair_jan)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("JAN (",JanMTA,TUnit2,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #FEB
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Feb_CropTA_df, aes(x = x, y = y, fill = tair_feb)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("FEB (",FebMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #MAR
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Mar_CropTA_df, aes(x = x, y = y, fill = tair_mar)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("MAR (",MarMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #APR
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Apr_CropTA_df, aes(x = x, y = y, fill = tair_apr)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("APR (",AprMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #MAY
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = May_CropTA_df, aes(x = x, y = y, fill = tair_may)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("MAY (",MayMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #JUN
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Jun_CropTA_df, aes(x = x, y = y, fill = tair_jun)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("JUN (",JunMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #JUL
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Jul_CropTA_df, aes(x = x, y = y, fill = tair_jul)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("JUL (",JulMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #AUG
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Aug_CropTA_df, aes(x = x, y = y, fill = tair_aug)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("AUG (",AugMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #SEP
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Sep_CropTA_df, aes(x = x, y = y, fill = tair_sep)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("SEP (",SepMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #OCT
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Oct_CropTA_df, aes(x = x, y = y, fill = tair_oct)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("OCT (",OctMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #NOV
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Nov_CropTA_df, aes(x = x, y = y, fill = tair_nov)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("NOV (",NovMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #DEC
+   ggplot() +
+     # Plot the classified raster
+     geom_raster(data = Dec_CropTA_df, aes(x = x, y = y, fill = tair_dec)) +
+     scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                          na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(
+       title = paste0("DEC (",DecMTA,TUnit2,")"),
+       fill = NULL  # Remove legend title
+     ) +
+     # Add bounding box around the plot
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1))
+  
   dev.off()
-}
 
 ##### Hottest and Coldest month maps
 debug_print("55, find hottest and coldest months")
@@ -3212,8 +3340,8 @@ debug_print("55, find hottest and coldest months")
 Cell.CL_Year
 t <- Cell.CL_Year[3, 2:13]
 min.col <- function(m, ...) max.col(-m, ...)
-hm <- colnames(t)[min.col(t, ties.method = "first")]
-cm <- colnames(t)[max.col(t, ties.method = "first")]
+hm<-names(t)[which.max(t[1,])]
+cm<-names(t)[which.min(t[1,])]
 
 # Select correct month map based on dry and wet months
 if(hm == "JAN") {hmap<-Jan_CropTA ; mnh<-"January"}
@@ -3243,6 +3371,10 @@ if(cm == "NOV") {cmap<-Nov_CropTA ; mnc<-"November"}
 if(cm == "DEC") {cmap<-Dec_CropTA ; mnc<-"December"}
 
 ### make plots
+hmap_df<-as.data.frame(hmap, xy = TRUE, na.rm = TRUE)
+colnames(hmap_df)[3] <- "val"
+
+brks<- round(((max(BI_brksTA) - min(BI_brksTA))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "TA_hm.png"),
@@ -3250,13 +3382,32 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-spplot(hmap, col.regions = colfuncTA, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-  main=list(label=paste0(mnh," Temp (°F)"),cex=1.8),
-  colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = hmap_df, aes(x = x, y = y, fill = val)) +
+  scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                       na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  coord_sf() + theme_minimal() +
+  theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+        axis.ticks = element_blank(),  axis.title = element_blank(),  
+        plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+        plot.margin = margin(10, 10, 10, 10)) +
+  labs(
+    title = paste0(mnh," Temp (°F)"),
+    fill = NULL  # Remove legend titl
+  ) +
+  # Add bounding box around the plot
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+           color = "black", fill = NA, size = 1)
 dev.off()
+
+# COLDEST MONTH MAP
+cmap_df<-as.data.frame(cmap, xy=TRUE, na.rm=TRUE)
+colnames(cmap_df)[3] <- "val"
+
+brks<- round(((max(BI_brksTA) - min(BI_brksTA))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "TA_cm.png"),
@@ -3264,18 +3415,53 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-spplot(cmap, col.regions = colfuncTA, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksTA,
-  main=list(label=paste0(mnc," Temp (°F)"),cex=1.8),
-  colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  # Plot the classified raster
+  geom_raster(data = cmap_df, aes(x = x, y = y, fill = val)) +
+  scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+                       na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  coord_sf() + theme_minimal() +
+  theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+        axis.ticks = element_blank(),  axis.title = element_blank(),  
+        plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+        plot.margin = margin(10, 10, 10, 10)) +
+  labs(
+    title = paste0(mnc," Temp (°F)"),
+    fill = NULL  # Remove legend titl
+  ) +
+  # Add bounding box around the plot
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+           color = "black", fill = NA, size = 1)
 dev.off()
 
 ##########   MEAN ANNUAL Relative Humidity 12-maps
 debug_print("56, MEAN ANNUAL Relative Humidity 12-maps")
 
-if (length(values(Jan_CropRH)) > 1) {
+# Vector of month names
+months <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+# Use lapply to process each month dynamically
+CropRH_dfs <- lapply(months, function(m) {
+  as.data.frame(get(paste0(m, "_CropRH")), xy = TRUE, na.rm = TRUE)
+})
+
+# Assign names to the list elements
+names(CropRH_dfs) <- paste0(months, "_CropRH_df")
+
+# Rename third column to "val"
+CropRH_dfs <- lapply(CropRH_dfs, function(df) {
+  colnames(df)[3] <- "val"  # Rename the third column to "val"
+  return(df)
+})
+
+# If you still want individual dataframes in the environment:
+list2env(CropRH_dfs, envir = .GlobalEnv)
+
+brks<- round(((max(BI_brksRH) - min(BI_brksRH))/4),1)
+
   png(
     paste0(PATH_WITH_PROJECT_NAME, "RH12.png"),
     width = 5 * dpi,
@@ -3285,99 +3471,217 @@ if (length(values(Jan_CropRH)) > 1) {
   
   title1=textGrob(paste("Monthly Relative Humidity:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15))   
   grid.arrange(top = title1,
-    spplot(Jan_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("JAN (",JanMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Feb_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("FEB (",FebMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Mar_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("MAR (",MarMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Apr_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("APR (",AprMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(May_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("MAY (",MayMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Jun_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("JUN (",JunMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Jul_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("JUL (",JulMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Aug_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("AUG (",AugMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Sep_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("SEP (",SepMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Oct_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("OCT (",OctMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Nov_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("NOV (",NovMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Dec_CropRH, col.regions = colfuncRH, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRH,
-      main=list(label=paste0("DEC (",DecMRH ,"%)"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)))
+   #JAN             
+   ggplot() +
+     geom_raster(data = Jan_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("JAN (",JanMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #FEB
+   ggplot() +
+     geom_raster(data = Feb_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("Feb (",FebMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #MAR            
+   ggplot() +
+     geom_raster(data = Mar_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("MAR (",MarMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #APR        
+   ggplot() +
+     geom_raster(data = Apr_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("APR (",AprMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #MAY
+   ggplot() +
+     geom_raster(data = May_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("MAY (",MayMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #JUN             
+   ggplot() +
+     geom_raster(data = Jun_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("JUN (",JunMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #JUL         
+   ggplot() +
+     geom_raster(data = Jul_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("JUL (",JulMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #AUG          
+   ggplot() +
+     geom_raster(data = Aug_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("AUG (",AugMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #SEP            
+   ggplot() +
+     geom_raster(data = Sep_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("SEP (",SepMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #OCT            
+   ggplot() +
+     geom_raster(data = Oct_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("OCT (",OctMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #NOV          
+   ggplot() +
+     geom_raster(data = Nov_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("NOV (",NovMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #DEC          
+   ggplot() +
+     geom_raster(data = Dec_CropRH_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRH, limits = range(BI_brksRH),
+                          na.value = "transparent", breaks = seq(min(BI_brksRH), max(BI_brksRH), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("DEC (",DecMRH ,"%)"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1))
   dev.off()
-}
 
 dpi = 300
 ##########   MEAN ANNUAL Rainfall 12-maps
 debug_print("57, MEAN ANNUAL Rainfall 12-maps ")
-#BI_brksRF<-round(seq(0, RFUP+0.3, length = 4),0) #For dry areas.
+
+# Vector of month names
+months <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+# Use lapply to process each month dynamically
+CropRF_dfs <- lapply(months, function(m) {
+  as.data.frame(get(paste0(m, "_CropRF")), xy = TRUE, na.rm = TRUE)
+})
+
+# Assign names to the list elements
+names(CropRF_dfs) <- paste0(months, "_CropRF_df")
+
+# Rename third column to "val"
+CropRF_dfs <- lapply(CropRF_dfs, function(df) {
+  colnames(df)[3] <- "val"  # Rename the third column to "val"
+  return(df)
+})
+
+# If you still want individual dataframes in the environment:
+list2env(CropRF_dfs, envir = .GlobalEnv)
+
+brks<- round(((max(BI_brksRF) - min(BI_brksRF))/4),1)
 
 debug_print(paste0("length(values(Jan_CropRF)): ", length(values(Jan_CropRF))))
-if (length(values(Jan_CropRF)) > 1) {
+
   png(
     paste0(PATH_WITH_PROJECT_NAME, "RF12.png"),
     width = 5 * dpi,
@@ -3387,141 +3691,187 @@ if (length(values(Jan_CropRF)) > 1) {
   
   title1=textGrob(paste("Monthly Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15))   
   grid.arrange(top = title1,
-    spplot(Jan_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("JAN (",JanMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) , 
-    
-    spplot(Feb_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("FEB (",FebMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Mar_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("MAR (",MarMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Apr_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("APR (",AprMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(May_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("MAY (",MayMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Jun_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("JUN (",JunMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Jul_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("JUL (",JulMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Aug_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("AUG (",AugMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Sep_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("SEP(",SepMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Oct_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("OCT (",OctMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Nov_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("NOV(",NovMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)) ,
-    
-    spplot(Dec_CropRF, col.regions = colfuncRF, equal=FALSE,
-      axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-      main=list(label=paste0("DEC (",DecMRF ,RFUnit,")"),cex=0.9),
-      colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-      sp.layout = list(UNIT_X[u])) +
-      layer(sp.polygons(SHAPE,lwd=1)))
+   #JAN
+   ggplot() +
+     geom_raster(data = Jan_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("JAN (",JanMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #FEB
+   ggplot() +
+     geom_raster(data = Feb_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("FEB (",FebMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #MAR             
+   ggplot() +
+     geom_raster(data = Mar_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("MAR (",MarMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #APR            
+   ggplot() +
+     geom_raster(data = Apr_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("APR (",AprMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #MAY             
+   ggplot() +
+     geom_raster(data = May_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("MAY (",MayMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #JUN            
+   ggplot() +
+     geom_raster(data = Jun_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("JUN (",JunMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #JUL            
+   ggplot() +
+     geom_raster(data = Jul_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("JUL (",JulMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #AUG            
+   ggplot() +
+     geom_raster(data = Aug_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("AUG (",AugMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #SEP             
+   ggplot() +
+     geom_raster(data = Sep_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("SEP (",SepMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #OCT            
+   ggplot() +
+     geom_raster(data = Oct_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("OCT (",OctMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #NOV           
+   ggplot() +
+     geom_raster(data = Nov_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("NOV (",NovMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1),
+   #DEC            
+   ggplot() +
+     geom_raster(data = Dec_CropRF_df, aes(x = x, y = y, fill = val)) +
+     scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                          na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                          guide = guide_colorbar(barheight = unit(0.12, "npc"))) +
+     geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+     coord_sf() + theme_minimal() +
+     theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+           axis.ticks = element_blank(),  axis.title = element_blank(),  
+           plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+           plot.margin = margin(10, 10, 10, 10)) +
+     labs(title = paste0("DEC (",DecMRF ,RFUnit,")"),fill = NULL) +
+     annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+              color = "black", fill = NA, size = 1))
   dev.off()
-}
-
-if (length(values(Jan_CropRF)) <= 1) {
-  rf12_file <-  paste0(PATH_WITH_PROJECT_NAME, "RF12.png")
-  debug_print(paste0("rf12_file: ", rf12_file))
-  png(
-    rf12_file,
-    width = 5 * dpi,
-    height = 5 * dpi,
-    res = dpi
-  )
-  par(mfrow = c(4, 3))
-  plot(SHAPE)
-  plot(Jan_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Feb_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Mar_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Apr_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(May_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Jun_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Jul_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Aug_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Sep_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Oct_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Nov_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  plot(SHAPE)
-  plot(Dec_CropRF, col = colfuncRF, add = T)
-  plot(SHAPE, add = T)
-  mtext(paste("Monthly Rainfall:", UNIT_Ns[u]), side = 3, line = - 2, outer = TRUE)
-  dev.off()
-}
 
 ##### Driest and Wettest month maps
 debug_print("58, Driest and Wettest month maps")
@@ -3529,40 +3879,39 @@ debug_print("58, Driest and Wettest month maps")
 # find driest and wettest months
 Cell.CL_Year
 d <- Cell.CL_Year[1, 2:13]
-min.col <- function(m, ...) max.col(-m, ...)
-dm <- colnames(d)[min.col(d, ties.method = "first")]
-wm <- colnames(d)[max.col(d, ties.method = "first")]
-
-d
+dm<-names(d)[which.min(d[1,])]
+wm<-names(d)[which.max(d[1,])]
 
 # Select correct month map based on dry and wet months
-if(dm == "JAN") {dmap<-Jan_CropRF ; mn<-"January"}
-if(dm == "FEB") {dmap<-Feb_CropRF ; mn<-"February"}
-if(dm == "MAR") {dmap<-Mar_CropRF ; mn<-"March"}
-if(dm == "APR") {dmap<-Apr_CropRF ; mn<-"April"}
-if(dm == "MAY") {dmap<-May_CropRF ; mn<-"May"}
-if(dm == "JUN") {dmap<-Jun_CropRF ; mn<-"June"}
-if(dm == "JUL") {dmap<-Jul_CropRF ; mn<-"July"}
-if(dm == "AUG") {dmap<-Aug_CropRF ; mn<-"August"}
-if(dm == "SEP") {dmap<-Sep_CropRF ; mn<-"September"}
-if(dm == "OCT") {dmap<-Oct_CropRF ; mn<-"October"}
-if(dm == "NOV") {dmap<-Nov_CropRF ; mn<-"November"}
-if(dm == "DEC") {dmap<-Dec_CropRF ; mn<-"December"}
+if(dm == "JAN") {dmap<-Jan_CropRF_df ; mn<-"January"}
+if(dm == "FEB") {dmap<-Feb_CropRF_df ; mn<-"February"}
+if(dm == "MAR") {dmap<-Mar_CropRF_df ; mn<-"March"}
+if(dm == "APR") {dmap<-Apr_CropRF_df ; mn<-"April"}
+if(dm == "MAY") {dmap<-May_CropRF_df ; mn<-"May"}
+if(dm == "JUN") {dmap<-Jun_CropRF_df ; mn<-"June"}
+if(dm == "JUL") {dmap<-Jul_CropRF_df ; mn<-"July"}
+if(dm == "AUG") {dmap<-Aug_CropRF_df ; mn<-"August"}
+if(dm == "SEP") {dmap<-Sep_CropRF_df ; mn<-"September"}
+if(dm == "OCT") {dmap<-Oct_CropRF_df ; mn<-"October"}
+if(dm == "NOV") {dmap<-Nov_CropRF_df ; mn<-"November"}
+if(dm == "DEC") {dmap<-Dec_CropRF_df ; mn<-"December"}
 
-if(wm == "JAN") {wmap<-Jan_CropRF ; mnw<-"January"}
-if(wm == "FEB") {wmap<-Feb_CropRF ; mnw<-"February"}
-if(wm == "MAR") {wmap<-Mar_CropRF ; mnw<-"March"}
-if(wm == "APR") {wmap<-Apr_CropRF ; mnw<-"April"}
-if(wm == "MAY") {wmap<-May_CropRF ; mnw<-"May"}
-if(wm == "JUN") {wmap<-Jun_CropRF ; mnw<-"June"}
-if(wm == "JUL") {wmap<-Jul_CropRF ; mnw<-"July"}
-if(wm == "AUG") {wmap<-Aug_CropRF ; mnw<-"August"}
-if(wm == "SEP") {wmap<-Sep_CropRF ; mnw<-"September"}
-if(wm == "OCT") {wmap<-Oct_CropRF ; mnw<-"October"}
-if(wm == "NOV") {wmap<-Nov_CropRF ; mnw<-"November"}
-if(wm == "DEC") {wmap<-Dec_CropRF ; mnw<-"December"}
+if(wm == "JAN") {wmap<-Jan_CropRF_df ; mnw<-"January"}
+if(wm == "FEB") {wmap<-Feb_CropRF_df ; mnw<-"February"}
+if(wm == "MAR") {wmap<-Mar_CropRF_df ; mnw<-"March"}
+if(wm == "APR") {wmap<-Apr_CropRF_df ; mnw<-"April"}
+if(wm == "MAY") {wmap<-May_CropRF_df ; mnw<-"May"}
+if(wm == "JUN") {wmap<-Jun_CropRF_df ; mnw<-"June"}
+if(wm == "JUL") {wmap<-Jul_CropRF_df ; mnw<-"July"}
+if(wm == "AUG") {wmap<-Aug_CropRF_df ; mnw<-"August"}
+if(wm == "SEP") {wmap<-Sep_CropRF_df ; mnw<-"September"}
+if(wm == "OCT") {wmap<-Oct_CropRF_df ; mnw<-"October"}
+if(wm == "NOV") {wmap<-Nov_CropRF_df ; mnw<-"November"}
+if(wm == "DEC") {wmap<-Dec_CropRF_df ; mnw<-"December"}
 
 ### make plots
+
+brks<- round(((max(BI_brksRF) - min(BI_brksRF))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "RF_dm.png"),
@@ -3571,13 +3920,24 @@ png(
   res = dpi
 )
 
-spplot(dmap, col.regions = colfuncRF, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-  main=list(label=paste0(mn," Rainfall (in.)"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
+ggplot() +
+  geom_raster(data = dmap, aes(x = x, y = y, fill = val)) +
+  scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                       na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  coord_sf() + theme_minimal() +
+  theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
+        axis.ticks = element_blank(),  axis.title = element_blank(),  
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        plot.margin = margin(10, 10, 10, 10)) +
+  labs(title = paste0(mn," Rainfall (in.)"),fill = NULL) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+           color = "black", fill = NA, size = 1)
+
 dev.off()
+
+brks<- round(((max(BI_brksRF) - min(BI_brksRF))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "RF_wm.png"),
@@ -3585,14 +3945,22 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-spplot(wmap, col.regions = colfuncRF, equal=FALSE,
-  axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksRF,
-  main=list(label=paste0(mnw," Rainfall (in.)"),cex=2),
-  colorkey = list(space = "right", height = 1, labels=list(cex=1.5)),
-  sp.layout = list(UNIT_X[u])) +
-  layer(sp.polygons(SHAPE,lwd=1))
-dev.off()
+ggplot() +
+  geom_raster(data = wmap, aes(x = x, y = y, fill = val)) +
+  scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksRF),
+                       na.value = "transparent", breaks = seq(min(BI_brksRF), max(BI_brksRF), by = brks),
+                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+  coord_sf() + theme_minimal() +
+  theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+        axis.ticks = element_blank(),  axis.title = element_blank(),  
+        plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+        plot.margin = margin(10, 10, 10, 10)) +
+  labs(title = paste0(mnw," Rainfall (in.)"),fill = NULL) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+           color = "black", fill = NA, size = 1)
 
+dev.off()
 
 #########   Seasonal Rainfall Maps
 debug_print("59, Seasonal Rainfall Maps ")
@@ -3642,36 +4010,36 @@ WetLOMO   <- round(WetLO / 6, 1)
 SEAUP <- max(DryUP, WetUP)
 SEALO <- min(DryLO, WetLO)
 
-BI_brksSEA <- round(seq(SEALO, SEAUP, length = 10), 0)
+BI_brksSEA <- round(seq(SEALO - 0.1, SEAUP + 0.1, length = 10),0)
 
-RNGESEA <- SEAUP - SEALO
-if (RNGESEA > 8.99) {
-  BI_brksSEA <- round(seq(SEALO, SEAUP, length = 11), 1);
-  colfuncRF <- colorRampPalette(brewer.pal(9, "YlGnBu"))(50)
+RNGESEA <- SEAUP-SEALO 
+if (RNGESEA > 8.99){
+  BI_brksSEA<-round(seq(SEALO - 0.1, SEAUP + 0.1, length = 11),1);
+  colfuncRF<-colorRampPalette(brewer.pal(9,"YlGnBu"))(50)
 }
-if (RNGESEA < 9 && RNGESEA > 7.99) {
-  BI_brksSEA <- round(seq(SEALO, SEAUP, length = 9), 0);
-  colfuncRF <- colorRampPalette(brewer.pal(9, "YlGnBu"))(50)
+if (RNGESEA < 9 && RNGESEA > 7.99 ){
+  BI_brksSEA<-round(seq(SEALO - 0.1, SEAUP + 0.1, length = 9),0);
+  colfuncRF<-colorRampPalette(brewer.pal(9,"YlGnBu"))(50)
 }
-if (RNGESEA < 8 && RNGESEA > 6.99) {
-  BI_brksSEA <- round(seq(SEALO, SEAUP, length = 8), 0);
-  colfuncRF <- colorRampPalette(brewer.pal(8, "YlGnBu"))(50)
+if (RNGESEA < 8 && RNGESEA > 6.99 ){
+  BI_brksSEA<-round(seq(SEALO - 0.1, SEAUP + 0.1, length = 8),0);
+  colfuncRF<-colorRampPalette(brewer.pal(8,"YlGnBu"))(50)
 }
-if (RNGESEA < 7 && RNGESEA > 5.99) {
-  BI_brksSEA <- round(seq(SEALO, SEAUP, length = 7), 0);
-  colfuncRF <- colorRampPalette(brewer.pal(7, "YlGnBu"))(50)
+if (RNGESEA < 7 && RNGESEA > 5.99 ){
+  BI_brksSEA<-round(seq(SEALO - 0.1, SEAUP + 0.1, length = 7),0);
+  colfuncRF<-colorRampPalette(brewer.pal(7,"YlGnBu"))(50)
 }
-if (RNGESEA < 6 && RNGESEA > 4.99) {
-  BI_brksSEA <- round(seq(SEALO, SEAUP, length = 6), 0);
-  colfuncRF <- colorRampPalette(brewer.pal(6, "YlGnBu"))(50)
+if (RNGESEA < 6 && RNGESEA > 4.99 ){
+  BI_brksSEA<-round(seq(SEALO - 0.1, SEAUP + 0.1, length = 6),0);
+  colfuncRF<-colorRampPalette(brewer.pal(6,"YlGnBu"))(50)
 }
-if (RNGESEA < 5 && RNGESEA > 3.99) {
-  BI_brksSEA <- round(seq(SEALO, SEAUP, length = 5), 0);
-  colfuncRF <- colorRampPalette(brewer.pal(5, "YlGnBu"))(50)
+if (RNGESEA < 5 && RNGESEA > 3.99 ){
+  BI_brksSEA<-round(seq(SEALO - 0.1, SEAUP + 0.1, length = 5),0);
+  colfuncRF<-colorRampPalette(brewer.pal(5,"YlGnBu"))(50)
 }
-if (RNGESEA < 4) {
-  BI_brksSEA <- round(seq(SEALO, SEAUP, length = 4), 0);
-  colfuncRF <- colorRampPalette(brewer.pal(4, "YlGnBu"))(50)
+if (RNGESEA < 4){
+  BI_brksSEA<-round(seq(SEALO - 0.1, SEAUP + 0.1, length = 4),0);
+  colfuncRF<-colorRampPalette(brewer.pal(4,"YlGnBu"))(50)
 }
 
 DSeaMRF   <- round(cellStats(DrySeasonRF, 'mean'), 1)
@@ -3693,6 +4061,9 @@ Cell.DataCLR[2, 14] <- WetUP
 Cell.DataCLR[3, 14] <- WetLO
 Cell.DataCLR
 
+WetSeasonRF_df<-as.data.frame(WetSeasonRF, xy=TRUE, na.rm=TRUE)
+DrySeasonRF_df<-as.data.frame(DrySeasonRF, xy=TRUE, na.rm=TRUE)
+
 png(
   paste0(PATH_WITH_PROJECT_NAME, "SeaRF.png"),
   width = 5 * dpi,
@@ -3701,20 +4072,45 @@ png(
 )
 
 title1=textGrob(paste("Seasonal Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
+title1=textGrob(paste("Seasonal Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
 grid.arrange(top = title1,
-  spplot(WetSeasonRF, col.regions = colfuncRF, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEA,
-    main=list(label=paste0("Wet Season (NOV-APR) ", WSeaMRF  ,RFUnit),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])),
-  spplot(DrySeasonRF, col.regions = colfuncRF, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEA,
-    main=list(label=paste0("Dry Season (MAY-OCT) ", DSeaMRF  ,RFUnit),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])))
+ ggplot() +
+   geom_raster(data = WetSeasonRF_df, aes(x = x, y = y, fill = layer)) +
+   scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksSEA),
+                        na.value = "transparent", breaks = seq(min(BI_brksSEA), max(BI_brksSEA), by = 5),
+                        guide = guide_colorbar(barheight = unit(4, "cm"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Wet Season (NOV-APR) ", WSeaMRF  ,RFUnit),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1),
+ 
+ ggplot() +
+   geom_raster(data = DrySeasonRF_df, aes(x = x, y = y, fill = layer)) +
+   scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksSEA),
+                        na.value = "transparent", breaks = seq(min(BI_brksSEA), max(BI_brksSEA), by = 5),
+                        guide = guide_colorbar(barheight = unit(4, "cm"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Dry Season (MAY-OCT) ", DSeaMRF  ,RFUnit),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1))
 dev.off()
 
 # export seasonal monthly rainfall figure from above
+WetSM_df<-as.data.frame(WetSM, xy=TRUE, na.rm=TRUE)
+DrySM_df<-as.data.frame(DrySM, xy=TRUE, na.rm=TRUE)
+
+brks<- round(((max(BI_brksSEAm) - min(BI_brksSEAm))/2),1)
+
 png(
   paste0(PATH_WITH_PROJECT_NAME, "SeaMRF.png"),
   width = 5 * dpi,
@@ -3724,16 +4120,34 @@ png(
 
 title1=textGrob(paste("Monthly Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
 grid.arrange(top = title1,
-  spplot(WetSM, col.regions = colfuncRF, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEAm,
-    main=list(label=paste0("Wet Season (NOV-APR) ", WetSMV  ,RFUnit),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])),
-  spplot(DrySM, col.regions = colfuncRF, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksSEAm,
-    main=list(label=paste0("Dry Season (MAY-OCT) ", DrySMV  ,RFUnit),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])))
+ ggplot() +
+   geom_raster(data = WetSM_df, aes(x = x, y = y, fill = layer)) +
+   scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksSEAm),
+                        na.value = "transparent", breaks = seq(min(BI_brksSEAm), max(BI_brksSEAm), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Wet Season (NOV-APR) ", WetSMV  ,RFUnit),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1),
+ ggplot() +
+   geom_raster(data = DrySM_df, aes(x = x, y = y, fill = layer)) +
+   scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksSEAm),
+                        na.value = "transparent", breaks = seq(min(BI_brksSEAm), max(BI_brksSEAm), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Dry Season (MAY-OCT) ", DrySMV  ,RFUnit),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1))
 dev.off()
 
 ### calculate the seasonal avg. monthly rainfall percentile vs. whole state
@@ -3785,7 +4199,7 @@ Cell.DataCLR
 ##########  Dynamical and Statistical Downscaling
 debug_print("60, Downscaling")
 
-PWW_T <- UNIT_X[[u]] #Name Variable UNIT
+PWW_T <- HALE #Name Variable UNIT
 
 ##########  Create a matrix for each cell
 
@@ -3956,12 +4370,10 @@ debug_print("64, StDs Rainfall 2040-2070 ")
 ##########   Percent Change StDs RCP 4.5 & 8.5
 
 StDs_P_4.5_ANN40 <- raster(DyDs_files[49])
-StDs_P_4.5_ANN40
 St4.5A_M40 <- mask(x = StDs_P_4.5_ANN40 , mask = PWW_T)
 St4.5A_C40 <- crop(x = St4.5A_M40, y = extent(PWW_T))
 
 StDs_P_4.5_Dry40 <- raster(DyDs_files[51])
-StDs_P_4.5_Dry40
 St4.5D_M40 <- mask(x = StDs_P_4.5_Dry40 , mask = PWW_T)
 St4.5D_C40 <- crop(x = St4.5D_M40, y = extent(PWW_T))
 
@@ -4056,86 +4468,13 @@ Cell.Data_DS[24, 1:2] <- c("St8.5A_MMT40", St8.5A_MMT40)
 ###########################################
 
 
-
-
-########## LULIN ##########################
-
-#Don't do anything with this data yet
-########## Percent Change Lulin DyDs 8.5
-debug_print("66, Percent Change Lulin DyDs 8.5")
-
-D2_P_8.5_ANN <- raster(D2_files[13])
-D28.5A_M <- mask(x = D2_P_8.5_ANN, mask = PWW_T)
-D28.5A_C <- crop(x = D28.5A_M, y = extent(PWW_T))
-
-D2_P_8.5_Dry <- raster(D2_files[14])
-D2.5D_M <- mask(x = D2_P_8.5_Dry, mask = PWW_T)
-D2.5D_C <- crop(x = D2.5D_M, y = extent(PWW_T))
-
-D2_P_8.5_Wet <- raster(D2_files[15])
-D28.5W_M <- mask(x = D2_P_8.5_Wet, mask = PWW_T)
-D28.5W_C <- crop(x = D28.5W_M, y = extent(PWW_T))
-
-D28.5A_MM <- round(cellStats(Dy8.5A_C , 'mean'), 0)
-Cell.Data_DS[25, 1:2] <- c("D28.5A_MM", D28.5A_MM)
-
-D28.5D_MM <- round(cellStats(Dy8.5D_C , 'mean'), 0)
-Cell.Data_DS[26, 1:2] <- c("D28.5D_MM", D28.5D_MM)
-
-D28.5W_MM <- round(cellStats(Dy8.5W_C , 'mean'), 0)
-Cell.Data_DS[27, 1:2] <- c("D28.5W_MM", D28.5W_MM)
-
-D28.5A_x <- round(cellStats(Dy8.5A_C , 'max'), 0)
-D28.5D_x <- round(cellStats(Dy8.5D_C , 'max'), 0)
-D28.5W_x <- round(cellStats(Dy8.5W_C , 'max'), 0)
-
-D28.5A_n <- round(cellStats(Dy8.5A_C , 'min'), 0)
-D28.5D_n <- round(cellStats(Dy8.5D_C , 'min'), 0)
-D28.5W_n <- round(cellStats(Dy8.5W_C , 'min'), 0)
-
-#####################################################
-
-D2RF100UP <- max(c(D28.5A_x, D28.5D_x, D28.5W_x))
-D2RF100LO <- min(c(D28.5A_n, D28.5D_n, D28.5W_n))
-
-########## D2Ds Temperature 2100 HERE
-debug_print("67, D2Ds Temperature 2100")
-
-#Percent Change DyDs RCP 4.5 & 8.5
-#HERE
-D2Ds_P_8.5_T_ChgF  <- raster(D2_files[28])
-if (TUnit == "\u00B0F") {
-  D2Ds_P_8.5_T_ChgF  <- raster(D2_files[31])
-}
-#crs(D2Ds_P_8.5_T_ChgF)<-crs(EXAMP)
-#D2Ds_P_8.5_T_ChgF <- spTransform(D2Ds_P_8.5_T_ChgF, crs(EXAMP))
-D28.5A_MT <- mask(x = D2Ds_P_8.5_T_ChgF, mask = PWW_T)
-D28.5A_CT <- crop(x = D28.5A_MT, y = extent(PWW_T))
-plot(D28.5A_MT)
-###########   Calculate Mean
-
-D28.5A_MMT <- round(cellStats(D28.5A_CT , 'mean'), 1)
-Cell.Data_DS[28, 1:2] <- c("D28.5A_MMT", D28.5A_MMT)
-
-D28.5A_x <- round(cellStats(D28.5A_CT , 'max'), 1)
-D28.5A_n <- round(cellStats(D28.5A_CT , 'min'), 1)
-
-
 StRF100UP <- max(c(St4.5A_x, St4.5D_x, St4.5W_x, St8.5A_x, St8.5D_x, St8.5W_x))
 StRF100LO <- min(c(St4.5A_n, St4.5D_n, St4.5W_n, St8.5A_n, St8.5D_n, St8.5W_n))
-RFdsup <- max(c(abs(DyRF100UP),abs(DyRF100LO),abs(StRF100UP),abs(StRF100LO),abs(D2RF100UP),abs(D2RF100LO)))
+RFdsup <- max(c(abs(DyRF100UP),abs(DyRF100LO),abs(StRF100UP),abs(StRF100LO)))
 RFdslo <- RFdsup * -1
 
 
 ##########   Write all DS results
-
-#DY - Dynamical
-#ST - Statistical
-#A - Annual
-#W - Wet season
-#D - Dry Season
-#8.5 is RCP 8.5
-#4.5 is RCP 4.5
 
 write.csv(
   Cell.Data_DS,
@@ -4155,6 +4494,16 @@ debug_print("68, FIGURES")
 colfunc2 <- colorRampPalette(brewer.pal(11, "RdBu"))(100)
 BI_brks2 <- round(seq(RFdslo, RFdsup , length = 9), 0)
 
+Dy4.5A_C_df<-as.data.frame(Dy4.5A_C, xy=TRUE, na.rm=TRUE)
+colnames(Dy4.5A_C_df)[3] <- "val"
+head(Dy4.5A_C_df)
+St4.5A_C_df<-as.data.frame(St4.5A_C, xy=TRUE, na.rm=TRUE)
+colnames(St4.5A_C_df)[3] <- "val"
+Dy8.5A_C_df<-as.data.frame(Dy8.5A_C, xy=TRUE, na.rm=TRUE)
+colnames(Dy8.5A_C_df)[3] <- "val"
+St8.5A_C_df<-as.data.frame(St8.5A_C, xy=TRUE, na.rm=TRUE)
+colnames(St8.5A_C_df)[3] <- "val"
+
 png(
   paste0(PATH_WITH_PROJECT_NAME, "DS_RF_8.5_v2.png"),
   width = 6.5 * dpi,
@@ -4164,63 +4513,68 @@ png(
 
 title1=textGrob("Changes in Annual Rainfall by 2100", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
 
+title1=textGrob("Changes in Annual Rainfall by 2100", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
+
 grid.arrange(top = title1,
-  spplot(Dy4.5A_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("Dynamical 4.5 (",Dy4.5A_MM ,"% change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1))
-  ,
-  
-  spplot(St4.5A_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("Statistical 4.5 (",St4.5A_MM ,"% change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1))
-  ,
-  
-  spplot(Dy8.5A_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("Dynamical 8.5 (",Dy8.5A_MM ,"% change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1))
-  ,
-  
-  spplot(St8.5A_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("Statistical 8.5 (",St8.5A_MM ,"% change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)))
-
-
-
-# spplot(Dy8.5D_C, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("DyDs Dry (",Dy8.5D_MM ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])) ,
-
-# spplot(St8.5D_C, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("StDs Dry (",St8.5D_MM ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])) ,
-#
-# spplot(Dy8.5W_C, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("DyDs Wet (",Dy8.5W_MM ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])) ,
-#
-# spplot(St8.5W_C, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("StDs Wet (",St8.5W_MM ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])))
+ ggplot() +
+   geom_raster(data = Dy4.5A_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Dynamical 4.5 (",Dy4.5A_MM ,"% change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St4.5A_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Statistical 4.5 (",St4.5A_MM ,"% change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = Dy8.5A_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Dynamical 8.5 (",Dy8.5A_MM ,"% change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St8.5A_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Statistical 8.5 (",St8.5A_MM ,"% change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1))
 
 dev.off()
 
@@ -4228,6 +4582,19 @@ dev.off()
 debug_print("69, Dynamical and Statistical Downscaling ")
 
 ########## Downscaling Compare RF RCP 4.5
+
+Dy4.5A_C_df<-as.data.frame(Dy4.5A_C, xy=TRUE, na.rm=TRUE)
+colnames(Dy4.5A_C_df)[3]<-"val"
+St4.5A_C_df<-as.data.frame(St4.5A_C, xy=TRUE, na.rm=TRUE)
+colnames(St4.5A_C_df)[3]<-"val"
+Dy4.5D_C_df<-as.data.frame(Dy4.5D_C, xy=TRUE, na.rm=TRUE)
+colnames(Dy4.5D_C_df)[3]<-"val"
+St4.5D_C_df<-as.data.frame(St4.5D_C, xy=TRUE, na.rm=TRUE)
+colnames(St4.5D_C_df)[3]<-"val"
+Dy4.5W_C_df<-as.data.frame(Dy4.5W_C, xy=TRUE, na.rm=TRUE)
+colnames(Dy4.5W_C_df)[3]<-"val"
+St4.5W_C_df<-as.data.frame(St4.5W_C, xy=TRUE, na.rm=TRUE)
+colnames(St4.5W_C_df)[3]<-"val"
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "DS_RF_2100_4.5.png"),
@@ -4237,55 +4604,109 @@ png(
 )
 
 title1=textGrob("Dynamical and Statistical DS RCP 4.5, 2100", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
-
-
 grid.arrange(top = title1,
-  spplot(Dy4.5A_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("DyDs ANN (",Dy4.5A_MM ,"%)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)),
-  
-  spplot(St4.5A_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("StDs ANN (",Dy4.5A_MM ,"%)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) ,
-  
-  spplot(Dy4.5D_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("DyDs DRY (",Dy4.5D_MM ,"%)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) ,
-  
-  spplot(St4.5D_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("StDs Dry (",St4.5D_MM ,"%)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) , 
-  
-  spplot(Dy4.5W_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("DyDs WET (",Dy4.5W_MM ,"%)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) ,
-  
-  spplot(St4.5W_C, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("StDs WET (",St4.5W_MM ,"%)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)))         
+ ggplot() +
+   geom_raster(data = Dy4.5A_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("DyDs ANN (",Dy4.5A_MM ,"%)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St4.5A_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("StDs ANN (",St4.5A_MM ,"%)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = Dy4.5D_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("DyDs DRY (",Dy4.5D_MM ,"%)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St4.5D_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("StDs Dry (",St4.5D_MM ,"%)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ , 
+ ggplot() +
+   geom_raster(data = Dy4.5W_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("DyDs WET (",Dy4.5W_MM ,"%)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St4.5W_C_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("StDs WET (",St4.5W_MM ,"%)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+)              
 
 dev.off()        
 
 ########### Statistical 2040-2070
 debug_print("70, Statistical 2040-2070")
+
+St4.5A_C40_df<-as.data.frame(St4.5A_C40, xy=TRUE, na.rm=TRUE)
+colnames(St4.5A_C40_df)[3]<-"val"
+St8.5A_C40_df<-as.data.frame(St8.5A_C40, xy=TRUE, na.rm=TRUE)
+colnames(St8.5A_C40_df)[3]<-"val"
+
+brks<- round(((max(BI_brks2) - min(BI_brks2))/4),1)
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "StDsRF2040.png"),
@@ -4297,45 +4718,37 @@ png(
 title1=textGrob("Changes in Annual Rainfall by Mid-Century", gp=gpar(col="darkred",fontface="bold",fontsize=15))  
 
 grid.arrange(top = title1,
-  spplot(St4.5A_C40, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("RCP 4.5 (",St4.5A_MM40 ,"% change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) ,
-  
-  spplot(St8.5A_C40, col.regions = colfunc2, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-    main=list(label=paste0("RCP 8.5 (",St8.5A_MM40 ,"% change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)),
-  
-  ncol=2)
+ ggplot() +
+   geom_raster(data = St4.5A_C40_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("RCP 4.5 (",St4.5A_MM40 ,"% change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St8.5A_C40_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("RCP 8.5 (",St8.5A_MM40 ,"% change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1),
+ ncol=2)
 
-# spplot(St4.5D_C40, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("StDs DRY (",St4.5D_MM40 ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])) ,
-#
-# spplot(St8.5D_C40, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("StDs DRY (",St8.5D_MM40 ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])) ,
-#
-# spplot(St4.5W_C40, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("StDs WET (",St4.5W_MM40 ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])) ,
-#
-# spplot(St8.5W_C, col.regions = colfunc2, equal=FALSE,
-#        axes = TRUE,las = 1, cex.axis=0.7,at=BI_brks2,
-#        main=list(label=paste0("StDs WET (",St8.5W_MM40 ,"%)"),cex=0.9),
-#        colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-#        sp.layout = list(UNIT_X[u])))
 dev.off()
 
 ##########   Downscaling Compare TEMP RCP 8.5 & 4.5 2100
@@ -4346,6 +4759,17 @@ colfunc3 <- colorRampPalette(brewer.pal(9, "Reds"))(100)
 if(TUnit == "°C") {BI_brksF<-round(seq(0, 7 , length = 7),0)}
 if(TUnit == "°F") {BI_brksF<-round(seq(0, 9 , length = 9),0)}
 
+brkst<-round(((max(BI_brksF) - min(BI_brksF))/4),1)
+
+Dy4.5A_CT_df<-as.data.frame(Dy4.5A_CT, xy=TRUE, na.rm=TRUE)
+colnames(Dy4.5A_CT_df)[3]<-"val"
+St4.5A_CT_df<-as.data.frame(St4.5A_CT, xy=TRUE, na.rm=TRUE)
+colnames(St4.5A_CT_df)[3]<-"val"
+Dy8.5A_CT_df<-as.data.frame(Dy8.5A_CT, xy=TRUE, na.rm=TRUE)
+colnames(Dy8.5A_CT_df)[3]<-"val"
+St8.5A_CT_df<-as.data.frame(St8.5A_CT, xy=TRUE, na.rm=TRUE)
+colnames(St8.5A_CT_df)[3]<-"val"
+
 png(
   paste0(PATH_WITH_PROJECT_NAME, "DS_Temp2100.png"),
   width = 6.5 * dpi,
@@ -4355,38 +4779,77 @@ png(
 
 title4=textGrob("Changes in Air Temperature by 2100", gp=gpar(col="darkred",fontface="bold",fontsize=15))
 grid.arrange(top = title4,
-  spplot(Dy4.5A_CT, col.regions = colfunc3, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-    main=list(label=paste0("Dynamical 4.5 (",Dy4.5A_MMT ,TUnit2," average)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) ,
-  
-  spplot(St4.5A_CT, col.regions = colfunc3, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-    main=list(label=paste0("Statistical 4.5 (",St4.5A_MMT ,TUnit2," average)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) ,
-  
-  spplot(Dy8.5A_CT, col.regions = colfunc3, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-    main=list(label=paste0("Dynamical 8.5 (",Dy8.5A_MMT ,TUnit2," average)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) ,
-  
-  spplot(St8.5A_CT, col.regions = colfunc3, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-    main=list(label=paste0("Statistical 8.5 (",St8.5A_MMT ,TUnit2," average)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)))
+ ggplot() +
+   geom_raster(data = Dy4.5A_CT_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Dynamical 4.5 (",Dy4.5A_MMT ,TUnit2," average)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St4.5A_CT_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Statistical 4.5 (",St4.5A_MMT ,TUnit2," average)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = Dy8.5A_CT_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Dynamical 8.5 (",Dy8.5A_MMT ,TUnit2," average)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ ,
+ ggplot() +
+   geom_raster(data = St8.5A_CT_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("Statistical 8.5 (",St8.5A_MMT ,TUnit2," average)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+)
+
 dev.off()
 
 
 ######################## AIR TEMP 2040-2070
 debug_print("72, AIR TEMP 2040-2070 ")
+
+St4.5A_CT40_df<-as.data.frame(St4.5A_CT40, xy=TRUE, na.rm=TRUE)
+colnames(St4.5A_CT40_df)[3]<-"val"
+St8.5A_CT40_df<-as.data.frame(St8.5A_CT40, xy=TRUE, na.rm=TRUE)
+colnames(St8.5A_CT40_df)[3]<-"val"
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "StDs_Temp2040.png"),
@@ -4398,27 +4861,41 @@ png(
 title4=textGrob("Changes in Air Temperature by Mid-Century", gp=gpar(col="darkred",fontface="bold",fontsize=15))
 
 grid.arrange(top = title4,
-  spplot(St4.5A_CT40, col.regions = colfunc3, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-    main=list(label=paste0("RCP 4.5 (",St4.5A_MMT40 ,TUnit2," change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)) , 
-  
-  spplot(St8.5A_CT40, col.regions = colfunc3, equal=FALSE,
-    axes = TRUE,las = 1, cex.axis=0.7,at=BI_brksF,
-    main=list(label=paste0("RCP 8.5 (",St8.5A_MMT40 ,TUnit2," change)"),cex=0.9),
-    colorkey = list(space = "right", height = 1, labels=list(cex=0.6)),
-    sp.layout = list(UNIT_X[u])) +
-    layer(sp.polygons(SHAPE,lwd=1)),
-  ncol=2)
+ ggplot() +
+   geom_raster(data = St4.5A_CT40_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("RCP 4.5 (",St4.5A_MMT40 ,TUnit2," change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ , 
+ ggplot() +
+   geom_raster(data = St8.5A_CT40_df, aes(x = x, y = y, fill = val)) +
+   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
+   coord_sf() + theme_minimal() +
+   theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
+         axis.ticks = element_blank(),  axis.title = element_blank(),  
+         plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+         plot.margin = margin(10, 10, 10, 10)) +
+   labs(title = paste0("RCP 8.5 (",St8.5A_MMT40 ,TUnit2," change)"),fill = NULL) +
+   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
+            color = "black", fill = NA, size = 1)
+ , 
+ ncol=2)
 
 dev.off()
 
 ##########################################################################################################################
-
-
-
 
 ##########  Create A Monthly Rainfall Time Series
 debug_print("73, Rainfall Extract ")
@@ -4428,7 +4905,7 @@ debug_print("Frazier et al 2016")
 
 #########   Extract RF Data From Monthly Maps (2 DATASETS)
 #########   Call in the Shapefile
-PWW_T <- UNIT_X[[u]]
+PWW_T <- HALE
 
 #########   Load RF MAPS
 RF_Map_Path_A
@@ -4449,10 +4926,7 @@ for (i in 1:nfiles) {
   #Open Map as raster and change projection
   RF_Map <- RF_Tif_files[i]
   RF_Map2 <- raster(RF_Map)
-  #crs(RF_Map2) <- " +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-  
-  plot(RF_Map2)
-  
+
   #Get the Name (date) from each map (derek's version)
   name <- basename(RF_Map)
   nameSplit <- unlist(strsplit(name, "_"))
@@ -4808,10 +5282,6 @@ WET_RF4 <- as.numeric(WET_RF3$RF)
 #Get seasonal average
 WET_RF5 <- as.vector(tapply(WET_RF4, gl(length(WET_RF4) / 6, 6), mean, na.rm = T))
 
-# WET_RF<-MRF100[MRF100$Month !="5" & MRF100$Month !="6" & MRF100$Month != "7" &
-#                  MRF100$Month != "8" & MRF100$Month != "9" & MRF100$Month != "10",]
-# WET_RF5<-as.numeric(WET_RF$RF)
-
 # Dry Season
 DRY_RF <- MRF100[MRF100a$Month != 1 & MRF100a$Month  != 02 &
     MRF100a$Month  != 3 & MRF100a$Month  != 04 &
@@ -4970,10 +5440,7 @@ legend("topright", c(paste0("1920-",ey," R2 = ",LM1RY, " p = ",LM1PY),
 legend("topleft",c("Annual"),cex=1.5,text.font=2, bty = "n")
 
 ablineclip(lm(myts1Y~YDateT1),x1=-19000,x2=20000,col="grey70",lwd=3)
-#ablineclip(lm(myts2Y~YDateT2),x1=-11000,x2=19000,col="darkorange",lwd=3)
-#ablineclip(lm(myts3Y~YDateT3),x1=-4500,x2=19000,col=alpha("grey30",0.7),lwd=3)
 ablineclip(lm(myts4Y~YDateT4),x1=3500,x2=20000,col="grey30",lwd=3)
-#ablineclip(lm(myts5Y~YDateT5),x1=11000,x2=19000,col=alpha("grey1",0.7),lwd=3)
 ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 
 ####### Wet Season ###########
@@ -4995,10 +5462,7 @@ legend("topright", c(paste0("1920-",ey," R2 = ",LM1RYW, " p = ",LM1PYW),
 legend("topleft",c("Wet Season"),cex=1.5,text.font=2, bty = "n")
 
 ablineclip(lm(myts1YW~YDateT1),x1=-19000,x2=20000,col="grey70",lwd=3)
-#ablineclip(lm(myts2YW~YDateT2),x1=-11000,x2=20000,col="darkorange",lwd=3)
-#ablineclip(lm(myts3YW~YDateT3),x1=-4500,x2=20000,col="grey30",lwd=3)
 ablineclip(lm(myts4YW~YDateT4),x1=3500,x2=20000,col="grey30",lwd=3)
-#ablineclip(lm(myts5YW~YDateT5),x1=11000,x2=20000,col="grey1",lwd=3)
 ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 
 ########## Dry Season
@@ -5021,10 +5485,7 @@ legend("topright", c(paste0("1920-",ey," R2 = ",LM1RYD, " p = ",LM1PYD),
 legend("topleft",c("Dry Season"),cex=1.5,text.font=2, bty = "n")
 
 ablineclip(lm(myts1YD~YDateT1),x1=-20000,x2=20000,col="grey70",lwd=3)
-#ablineclip(lm(myts2YD~YDateT2),x1=-11000,x2=20000,col="darkorange",lwd=3)
-#ablineclip(lm(myts3YD~YDateT3),x1=-4500,x2=20000,col="grey30",lwd=3)
 ablineclip(lm(myts4YD~YDateT4),x1=3500,x2=20000,col="grey30",lwd=3)
-#ablineclip(lm(myts5YD~YDateT5),x1=11000,x2=20000,col="grey1",lwd=3)
 ablineclip(lm(myts6YD~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 
 dev.off()
@@ -5044,42 +5505,6 @@ Cell.SPICNT[1:4, 1] <- c("Drought Events", "Moderate", "Severe", "Extreme")
 debug_print("SPI FIG 12")
 RF <- as.numeric(MRF100$RF)
 RFDATA <- cbind(MRF100[, c(2, 3)])
-
-
-# ####### FOR SPI GRAPH/TABLE ######
-# # Convert the Date column to Date format (if not already in Date format)
-# MRF100$Ndate <- as.Date(MRF100$Ndate)
-#
-# head(MRF100)
-#
-# # Filter for the desired date range
-# MRF100_filtered <- MRF100[which(MRF100$Year>=2000),]
-#
-# # Create a time series object for rainfall
-# rainfall_ts <- ts(MRF100_filtered$RF, start = c(2000, 1), frequency = 12)
-#
-# # Calculate SPI for a 3-month interval
-# spi_3 <- spi(rainfall_ts, scale = 12)
-#
-# spi_table <- data.frame(
-#   Date = MRF100_filtered$Ndate,
-#   SPI_3 = as.numeric(spi_3$fitted)
-# )
-#
-# ggplot(spi_table, aes(x = Date, y = SPI_3)) +
-#   geom_line(color = "blue") +
-#   geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
-#   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +  # Breaks every year, labeled with the year
-#   labs(title = "Molokai Irrigation Svc. Area 12-Month SPI (2000-2024)", x = "Year", y = "SPI") +
-#   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate labels for better readability
-#
-# # View the first few rows of the SPI table
-# head(spi_table)
-#
-# # Export SPI table as a CSV file
-# getwd()
-# write.csv(spi_table, "Molokai_Irrigation_svcarea_SPI_12_Month_2000_2024.csv", row.names = FALSE)
 
 ##################################
 #SPI-12 Calculation
@@ -6861,7 +7286,7 @@ if (ENV_TYPE == "windows") {
     NP_FILE
   )
   
-    print("run ppt")
+  print("run ppt")
   result <- processx::run(
     command = RSCRIPT_PATH,  # The Rscript or other command
     args = args,            # Arguments as a character vector
