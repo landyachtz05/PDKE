@@ -5,37 +5,6 @@ Repository created for sharing code related to PDKE products.
 
 ## Setup:
 
-### If Apache is running, kill it
-sudo /etc/init.d/apache2 stop
-
-### Download and install R and RStudio (free version)
-
-sudo apt install r-base-core
-git clone https://github.com/landyachtz05/PDKE.git
-R: <https://cran.r-project.org/>  
-RStudio: <https://posit.co/products/open-source/rstudio/>
-
-## To run the program
-
-### Using RStudio on your local machine
-
-- Install r and RStudio 
-- Install r shiny: install.packages("shiny")
-- Go down to 'Setup your credentials file' and follow the instructions there, then come back here.
-- Open server.R and click the run button.  The GUI opens and you either select a pre-existing shapefile or create a new one by clicking on the map.  
-- Make sure the 'Name' and 'Short Name' fields are filled in.  
-- Enter your email address and click "Generate Data" button.  
-- This starts a process that takes about 40 minutes.  When it's finished running, look in the MINI_PPT folder and there will be a new pdf named something like: \<Name\>\_\<YYYY\>\_\<MM\>\_\<DD\>\_CCVD_Portfolio.pdf.  
-
-### Using R server (website)
-
-The R server is hosted on Jetstream and is currently called PDKE\_Shiny.  To access it, go to the following link:  
-<https://jetstream2.exosphere.app/exosphere/projects/ae2152821a6a4d5d866e10698d616466/regions/IU/servers/c1f9d4fa-8ff0-4e43-b15a-326f30f19fa6>   
-
-Note, as of 3/10/2025 we have a new Jetstream VM that we are going to use for setting up PDKE:
-CIS240457: AI Agents on Jetstream2 Training for UH
-<https://jetstream2.exosphere.app/exosphere/projects/fa8f488bff214b96baf622f56818cace/regions/IU/overview>
-
 ### Setting up a new instance on Jetstream2:
 
 - Login to Jetstream2: <https://jetstream2.exosphere.app/exosphere/projects>
@@ -48,12 +17,18 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 - Select “Flavor” (m3.medium for PDKE)
 - For “Enable Web Desktop?” Select: “Yes”
 - Create
-- RStudio is installed by default
+
 > sudo apt-get update  
 > sudo apt-get install r-base  
-- install devtools: 
+> sudo apt install r-base-core  
 > sudo apt install r-cran-devtools  
-- install R packages (I do each one separate so I can see if any fail):
+> sudo apt-get install libtiff-dev  
+
+> sudo R  
+> install.packages(c("devtools", "rmarkdown", "leaflet", "shiny", "Rcpp", "leaflet.extras", "jsonlite", "here", "gstat", "raster", "sp", "RColorBrewer", "gridExtra", "ggplot2", "grid", "data.table", "DescTools", "lubridate", "latticeExtra", "rasterVis", "plotrix", "plyr", "dplyr", "xts", "timeSeries", "ggfortify", "changepoint", "scales", "reshape2", "hydroTSM", "lmomco", "parallel", "SPEI", "ggpubr", "terrainr", "ggmap", "ggthemes", "zoo", "classInt", "magrittr", "tidyverse", "rvg", "knitr", "xtable", "flextable", "officer", "mschart", "purrr", "pdftools", "httr", "stringr", "zip", "magick", "sf"), dependencies = TRUE)
+> install.packages("tiff", repos="https://packagemanager.posit.co/cran/2023-10-13", dep = TRUE)
+
+Alternatively, install R packages separately:
 > sudo R  
 > install.packages("devtools", dep = TRUE)  
 > install.packages("rmarkdown", dep = TRUE)  
@@ -110,54 +85,9 @@ CIS240457: AI Agents on Jetstream2 Training for UH
 > install.packages("magick", dep = TRUE)  
 > install.packages("tiff", repos="https://packagemanager.posit.co/cran/2023-10-13", dep = TRUE)  
 > install.packages("sf", dep = TRUE)  
-> install.packages("rgdal", dep = TRUE)  
-> install.packages("rgeos", dep = TRUE)  
-
-#### rgdal error
-In file included from OGR_write.cpp:11:
-rgdal.h:15:10: fatal error: sp.h: No such file or directory
-   15 | #include "sp.h"
-
-#### this worked to solve above error and install rgdal
-- find sp.h somewhere on the system:  
-> sudo find / -name sp.h  
-> /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h  
-> /usr/lib/R/site-library/sp/include/sp.h  
-
-download the following and put them in /home/exouser/Downloads:     
-https://cran.r-project.org/src/contrib/Archive/rgdal/    
-https://cran.r-project.org/src/contrib/Archive/rgeos/    
-> sudo apt install libgdal-dev 
-> sudo R    
-> setwd('/home/exouser/Downloads')  
-> install.packages("gdal-config", dep = TRUE) 
-> install.packages("sp")  
-> install.packages("rgdal_1.6-7.tar.gz",  
->                 repos=NULL,  
->                 type = 'source',  
->                 configure.args="--with-proj-include=/software/u22/r/4.4.1-old/lib/R/library/sp/include/")  
-
-#### rgeos error
-In file included from init.c:3:
-rgeos.h:59:10: fatal error: sp.h: No such file or directory
-   59 | #include "sp.h"
-                 
-#### solution
-> apt-file search sp.h  
-> apt-file search sp_xports.c  
-
-> sudo mkdir /usr/local/lib/R/site-library/sp/include  
-> cd /usr/local/lib/R/site-library/sp/include  
-> sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp.h .  
-> sudo cp /software/u22/r/4.4.1-old/lib/R/library/sp/include/sp_xports.c .  
-> sudo R  
-> install.packages("rgeos_0.6-4.tar.gz",    
->           repos=NULL,    
->           type = 'source')  
-
 
 - install markdown: 
-> sudo su - -c "R -e \"library(devtools); install_github('rstudio/rmarkdown')\""
+> sudo su - -c "R -e \"library(devtools); install_github('rstudio/rmarkdown')\""  
 - install shiny r package: 
 > sudo R   
 > install.packages('shiny', repos='https://cran.rstudio.com/')  
@@ -165,11 +95,11 @@ rgeos.h:59:10: fatal error: sp.h: No such file or directory
 > sudo apt-get install gdebi-core  
 > sudo wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb  
 > sudo gdebi shiny-server-1.5.23.1030-amd64.deb  
-- Clone repo into /srv/shiny-server
-> cd /srv/shiny-server
-> sudo git clone https://github.com/landyachtz05/PDKE.git 
-> sudo chown -R exouser:exouser PDKE
-- edit the r server config file, should use /etc/shiny-server/shiny-server.conf but had to edit /opt/shiny-server/config/default.config before it would stick.
+- Clone repo into /srv/shiny-server  
+> cd /srv/shiny-server  
+> sudo git clone https://github.com/landyachtz05/PDKE.git  
+> sudo chown -R exouser:exouser PDKE  
+- edit the r server config file, should only have to edit /etc/shiny-server/shiny-server.conf but I had to edit /opt/shiny-server/config/default.config before it would stick.
 > listen 80;  
 > location / {  
 >   site_dir /srv/shiny-server/PDKE/PDKESite;  
@@ -177,9 +107,51 @@ rgeos.h:59:10: fatal error: sp.h: No such file or directory
 > }
 
 
-### Setup your credentials file
+### Set up the folder structure  
+> mkdir /srv/shiny-server/PDKE/CCVD  
+> cd /srv/shiny-server/PDKE/CCVD  
+> mkdir /srv/shiny-server/PDKE/CCVD/CCVD_OUTPUTS  
+> sudo chmod -R 777 CCVD_OUTPUTS  
+> mkdir /srv/shiny-server/PDKE/CCVD/MINI_PPT  
+> sudo chmod -R 777 MINI_PPT  
+> mkdir /srv/shiny-server/PDKE/CCVD/MINI_Phase2  
+> sudo chmod -R 777 MINI_Phase2  
 
-Create a credentials.json file in the project's root directory.  It should look something like this:  
+### Download files from Google Drive (ask Admin for access)  
+
+<https://drive.google.com/drive/u/1/folders/1QwQU3ulooAeSRmm6rNC8JMGo22aXdgzN>  
+- Download and unzip all the folders from the drive, the following assumes they were unzipped into /home/exouser/Downloads  
+- Go into each all the folders except for the second CCVD_INPUTS folder and move their contents one level up into the /home/exouser/Downloads directory.  Delete all the old, now-empty directories and zip files (except for the second CCVD_INPUTS file).  
+- Once that is done, you'll do the following, the actual commands are just below.  
+- Move the Shapefiles folder into the PDKESite directory, include the folder so the structure is PDKESite/Shapefiles.  
+- Move the data folder into the CCVD folder so the structure is CCVD/data.  
+- Move the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.  
+- Move the IMAGE folder into the CCVD folder so the structure is CCVD/IMAGE.  
+- Move the NEW_RF_MAPS folder into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.  
+- Make links to the Shapefiles and MINI_PPT folders so they can be accessed from the web interface.  
+> mv /home/exouser/Downloads/Shapefiles /srv/shiny-server/PDKE/PDKESite/  
+> mv /home/exouser/Downloads/data /srv/shiny-server/PDKE/CCVD/  
+> mv /home/exouser/Downloads/CCVD_INPUTS /srv/shiny-server/PDKE/CCVD/  
+> mv /home/exouser/Downloads/IMAGE /srv/shiny-server/PDKE/CCVD/  
+> mv /home/exouser/Downloads/NEW_RF_MAPS /srv/shiny-server/PDKE/CCVD/  
+> sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile   
+> sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results   
+> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/PDKESite/Shapefiles  
+> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/data  
+> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/CCVD_INPUTS  
+> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/IMAGE  
+> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/NEW_RF_MAPS  
+- Make an empty file which will be used for logging  
+> sudo vi /srv/shiny-server/PDKE/locations.csv   
+- Save the empty file and exit vi.  
+> sudo chown shiny:shiny locations.csv  
+- Unzip the second CCVD_INPUTS folder and copy the inner folder of the new folder up one level into the Downloads directory.  Delete the now-empty CCVD_INPUTS_....002 folder and the zip file.  
+> sudo cp -R ~/Downloads/CCVD_INPUTS/* .  
+> rm -rf ~/Downloads/CCVD_INPUTS  
+
+### Setup your credentials file  
+
+Edit the credentials.json file in the project's root directory.  It should look something like this:  
 > {  
 >   "ENV_TYPE": "linux",  
 >   "PROJ_LIB_VAL": "/software/r9/matlab/R2021a/toolbox/map/mapproj/projdata/",  
@@ -191,46 +163,7 @@ Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a sear
 Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
 Ask the PDKE administrator for the bearer value.  
 
-### Set up the folder structure
-> mkdir /srv/shiny-server/PDKE/CCVD  
-> cd /srv/shiny-server/PDKE/CCVD  
-> mkdir /srv/shiny-server/PDKE/CCVD/CCVD_OUTPUTS  
-> sudo chmod -R 777 CCVD_OUTPUTS  
-> mkdir /srv/shiny-server/PDKE/CCVD/MINI_PPT  
-> sudo chmod -R 777 MINI_PPT  
-> mkdir /srv/shiny-server/PDKE/CCVD/MINI_Phase2  
-> sudo chmod -R 777 MINI_Phase2  
-
-### Download files from Google Drive (ask Admin for access)
-
-<https://drive.google.com/drive/u/1/folders/1QwQU3ulooAeSRmm6rNC8JMGo22aXdgzN>
-- Once you've downloaded and unzipped all the folders from the drive, assuming they were unzipped into /home/exouser/Downloads, do the following steps (commands are below the instructions). 
-- Move the Shapefiles folder into the PDKESite directory, include the folder so the structure is PDKESite/Shapefiles.
-- In Shapefiles folder, make a folder called SelectedPolygon, so the structure is PDKESite/Shapefiles/SelectedPolygon.  
-- In Shapefiles folder, make a folder called UserDefinedPolygon, so the structure is PDKESite/Shapefiles/UserDefinedPolygon.  
-- Move the data folder into the CCVD folder so the structure is CCVD/data.  
-- Move the CCVD_INPUTS folder, and it's contents, into the CCVD folder so the structure is CCVD/CCVD_INPUTS.  
-- Move the IMAGE folder into the CCVD folder so the structure is CCVD/IMAGE.  
-- Move the NEW_RF_MAPS folder into the CCVD folder so the structure is CCVD/NEW_RF_MAPS.  
-- Make links to the Shapefiles and MINI_PPT folders so they can be accessed from the web interface.  
-> mv /home/exouser/Downloads/Shapefiles /srv/shiny-server/PDKE/PDKESite/  
-> mkdir /srv/shiny-server/PDKE/PDKESite/Shapefiles/SelectedPolygon  
-> mkdir /srv/shiny-server/PDKE/PDKESite/Shapefiles/UserDefinedPolygon  
-> mv /home/exouser/Downloads/data /srv/shiny-server/PDKE/CCVD/  
-> mv /home/exouser/Downloads/CCVD_INPUTS /srv/shiny-server/PDKE/CCVD/  
-> mv /home/exouser/Downloads/IMAGE /srv/shiny-server/PDKE/CCVD/  
-> mv /home/exouser/Downloads/NEW_RF_MAPS /srv/shiny-server/PDKE/CCVD/  
-> sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile   
-> sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results   
-> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/PDKESite/Shapefiles/  
-> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/data
-> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/CCVD_INPUTS
-> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/IMAGE
-> sudo chown -R shiny:shiny /srv/shiny-server/PDKE/CCVD/NEW_RF_MAPS
-> vi locations.csv  
-> sudo chown shiny:shiny locations.csv  
-
-### if on an old jetstream instance that doesn't allow download, need to copy up the files:
+### if on an old jetstream instance that doesn't allow download, need to copy up the files:  
 > scp -r /Users/jgeis/PDKE/PDKESite/Shapefiles exouser@149.165.154.114:/srv/shiny-server/PDKE/PDKESite/  
 > scp -r /Users/jgeis/PDKE/CCVD/CCVD_INPUTS exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/  
 > scp -r /Users/jgeis/PDKE/CCVD/data exouser@149.165.154.114:/srv/shiny-server/PDKE/CCVD/  
@@ -243,53 +176,54 @@ Ask the PDKE administrator for the bearer value.
 
 You can restart the server with:  
 > sudo systemctl restart shiny-server  
-This command will shutdown all running Shiny processes, disconnect all open connections, and re-initialize the server.
+This command will shutdown all running Shiny processes, disconnect all open connections, and re-initialize the server.  
 
 If you wish to reload the configuration but keep the server and all Shiny processes running without interruption, you can use the systemctl command to send a SIGHUP signal:  
 > sudo systemctl kill -s HUP --kill-who=main shiny-server  
-This will cause the server to re-initialize, but will not interrupt the current processes or any of the open connections to the server.
+This will cause the server to re-initialize, but will not interrupt the current processes or any of the open connections to the server.  
 
 You can check the status of the shiny-server service using:  
-> sudo systemctl status shiny-server
+> sudo systemctl status shiny-server  
 
+### If Apache is running, kill it  
+sudo /etc/init.d/apache2 stop  
 
-
-TODO: Possibly, hopefully, no longer valid
-#### Running/Updating on Jetstream:
+TODO: Possibly, hopefully, no longer valid  
+#### Running/Updating on Jetstream:  
 
 Site URL: <http://149.165.154.114:3838/PDKESite/>. Note: I expect this to change.    
 GitHub: <https://github.com/landyachtz05/PDKE> 
 
-To Access for editing: 
+To Access for editing:  
 Login (2 methods): 
-- ssh <username>@149.165.154.114
-- Jetstream site (hoping this will change if we can git clone in /srv/shiny-server:
-<https://jetstream2.exosphere.app/exosphere/projects>
-  - Use "ACCESS CI (XSEDE)" for identity provider, not "University of Hawaii"
-  - Click on existing allocation ('RAPID: Tuning and Assessing Lahaina Wildfire Models with AI Enhanced Data' or 'CIS240457: AI Agents on Jetstream2 Training for UH')
-  - Click on Instances
-  - Click on PDKE-Shiny
-  - Click on Web Desktop
-Once in a terminal in either method:
-- cd /home/exouser/workflow
-- git fetch
-- git status
-- git pull  
+- ssh <username>@149.165.154.114  
+- Jetstream site (hoping this will change if we can git clone in /srv/shiny-server:  
+<https://jetstream2.exosphere.app/exosphere/projects>  
+  - Use "ACCESS CI (XSEDE)" for identity provider, not "University of Hawaii"  
+  - Click on existing allocation ('RAPID: Tuning and Assessing Lahaina Wildfire Models with AI Enhanced Data' or 'CIS240457: AI Agents on Jetstream2 Training for UH')  
+  - Click on Instances  
+  - Click on PDKE-Shiny  
+  - Click on Web Desktop  
+Once in a terminal in either method:  
+- cd /home/exouser/workflow  
+- git fetch  
+- git status  
+- git pull    
 
-Shiny Server: <https://support.posit.co/hc/en-us/articles/218499158-Shiny-Server-Quick-Start-Guides>
-<https://posit.co/download/shiny-server/>
+Shiny Server: <https://support.posit.co/hc/en-us/articles/218499158-Shiny-Server-Quick-Start-Guides>  
+<https://posit.co/download/shiny-server/>  
 
-config file values:
-- /etc/shiny-server/shiny-server.conf  
+config file values:  
+- /etc/shiny-server/shiny-server.conf   
 - listen 3838 (change to 8080)  
 - location / 
-- site_dir /srv/shiny-server/PDKE/PDKESite;
+- site_dir /srv/shiny-server/PDKE/PDKESite;  
 - log_dir /var/log/shiny-server;  
 
 /opt/shiny-server  
 
 /var/log/shiny-server.log  
-/var/log/shiny-server/PDKESite-shiny-20250331-222658-41981.log
+/var/log/shiny-server/PDKESite-shiny-20250331-222658-41981.log  
 
 Code is found at:  
 /srv/shiny-server/PDKESite  
@@ -303,23 +237,45 @@ ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/shapefil
 
 Shiny Server will use the [default configuration](https://github.com/rstudio/shiny-server/blob/master/config/default.config) unless an alternate configuration is provided at `/etc/shiny-server/shiny-server.conf`. Using the default configuration, Shiny Server will look for Shiny apps in `/srv/shiny-server/` and host them on port 3838.  
 
-sudo cp -R ~/MY-APP /srv/shiny-server/
+sudo cp -R ~/MY-APP /srv/shiny-server/  
 
 
+---
 
-DEREK:
-- Which version of R? Try set up anaconda env to match Derek's R
-1.) rgdal and rgeos - talk to Matt
+### Using R server (website)  
 
-2.) Koheo 1-2_2025_03_13_02_39_25  PDKE:  define Mean_CLIM 
-  Koheo 1-2_2025_03_13_02_39_25  PDKE:  INPUTS_FOLDER: /srv/shiny-server/PDKE//CCVD/CCVD_INPUTS/ 
-  Error in (function (file = if (onefile) "Rplots.pdf" else "Rplot%03d.pdf",  : 
-    cannot open file 'Rplots.pdf'
-  Calls: plot ... .plotraster2 -> .rasterImagePlot -> <Anonymous> -> <Anonymous>
-  Execution halted
-  Solved by setting PDKE permissions to 777, can't let this continue, need to figure out where the permissions issue is.  It's in MINI_Phase2
-3.) email address for "contact us"
-4.) Forest Reserves and Sanctuaries isn't showing anything.
+The R server is hosted on Jetstream and is currently called PDKE\_Shiny.  To access it, go to the following link:  
+<https://jetstream2.exosphere.app/exosphere/projects/ae2152821a6a4d5d866e10698d616466/regions/IU/servers/c1f9d4fa-8ff0-4e43-b15a-326f30f19fa6>   
+
+Note, as of 3/10/2025 we have a new Jetstream VM that we are going to use for setting up PDKE:  
+CIS240457: AI Agents on Jetstream2 Training for UH  
+<https://jetstream2.exosphere.app/exosphere/projects/fa8f488bff214b96baf622f56818cace/regions/IU/overview>  
+
+---
+### Running program via RStudio on your local machine  
+
+- Install r and RStudio   
+- Install r shiny: install.packages("shiny")  
+- Go down to 'Setup your credentials file' and follow the instructions there, then come back here.  
+- Open server.R and click the run button.  The GUI opens and you either select a pre-existing shapefile or create a new one by clicking on the map.   
+- Make sure the 'Name' and 'Short Name' fields are filled in.   
+- Enter your email address and click "Generate Data" button.  
+- This starts a process that takes about 40 minutes.  When it's finished running, look in the MINI_PPT folder and there will be a new pdf named something like: \<Name\>\_\<YYYY\>\_\<MM\>\_\<DD\>\_CCVD_Portfolio.pdf.  
+
+---
+
+
+DEREK:   
+- Which version of R? Try set up anaconda env to match Derek's R  
+2.) Koheo 1-2_2025_03_13_02_39_25  PDKE:  define Mean_CLIM   
+  Koheo 1-2_2025_03_13_02_39_25  PDKE:  INPUTS_FOLDER: /srv/shiny-server/PDKE//CCVD/CCVD_INPUTS/   
+  Error in (function (file = if (onefile) "Rplots.pdf" else "Rplot%03d.pdf",  :   
+    cannot open file 'Rplots.pdf'   
+  Calls: plot ... .plotraster2 -> .rasterImagePlot -> <Anonymous> -> <Anonymous>  
+  Execution halted  
+  Solved by setting PDKE permissions to 777, can't let this continue, need to figure out where the permissions issue is.  It's in MINI_Phase2  
+3.) email address for "contact us"  
+4.) Forest Reserves and Sanctuaries isn't showing anything.  
 
 ----------------------------
 Trying to figure out stack overflow issue on jetstream.
@@ -458,3 +414,44 @@ geom_polygon(data = Coast, aes(x = long, y = lat, group = group), col = "black",
 PDKE: runs, but has 'error' status on instance.  Also maxes out disk space with 2 runs.  Each run takes 15G
 PDKE2: Error: node stack overflow
 PDKE3: (clone of PDKE on new instance) runs, but maxes out CPUs and uses 15G of disk space per run.
+
+
+Unzip them all (except CCVD_INPUTS #2 
+ls air_temp/data_map_newer/1990
+
+
+
+
+
+1: packages ?grid?, ?parallel? are base packages, and should not be updated
+2: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?tiff? had non-zero exit status
+3: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?gifski? had non-zero exit status
+4: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?webp? had non-zero exit status
+5: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?xslt? had non-zero exit status
+6: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?terra? had non-zero exit status
+7: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?odbc? had non-zero exit status
+8: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?pdftools? had non-zero exit status
+9: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?magick? had non-zero exit status
+10: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?sf? had non-zero exit status
+11: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?gdtools? had non-zero exit status
+12: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?equatags? had non-zero exit status
+13: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?tesseract? had non-zero exit status
+14: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?lwgeom? had non-zero exit status
+15: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?raster? had non-zero exit status
+16: In install.packages(c("devtools", "rmarkdown", "leaflet",  ... :
+  installation of package ?flextable? had non-zero exit status
+
