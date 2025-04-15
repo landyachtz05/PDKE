@@ -25,7 +25,7 @@ Repository created for sharing code related to PDKE products.
 > sudo apt-get install libtiff-dev  
 
 > sudo R  
-> install.packages(c("devtools", "rmarkdown", "leaflet", "shiny", "Rcpp", "leaflet.extras", "jsonlite", "here", "gstat", "raster", "sp", "RColorBrewer", "gridExtra", "ggplot2", "grid", "data.table", "DescTools", "lubridate", "latticeExtra", "rasterVis", "plotrix", "plyr", "dplyr", "xts", "timeSeries", "ggfortify", "changepoint", "scales", "reshape2", "hydroTSM", "lmomco", "parallel", "SPEI", "ggpubr", "terrainr", "ggmap", "ggthemes", "zoo", "classInt", "magrittr", "tidyverse", "rvg", "knitr", "xtable", "flextable", "officer", "mschart", "purrr", "pdftools", "httr", "stringr", "zip", "magick", "sf"), dependencies = TRUE)
+> install.packages(c("devtools", "rmarkdown", "leaflet", "shiny", "Rcpp", "leaflet.extras", "jsonlite", "here", "gstat", "raster", "sp", "maptools", "RColorBrewer", "gridExtra", "ggplot2", "grid", "data.table", "DescTools", "lubridate", "latticeExtra", "rasterVis", "plotrix", "plyr", "dplyr", "xts", "timeSeries", "ggfortify", "changepoint", "scales", "reshape2", "hydroTSM", "lmomco", "parallel", "SPEI", "ggpubr", "terrainr", "ggmap", "ggthemes", "zoo", "classInt", "magrittr", "tidyverse", "rvg", "knitr", "xtable", "flextable", "officer", "mschart", "purrr", "pdftools", "httr", "stringr", "zip", "magick", "sf"), dependencies = TRUE)  
 > install.packages("tiff", repos="https://packagemanager.posit.co/cran/2023-10-13", dep = TRUE)
 
 Alternatively, install R packages separately:
@@ -161,7 +161,26 @@ Edit the credentials.json file in the project's root directory.  It should look 
 Set ENV_TYPE to either "linux" or "windows" depending on the box type you are running this on.  
 Edit the PROJ_LIB_VAL to be the path to wherever your proj.db file is (do a search, 'sudo find / -name "proj.db"', or get it via installing proj at: <https://proj.org/en/stable/index.html>).  
 Edit RSCRIPT_PATH to point at your Rscript (try whereis Rscript). 
-Ask the PDKE administrator for the bearer value.  
+Ask the PDKE administrator for the bearer value.
+
+### Setup the cronjobs
+
+The cronjobs below will update rainfall (GetRainfallDataFromHCDP.py) and delete files in CCVD_OUTPUTS & MINI_PPT older than 7 days (delete_week_old_files.py)
+
+Enter cronjobs editor with:  
+> sudo crontab -e
+
+Select 1 for editor options and paste in the following:
+> 0 0 1 * * /usr/bin/env python3 /srv/shiny-server/PDKE/GetRainfallDataFromHCDP.py >> /var/log/rainfall_update.log 2>&1  
+> 0 2 * * * /usr/bin/env python3 /srv/shiny-server/PDKE/delete_week_old_files.py >> /var/log/delete_week_old_files.log 2>&1
+
+Change cronjob timing as need, the above uses:
+- 0 0 1 * * : occurs once every month 
+- 0 2 * * * : occurs everyday at 2 AM
+
+Use the following to check logs:
+> cat /var/log/rainfall_update.log  
+> cat /var/log/delete_week_old_files.log
 
 ### if on an old jetstream instance that doesn't allow download, need to copy up the files:  
 > scp -r /Users/jgeis/PDKE/PDKESite/Shapefiles exouser@149.165.154.114:/srv/shiny-server/PDKE/PDKESite/  
@@ -189,6 +208,7 @@ You can check the status of the shiny-server service using:
 sudo /etc/init.d/apache2 stop  
 
 TODO: Possibly, hopefully, no longer valid  
+
 #### Running/Updating on Jetstream:  
 
 Site URL: <http://149.165.154.114:3838/PDKESite/>. Note: I expect this to change.    
@@ -238,7 +258,6 @@ ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/shapefil
 Shiny Server will use the [default configuration](https://github.com/rstudio/shiny-server/blob/master/config/default.config) unless an alternate configuration is provided at `/etc/shiny-server/shiny-server.conf`. Using the default configuration, Shiny Server will look for Shiny apps in `/srv/shiny-server/` and host them on port 3838.  
 
 sudo cp -R ~/MY-APP /srv/shiny-server/  
-
 
 ---
 
