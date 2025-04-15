@@ -2159,8 +2159,11 @@ if (!file.exists(P_FOLDER)) {
   dir.create(P_FOLDER)
   debug_print(paste0("Directory created: ", P_FOLDER))
 } else {
-  debug_print(paste0("Directory already exists: ", P_FOLDER))
+  debug_print(paste0("Directory already exists, this is just a status message, not an error message: ", P_FOLDER))
 }
+
+final_filename = paste0(P_FOLDER, PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+debug_print(paste0("Final filename: ", final_filename))
 
 #Slide 1
 mypowerpoint <- read_pptx() %>%
@@ -2292,8 +2295,10 @@ mypowerpoint <- read_pptx() %>%
   ph_with(value = RGimg, location = ph_location(label = "my_name",
     left = 3.8, top = 4.5, width = 2.4, height = 2)) %>%
   ph_with(value = RFimg, location = ph_location(label = "my_name",
-    left = 6.4, top = 4.5, width = 2.4, height = 2)) %>%
-  
+    left = 6.4, top = 4.5, width = 2.4, height = 2))
+print(mypowerpoint, target = final_filename)
+
+mypowerpoint <- mypowerpoint %>%
   #Slide 8a
   add_slide("Two Content","Office Theme") %>%
   ph_with(S8.0_TIT,           ph_location_type("title")) %>%
@@ -2457,9 +2462,10 @@ mypowerpoint <- read_pptx() %>%
   ph_with(value = TAB2.1, location = ph_location(label = "my_name",
     left = 0.6, top = 5.9, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022); See Annex I", location = ph_location_type(type = "dt"))%>%
-  ph_with(value = p18, location = ph_location_type(type = "sldNum"))%>%
-  
-  
+  ph_with(value = p18, location = ph_location_type(type = "sldNum"))
+print(mypowerpoint, target = final_filename)
+
+mypowerpoint <- mypowerpoint %>%
   #Slide 14 (NEW - Air Temp)  
   add_slide("Two Content","Office Theme") %>%
   ph_with(S14_TIT,         ph_location_type("title")) %>%
@@ -2600,8 +2606,10 @@ mypowerpoint <- read_pptx() %>%
     left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Timm et al., 2015; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = RF10085img, location = ph_location(label = "my_name",
-    left = 4.6, top = 2, width = 5.3, height = 3.6)) %>%
-  
+    left = 4.6, top = 2, width = 5.3, height = 3.6))
+print(mypowerpoint, target = final_filename)
+
+mypowerpoint <- mypowerpoint %>%
   #Slide 24
   add_slide("Two Content","Office Theme") %>%
   ph_with(S23_TIT,         ph_location_type("title")) %>%
@@ -2752,14 +2760,11 @@ mypowerpoint <- read_pptx() %>%
   
   add_slide("Title and Content","Office Theme") %>%
   ph_with(value = PDKE_S, location = ph_location(label = "my_name",
-    left = 2, top = 1, width = 6, height = 6))%>%
-  
-  
-  
-print(mypowerpoint, target = paste0(P_FOLDER, PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx"))
+    left = 2, top = 1, width = 6, height = 6))
 
-final_filename = paste0(P_FOLDER, PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+# don't put any print statements between the %>%> section and the print line, it will fail
 
+print(mypowerpoint, target = final_filename)
 
 ######### see how long the whole script takes, typically < 6 seconds #########
 
