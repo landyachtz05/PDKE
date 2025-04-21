@@ -171,6 +171,18 @@ run_ccvd <- function(session, sf_object, island_boundaries, shapefile_full_path,
     # print(paste0("island_short_name: ", island_short_name))
   }
   else if (ENV_TYPE == "windows") {
+    full_run_string <-
+      paste0(
+        shQuote(RSCRIPT_PATH), " ",
+        shQuote(myscript_path), " ",
+        shQuote(email), " ",
+        shQuote(paste0(BASE_DIR, "PDKESite/", shapefile_full_path)), " ",
+        shQuote(polygon_name), " ",
+        shQuote(polygon_short_name), " ",
+        shQuote(island_full_name), " ",
+        shQuote(island_short_name))
+    print(paste0("full_run_string: ", full_run_string))
+    # system(full_run_string, wait = FALSE)
     args <- c(
       myscript_path,
       email,
@@ -182,7 +194,10 @@ run_ccvd <- function(session, sf_object, island_boundaries, shapefile_full_path,
     )
 
     print("run ccvd")
-    #result <- processx::process$new(
+    print(paste0("myscript_path: ", myscript_path))
+    print(paste0("path: ", BASE_DIR, "PDKESite", shapefile_full_path))
+    print(paste0("RSCRIPT_PATH: ", RSCRIPT_PATH))
+    print(paste0("args: ", args))
     result <- processx::run(
       command = RSCRIPT_PATH,  # The Rscript or other command
       args = args,            # Arguments as a character vector
