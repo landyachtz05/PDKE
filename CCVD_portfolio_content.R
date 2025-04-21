@@ -13,12 +13,8 @@
 # “proj_create: Cannot find proj.db”
 #
 # to test via command line, no interface needed
-# Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kaa_2024_07_25_08_21_36.shp Kaa Kaa Lanai LA
-# to redirect all output to a file, use R CMD BATCH, it creates a file called CCVD_portfolio_content.Rout
-# Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waiawa_2024_07_25_13_00_08.shp Waiawa Waiawa Oahu OA
-# Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waianae_2024_07_25_17_43_41.shp Waianae Waianae Oahu OA
-# Rscript CCVD_portfolio_content.R jgeis@hawaii.edu /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp Hamakuapoko Hamakuapoko Maui MN
-#  /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Molokai_2025_02_04_09_31_29.shp' 'Molokai' 'Molokai' 'Molokai' 'MO'"
+# /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis@hawaii.edu' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Molokai_2025_02_04_09_31_29.shp' 'Molokai' 'Molokai' 'Molokai' 'MO'"
+# /Library/Frameworks/R.framework/Resources/bin/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_content.R 'jgeis26@gmail.com' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kawela Ahupuaa_2025_04_21_11_48_04.shp' 'Kawela Ahupuaa' 'Kawela' 'Oahu' 'OA'
 
 # for this to run, user must manually install proj: https://proj.org/en/9.3/about.html
 start_time <- Sys.time()
@@ -86,6 +82,8 @@ ENV_TYPE = "windows"
 PROJ_LIB_IN <- "/usr/share/proj/"
 RSCRIPT_PATH <- "/usr/bin/Rscript"
 BASE_DIR <- paste0(here()) # Gets the project root
+print(paste("RSCRIPT_PATH:", RSCRIPT_PATH))
+print(paste("BASE_DIR:", BASE_DIR))
 
 credentials_file <- paste0(BASE_DIR, "/credentials.json")
 creds <- read_credentials(credentials_file)
@@ -112,14 +110,27 @@ MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 
 #datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
 
+
+# default values for testing, please don't check in modified values
+email <- 'jgeis@hawaii.edu';
+NP_FILE <- '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kawela Ahupuaa_2025_04_21_11_48_04.shp';
+NM <- 'Kawela Ahupuaa';
+NM_s <- 'Kawela';
+ILE <- 'Oahu';
+ILE_s <- 'OA';
+
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
-email <- args[1];
-NP_FILE <- args[2];
-NM <- args[3];
-NM_s <- args[4];
-ILE <- args[5];
-ILE_s <- args[6];
+if (length(args) > 0) {
+  email <- args[1];
+  NP_FILE <- args[2];
+  NM <- args[3];
+  NM_s <- args[4];
+  ILE <- args[5];
+  ILE_s <- args[6];
+} else {
+  print("No command line args provided.  Using default values.")
+}
 
 # Extract the date and time string from the passed-in shape file using a regular expression
 datetime_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", NP_FILE)
@@ -7277,26 +7288,35 @@ if (ENV_TYPE == "linux") {
   system(run_string, wait = FALSE)
 }
 if (ENV_TYPE == "windows") {
-args <- c(
-  MYSCRIPT_PATH,
-  email,
-  file.path(PATH),
-  NM,
-  NM_s,
-  NP_FILE
-)
-
+  # not actually used, but useful to print out in case we need to re-run via command line
+  run_string <- paste0(RSCRIPT_PATH, " ", MYSCRIPT_PATH, " ",
+    shQuote(email), " ",
+    shQuote(PATH), " ",
+    shQuote(NM), " ",
+    shQuote(NM_s), " ",
+    shQuote(NP_FILE))
+  debug_print(paste0("runString: ", run_string))
+  
+  args <- c(
+    MYSCRIPT_PATH,
+    email,
+    file.path(PATH),
+    NM,
+    NM_s,
+    NP_FILE
+  )
+  
   print("run ppt")
-result <- processx::run(
-  command = RSCRIPT_PATH,  # The Rscript or other command
-  args = args,            # Arguments as a character vector
-  echo = TRUE
-)
-
-cat(result$stdout)
-if (result$stderr != "") {
-  cat("Error:", result$stderr)
-}
+  result <- processx::run(
+    command = RSCRIPT_PATH,  # The Rscript or other command
+    args = args,            # Arguments as a character vector
+    echo = TRUE
+  )
+  
+  cat(result$stdout)
+  if (result$stderr != "") {
+    cat("Error:", result$stderr)
+  }
 }
 
 ### END! ###

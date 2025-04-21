@@ -3,6 +3,8 @@
 # Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Honouliuli National Historic Site' Honouliuli HONO /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp
 # /Library/Frameworks/R.framework/Resources/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_ppt.R 'jgeis26@gmail.com' '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Waimea, Waikoloa_2025_02_12_15_18_36' 'Waimea, Waikoloa' 'Waimea, Waikoloa' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Waimea, Waikoloa_2025_02_12_15_18_36.shp'
 # Rscript CCVD_portfolio_ppt.R jgeis@hawaii.edu '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Honouliuli National Historic Site' Honouliuli HONO /Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Hamakuapoko_2024_07_25_11_06_12.shp
+# /Library/Frameworks/R.framework/Resources/bin/Rscript /Users/jgeis/Work/PDKE/CCVD_portfolio_ppt.R 'dford@hawaii.edu' '/Users/jgeis/Work/PDKE/CCVD/CCVD_OUTPUTS/Kawela Ahupuaa_2025_04_21_11_48_04' 'Kawela Ahupuaa' 'Kawela' '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kawela Ahupuaa_2025_04_21_11_48_04.shp' 
+
 library(magrittr)
 library(tidyverse)
 library(rvg)
@@ -36,24 +38,34 @@ print(paste0("BASE_DIR: ", BASE_DIR))
 WORKING_DIR <- paste0(BASE_DIR, "/CCVD/MINI_Phase2")
 setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images
-datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
-PROJECT_NAME <- paste0("polygon", datetime_str)
+
+# default values for testing
+email <- 'jgeis@hawaii.edu';
+NameF <- 'Niumalu Ahupuaa';
+SNameF <- 'Niumalu'
+SHAPEFILE <- paste0(BASE_DIR, '/PDKESite/Shapefiles/SelectedPolygon/Niumalu Ahupuaa_2025_04_21_12_32_51.shp');
+date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", SHAPEFILE)
+#date_time_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+
+# shouldn't need to edit these
+PROJECT_NAME <- paste0(NameF, "_", date_time_str)
 R_FOLDER <- paste0(BASE_DIR, "/CCVD/CCVD_OUTPUTS/", PROJECT_NAME, "/")  # Folder with your site specific files
 P_FOLDER <- paste0(BASE_DIR, "/CCVD/MINI_PPT/")     # Output folder
-NameF <- "default_name"
-SNameF <- "default_short_name"
 
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
 email = "jgeis@hawaii.edu" # default
-if (length(args) > 4) {
+if (length(args) > 0) {
   email <- args[1];
   R_FOLDER <- args[2]
   PROJECT_NAME <- basename(R_FOLDER)
   NameF <- args[3] # project_name
   SNameF <- args[4] # project_short_name
   SHAPEFILE <- args[5] # the full path to the shapefile containing the shape that caused all this.
+} else {
+  print("No command line args provided.  Using default values.")
 }
+
 date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", SHAPEFILE)
 PROJECT_WITH_DATE = paste0(NameF, "_", date_time_str)
 
@@ -560,7 +572,9 @@ S6.2_TIT <- block_list(
   fpar(ftext("Water Sources", FTXTT), fp_p = fp_par(text.align = "center")))
 
 #Aquifer spreadsheet
-AQ <- read.csv(paste0(PROJECT_FILE_BASE, "Aquifer.csv"), sep = ",")
+AQ_file <- paste0(PROJECT_FILE_BASE, "Aquifer.csv")
+debug_print(paste0("AQ_file: ", AQ_file))
+AQ <- read.csv(AQ_file, sep = ",")
 AQc <- nrow(AQ)
 AQc
 
@@ -2914,5 +2928,6 @@ if (status_code(response) == 200) {
 #   pdf_file
 # }
 # office_shot(file = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v",ver,".pptx"))
+
 
 
