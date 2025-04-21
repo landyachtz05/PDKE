@@ -27,7 +27,6 @@ library(gstat)
 library(raster)
 library(sp) 
 library(maptools)
-#library(rgdal)
 library(RColorBrewer)
 library(gridExtra)
 library(ggplot2)
@@ -36,7 +35,6 @@ library(data.table)
 library(devtools)
 library(DescTools)
 library(lubridate)
-#library(rgeos)
 library(latticeExtra)
 library(rasterVis)
 library(plotrix)
@@ -249,6 +247,9 @@ debug_print("1")
 
 HALE <- NP_ALL
 
+# Match AOI CRS with Coastline Polygon
+HALE <- st_transform(HALE, st_crs(EXAMP))
+
 plot(HALE)
 
 # Ensure HALE is a POLYGON and extract coordinates properly
@@ -256,7 +257,7 @@ HALE_df <- HALE %>%
   st_cast("POLYGON") %>%  # Ensure proper geometry type
   st_coordinates() %>%    # Extract coordinates
   as.data.frame() %>%
-  rename(long = X, lat = Y)  # Rename for clarity
+  dplyr::rename(long = X, lat = Y)  # Rename for clarity
 
 # Add group information for ggplot
 HALE_df$group <- HALE_df$L1 
@@ -655,7 +656,7 @@ CoastM_df <- CoastM %>%
   st_cast("POLYGON") %>%  # Ensure proper geometry
   st_coordinates() %>%    # Extract coordinates
   as.data.frame() %>% 
-  rename(long = X, lat = Y)  # Rename columns for plotting
+  dplyr::rename(long = X, lat = Y)  # Rename columns for plotting
 
 # Add group information for ggplot
 CoastM_df$group <- CoastM_df$L1  
@@ -843,15 +844,17 @@ png(
 
 par(mfrow=c(1,1))
 
-SH_df <- data.frame(
-  objectid = SH$objectid,
-  watershed_ = SH$watershed_,
-  name = SH$name,
-  lat = SH$lat,
-  long = SH$long,
-  st_areasha = SH$st_areasha,
-  st_perimet = SH$st_perimet
-)
+# SH$name<-NM
+# SH$island<-ILE
+# SH_df <- data.frame(
+#   objectid = SH$objectid,
+#   watershed_ = SH$watershed_,
+#   name = SH$name,
+#   lat = SH$lat,
+#   long = SH$long,
+#   st_areasha = SH$st_areasha,
+#   st_perimet = SH$st_perimet
+# )
 
 plot(st_geometry(CoastM), lwd = 1, lty = "solid", axes = FALSE, las = 2)
 title(TITF, line = 0.5, cex.main = 1.5)
@@ -1182,9 +1185,8 @@ write.csv(
 )
 
 bbox <- st_bbox(HALE)  # Get bounding box
-
-xm <- bbox["xmin"] * 0.9995
-xma <- bbox["xmax"] *1.0005
+xm <- bbox["xmin"] * 1.0005
+xma <- bbox["xmax"] *0.9995
 ym <- bbox["ymin"] * 0.999
 yma <- bbox["ymax"] * 1.001
 
@@ -2830,6 +2832,7 @@ colfuncWS <-colorRampPalette(brewer.pal(9,"Purples"))(50)
 
 ANN_CropRF_df <- as.data.frame(ANN_CropRF, xy = TRUE, na.rm = TRUE)
 brks<- round(((max(BI_brksRFA) - min(BI_brksRFA))/4),1)
+colnames(ANN_CropRF_df)[3] <- "staterf_mmann"
 
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_RF.png"),
@@ -2837,9 +2840,6 @@ png(
   height = 5 * dpi,
   res = dpi
 )
-colnames(ANN_CropRF_df)[3] <- "staterf_mmann"
-head(ANN_CropRF_df)
-
 ggplot() +
   # Plot the classified raster
   geom_raster(data = ANN_CropRF_df, aes(x = x, y = y, fill = staterf_mmann)) +
@@ -7277,26 +7277,26 @@ if (ENV_TYPE == "linux") {
   system(run_string, wait = FALSE)
 }
 if (ENV_TYPE == "windows") {
-  args <- c(
-    MYSCRIPT_PATH,
-    email,
-    file.path(PATH),
-    NM,
-    NM_s,
-    NP_FILE
-  )
-  
+args <- c(
+  MYSCRIPT_PATH,
+  email,
+  file.path(PATH),
+  NM,
+  NM_s,
+  NP_FILE
+)
+
   print("run ppt")
-  result <- processx::run(
-    command = RSCRIPT_PATH,  # The Rscript or other command
-    args = args,            # Arguments as a character vector
-    echo = TRUE
-  )
-  
-  cat(result$stdout)
-  if (result$stderr != "") {
-    cat("Error:", result$stderr)
-  }
+result <- processx::run(
+  command = RSCRIPT_PATH,  # The Rscript or other command
+  args = args,            # Arguments as a character vector
+  echo = TRUE
+)
+
+cat(result$stdout)
+if (result$stderr != "") {
+  cat("Error:", result$stderr)
+}
 }
 
 ### END! ###
