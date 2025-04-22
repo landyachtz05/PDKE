@@ -115,7 +115,7 @@ ui <- fluidPage(
       class = "contact-line",
       tags$p(
         "Contact Us: ",
-        tags$a(href = "mailto:dford@hawaii.edu", "dford@hawaii.edu")
+        tags$a(href = "mailto:djford@hawaii.edu", "djford@hawaii.edu")
       )
     )
   ),
