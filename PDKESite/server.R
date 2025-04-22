@@ -433,13 +433,13 @@ server <- function(input, output, session) {
       proxy <- leafletProxy("map")
       proxy <- clearShapes(proxy)
       proxy <- addPolygons(proxy,
-                           data = shapefile,
-                           group = "Selected Shapefile",
-                           fillColor = "transparent",
-                           color = "#B0C4DE", # Choose a light color for the boundaries
-                           weight = 2, # Set the line weight (thickness) to a low value
-                           opacity = 0.5, # Set line opacity to a lower value
-                           layerId = shapefile[[names(shapefile)[1]]]
+                data = sf::st_transform(shapefile, crs = 4326), # Reproject to WGS84
+                group = "Selected Shapefile",
+                fillColor = "transparent",
+                color = "#B0C4DE", # Choose a light color for the boundaries
+                weight = 2, # Set the line weight (thickness) to a low value
+                opacity = 0.5, # Set line opacity to a lower value
+                layerId = shapefile[[names(shapefile)[1]]]
       )
       # # Auto-select and zoom to a single polygon if it exists
       # if (nrow(shapefile) == 1) {
