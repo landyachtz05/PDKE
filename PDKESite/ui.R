@@ -14,7 +14,7 @@ logo_files_funders <- c(
   "logo-nidis.png",
   "logo-NRCS.png",
   "logo-ewcsig-sqr_10inprnt.jpg",
-  "logo-PI-CASC-marble-w-full-name.jpg",
+  "logo-PI-CASC-marble-w-full name.jpg",
   "logo-cwrm.png"
 )
 
