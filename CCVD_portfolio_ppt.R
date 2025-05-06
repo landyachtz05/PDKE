@@ -2872,13 +2872,13 @@ create_zip_for_base_name(shp_path, PROJECT_WITH_DATE, zip_file_name)
 
 # Define the request body
 # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
-ppt_link = paste0('http://149.165.171.173/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+ppt_link = paste0('http://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
 pattern2 <- "(?<=Shapefiles/).*"
 shp_path2 <- str_extract(shp_path, pattern2)
 
 debug_print(paste0("shp_path2: ", shp_path2))
 
-shp_link = paste0('http://149.165.171.173/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
+shp_link = paste0('http://ccvd.manoa.hawaii.edu/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
 req <- list(
   "recepients" = c(email), # add hcdp@hawaii.edu
   "type" = "Info",
