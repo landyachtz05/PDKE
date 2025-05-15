@@ -13,3 +13,5 @@ garbage/
 .RData
 .Rhistory
 PDKESite/old_shapefiles/
+PDKESite/www/results
+PDKESite/www/shapefile
