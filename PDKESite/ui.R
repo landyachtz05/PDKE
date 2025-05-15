@@ -155,25 +155,37 @@ ui <- fluidPage(
       
       # JavaScript code snippet to handle email validation
       tags$script(HTML('
-    $(document).on("shiny:inputchanged", function(event) {
-      if (event.name === "email_input") {
-        var email = event.value;
-        if (email.length === 0) {
-          $("#email_warning").show();
-          $("#save_button").prop("disabled", true);
-        } else {
-          $("#email_warning").hide();
-          $("#save_button").prop("disabled", false);
-        }
-      }
-    });
+        $(document).on("shiny:inputchanged", function(event) {
+          if (event.name === "email_input") {
+            var email = event.value;
+            if (email.length === 0) {
+              $("#email_warning").show();
+              $("#save_button").prop("disabled", true);
+            } else {
+              $("#email_warning").hide();
+              $("#save_button").prop("disabled", false);
+            }
+          }
+        });
 
-    Shiny.addCustomMessageHandler("bindInfoCircleClick", function(message) {
-      document.getElementById(message.id).addEventListener("click", function() {
-        Shiny.setInputValue(message.event, Math.random());
-      });
-    });
-  '))
+        Shiny.addCustomMessageHandler("bindInfoCircleClick", function(message) {
+          document.getElementById(message.id).addEventListener("click", function() {
+            Shiny.setInputValue(message.event, Math.random());
+          });
+        });
+
+        $(document).on("shiny:inputchanged", function(event) {
+          if (event.name === "polygon_name" && event.value.length > 150) {
+            $("#polygon_name").val(event.value.substring(0, 150));
+          }
+          if (event.name === "polygon_short_name" && event.value.length > 100) {
+            $("#polygon_short_name").val(event.value.substring(0, 100));
+          }
+          if (event.name === "email" && event.value.length > 150) {
+            $("#email").val(event.value.substring(0, 150));
+          }
+        });
+    '))
     ),
     
     # Main panel for displaying outputs

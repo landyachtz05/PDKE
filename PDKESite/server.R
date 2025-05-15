@@ -77,12 +77,9 @@ validate_text_inputs <- function(email, polygon_name, polygon_short_name) {
   print(paste0("validate_text_inputs: ", email, ", ", polygon_name, ", ", polygon_short_name))
   if (grepl("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", email)) {
     print("validate_text_inputs: 2")
-    if (grepl("^[A-Za-z0-9._%+-]", polygon_name)) {
-      print("validate_text_inputs: 3")
-      if (grepl("^[A-Za-z0-9._%+-]", polygon_short_name)) {
-        print("validate_text_inputs: 4, returning true")
-        return(TRUE)
-      }
+    # make sure none are empty
+    if ((nchar(email) > 0) && (nchar(polygon_name) > 0) && (nchar(polygon_short_name))) {
+      return(TRUE)
     }
   }
   print("validate_text_inputs: 5, returning false")
@@ -267,8 +264,13 @@ server <- function(input, output, session) {
   
   # Reactive expression for email validation
   valid_text_inputs <- reactive({
-    print(paste0("valid_text_inputs: ", input$email, ", ", input$polygon_name, ", ", input$polygon_name))
-    validate_text_inputs(input$email, input$polygon_name, input$polygon_name)
+    polygon_name <- trimws(gsub("[^a-zA-Z0-9 _-āēīōūʻ]", "", input$polygon_name))
+    polygon_short_name <- trimws(gsub("[^a-zA-Z0-9 _-āēīōūʻ]", "", input$polygon_short_name))
+    email <- trimws(input$email)
+    
+    # Check if the email is valid and if polygon names are not empty
+    print(paste0("valid_text_inputs: ", email, ", ", polygon_name, ", ", polygon_short_name))
+    validate_text_inputs(input$email, polygon_name, polygon_short_name)
   })
   
   # Reactive expression to check if a polygon is selected or drawn
