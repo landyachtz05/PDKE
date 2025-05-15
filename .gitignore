@@ -10,3 +10,6 @@ credentials.json
 locations.csv
 PDKESite/Shapefiles/
 garbage/
+.RData
+.Rhistory
+PDKESite/old_shapefiles/
