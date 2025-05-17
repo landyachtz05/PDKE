@@ -2780,12 +2780,35 @@ mypowerpoint <- mypowerpoint %>%
 
 print(mypowerpoint, target = final_filename)
 
-######### see how long the whole script takes, typically < 6 seconds #########
+# Add after the final print(mypowerpoint, target = final_filename) line
+convert_to_pdf <- function(input_file) {
+  output_file <- gsub("\\.pptx$", ".pdf", input_file)
+  
+  # Command for different operating systems
+  if (Sys.info()["sysname"] == "Windows") {
+    cmd <- sprintf('"%s" --headless --convert-to pdf --outdir "%s" "%s"',
+                  "C:/Program Files/LibreOffice/program/soffice.exe",  # Adjust path as needed
+                  dirname(input_file),
+                  input_file)
+  } else if (Sys.info()["sysname"] == "Darwin") {  # macOS
+    cmd <- sprintf('/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to pdf --outdir "%s" "%s"',
+                  dirname(input_file),
+                  input_file)
+  } else {  # Linux
+    cmd <- sprintf('libreoffice --headless --convert-to pdf --outdir "%s" "%s"',
+                  dirname(input_file),
+                  input_file)
+  }
+  
+  debug_print(paste("Running command:", cmd))
+  system(cmd)
+  
+  return(output_file)
+}
 
-end_time <- Sys.time()
-debug_print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
-debug_print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
-debug_print(paste0("Execution time: ", end_time - start_time))
+# Convert the PowerPoint to PDF
+pdf_file <- convert_to_pdf(final_filename)
+debug_print(paste0("PDF created at: ", pdf_file))
 
 # ######### send email saying the file is ready #########
 
@@ -2809,11 +2832,11 @@ create_zip_for_base_name <- function(directory, base_name, zip_file_name) {
   
   # Get a list of all files in the directory
   all_files <- list.files(directory, full.names = TRUE)
-  debug_print(paste0("All files: ", all_files))
+  #debug_print(paste0("All files: ", all_files))
   
   # Use regex to match files with the specified base name
   pattern <- paste0("^", base_name, "\\.")
-  debug_print(paste("pattern:", pattern))
+  #debug_print(paste("pattern:", pattern))
   matched_files <- all_files[grepl(pattern, basename(all_files))]
   
   # Print matched files for verification
@@ -2883,7 +2906,9 @@ req <- list(
   "recepients" = c(email), # add hcdp@hawaii.edu
   "type" = "Info",
   "source" = "PDKE",
-  "message" = paste0("Your data is ready at: \n", URLencode(ppt_link, reserved = FALSE), "\n\nYou may also download the shapefile of the target area here: \n", URLencode(shp_link, reserved = FALSE))
+  "message" = paste0("Your data is ready at: \n", URLencode(ppt_link, reserved = FALSE), 
+    "\n\nA PDF version can be downloaded here: \n", URLencode(pdf_file, reserved = FALSE),
+    "\n\nYou may also download the shapefile of the target area here: \n", URLencode(shp_link, reserved = FALSE))
 )
 debug_print("pre json")
 req_json <- toJSON(req, unbox = my_unbox)
@@ -2915,6 +2940,14 @@ if (status_code(response) == 200) {
     content(response, as = "text")
   ))
 }
+
+######### see how long the whole script takes, typically < 6 seconds #########
+
+end_time <- Sys.time()
+debug_print(paste0("start: ", format(start_time, "%Y-%m-%d_%H-%M-%S")))
+debug_print(paste0("end: ", format(end_time, "%Y-%m-%d_%H-%M-%S")))
+debug_print(paste0("Execution time: ", end_time - start_time))
+
 
 # ### Save to powerpoint
 #
