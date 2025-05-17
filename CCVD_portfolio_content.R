@@ -81,7 +81,7 @@ read_credentials <- function(filepath) {
 ENV_TYPE = "windows"
 PROJ_LIB_IN <- "/usr/share/proj/"
 RSCRIPT_PATH <- "/usr/bin/Rscript"
-BASE_DIR <- paste0(here()) # Gets the project root
+BASE_DIR <- here() # Gets the project root
 print(paste("RSCRIPT_PATH:", RSCRIPT_PATH))
 print(paste("BASE_DIR:", BASE_DIR))
 
@@ -110,12 +110,11 @@ MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 
 #datetime_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
 
-
 # default values for testing, please don't check in modified values
-email <- 'jgeis@hawaii.edu';
-NP_FILE <- '/Users/jgeis/Work/PDKE/PDKESite/Shapefiles/SelectedPolygon/Kawela Ahupuaa_2025_04_21_11_48_04.shp';
-NM <- 'Kawela Ahupuaa';
-NM_s <- 'Kawela';
+email <- 'djford@hawaii.edu';
+NP_FILE <- 'F:/PDKE/git/PDKE/PDKESite/Shapefiles/SelectedPolygon/Heeia Watershed_2025_04_22_12_07_59.shp';
+NM <- 'Heeia Watershed';
+NM_s <- 'Heeia';
 ILE <- 'Oahu';
 ILE_s <- 'OA';
 
