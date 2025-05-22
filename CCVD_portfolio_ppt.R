@@ -2896,6 +2896,8 @@ create_zip_for_base_name(shp_path, PROJECT_WITH_DATE, zip_file_name)
 # Define the request body
 # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
 ppt_link = paste0('http://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+pdf_link = paste0('http://ccvd.manoa.hawaii.edu/results/', pdf_file)
+
 pattern2 <- "(?<=Shapefiles/).*"
 shp_path2 <- str_extract(shp_path, pattern2)
 
@@ -2906,9 +2908,11 @@ req <- list(
   "recepients" = c(email), # add hcdp@hawaii.edu
   "type" = "Info",
   "source" = "PDKE",
-  "message" = paste0("Your data is ready at: \n", URLencode(ppt_link, reserved = FALSE), 
-    "\n\nA PDF version can be downloaded here: \n", URLencode(pdf_file, reserved = FALSE),
-    "\n\nYou may also download the shapefile of the target area here: \n", URLencode(shp_link, reserved = FALSE))
+  "message" = paste0("Your data is ready and can be downloaded via the following links: \r\n", 
+    "\r\n\r\nPowerpoint slides: \r\n", URLencode(ppt_link, reserved = FALSE), 
+    "\r\n\r\nPDF: \r\n", URLencode(pdf_file, reserved = FALSE),
+    "\r\n\r\nShapefile of the target area: \r\n", URLencode(shp_link, reserved = FALSE),
+    "\r\n\r\nThe links expire in 7 days, so please be sure to retrieve your data before that time.")
 )
 debug_print("pre json")
 req_json <- toJSON(req, unbox = my_unbox)
