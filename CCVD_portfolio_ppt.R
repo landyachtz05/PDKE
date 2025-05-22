@@ -2782,6 +2782,7 @@ print(mypowerpoint, target = final_filename)
 
 # Add after the final print(mypowerpoint, target = final_filename) line
 convert_to_pdf <- function(input_file) {
+  Sys.setenv(LD_LIBRARY_PATH = "/usr/lib/libreoffice/program/")
   output_file <- gsub("\\.pptx$", ".pdf", input_file)
   
   # Command for different operating systems
@@ -2896,7 +2897,7 @@ create_zip_for_base_name(shp_path, PROJECT_WITH_DATE, zip_file_name)
 # Define the request body
 # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
 ppt_link = paste0('http://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
-pdf_link = paste0('http://ccvd.manoa.hawaii.edu/results/', pdf_file)
+pdf_link = paste0('http://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pdf")
 
 pattern2 <- "(?<=Shapefiles/).*"
 shp_path2 <- str_extract(shp_path, pattern2)
@@ -2909,7 +2910,7 @@ req <- list(
   "type" = "Info",
   "source" = "PDKE",
   "message" = paste0("<html><body>",
-    "Your data is ready and can be downloaded via the following links:<br>", 
+    "Your data is ready and can be downloaded via the following links:", 
     "<br><br>Powerpoint slides:<br>", 
     "<a href='", URLencode(ppt_link, reserved = FALSE), "'>", ppt_link, "</a>",
     "<br><br>PDF:<br>", 
