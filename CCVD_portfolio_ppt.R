@@ -2908,12 +2908,18 @@ req <- list(
   "recepients" = c(email), # add hcdp@hawaii.edu
   "type" = "Info",
   "source" = "PDKE",
-  "message" = paste0("Your data is ready and can be downloaded via the following links: \r\n", 
-    "\r\n\r\nPowerpoint slides: \r\n", URLencode(ppt_link, reserved = FALSE), 
-    "\r\n\r\nPDF: \r\n", URLencode(pdf_file, reserved = FALSE),
-    "\r\n\r\nShapefile of the target area: \r\n", URLencode(shp_link, reserved = FALSE),
-    "\r\n\r\nThe links expire in 7 days, so please be sure to retrieve your data before that time.")
+  "message" = paste0("<html><body>",
+    "Your data is ready and can be downloaded via the following links:<br>", 
+    "<br><br>Powerpoint slides:<br>", 
+    "<a href='", URLencode(ppt_link, reserved = FALSE), "'>", ppt_link, "</a>",
+    "<br><br>PDF:<br>", 
+    "<a href='", URLencode(pdf_link, reserved = FALSE), "'>", pdf_link, "</a>",
+    "<br><br>Shapefile of the target area:<br>", 
+    "<a href='", URLencode(shp_link, reserved = FALSE), "'>", shp_link, "</a>",
+    "<br><br>All links expire in 7 days, so please be sure to retrieve your data before that time.",
+    "</body></html>")
 )
+
 debug_print("pre json")
 req_json <- toJSON(req, unbox = my_unbox)
 debug_print(req_json)  # Print the JSON string
