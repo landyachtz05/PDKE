@@ -1,9 +1,18 @@
+library(here)
+
 ##### Converts monthly ONI ENSO values to season-year values #####
 
-setwd("F:/PDKE/git/PDKE/CCVD/CCVD_INPUTS/")
+#setwd("F:/PDKE/git/PDKE/CCVD/CCVD_INPUTS/")
+BASE_DIR <- here() # Gets the project root
+
+CCVD_INPUTS_DIR <- paste0(BASE_DIR, "/CCVD/CCVD_INPUTS/")
+oni_file <- paste0(BASE_DIR, "/ONI/enso_oni_raw.csv")
+
+print(paste0("CCVD_INPUTS_DIR: ", CCVD_INPUTS_DIR))
+print(paste0("oni_file: ", oni_file))
 
 # Read in ONI data
-oni <- read.csv("enso_oni_raw.csv")
+oni <- read.csv(oni_file)
 
 # Custom function: maximum absolute value with sign-check
 season_max_value <- function(values) {
@@ -57,4 +66,6 @@ for (i in 1:nrow(oni)) {
 head(results, 10)
 tail(results)
 
-write.csv(results, "ONI_Season2.csv")
+output_file <- paste0(CCVD_INPUTS_DIR, "ONI_Season2.csv")
+print(paste0("output_file: ", output_file))
+write.csv(results, output_file)
