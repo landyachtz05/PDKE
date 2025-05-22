@@ -6627,8 +6627,8 @@ MEI_W[which(!is.na(MEI_W$MEI_W)), ]
 WetRF <- seasons[which(seasons$season == "wet"), ]
 WetRF
 
-if (length(MEI_W[which(!is.na(MEI_W$MEI_W)), ]) != length(WetRF))
-{ WetRF <- WetRF[1:nrow(WetRF) - 1, ] }
+if (nrow(MEI_W[which(!is.na(MEI_W$MEI_W)), ]) != nrow(WetRF))
+{ WetRF <- WetRF[1:nrow(MEI_W[which(!is.na(MEI_W$MEI_W)), ]), ] }
 
 L0_W <- cbind(WetRF, MEI_W[which(!is.na(MEI_W$MEI_W)), ])
 L0_W
