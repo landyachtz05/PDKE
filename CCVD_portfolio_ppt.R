@@ -2780,7 +2780,10 @@ mypowerpoint <- mypowerpoint %>%
 
 print(mypowerpoint, target = final_filename)
 
-# Add after the final print(mypowerpoint, target = final_filename) line
+# this works in that it generates a pdf, but since the production machine doesn't 
+# have MS office and uses free software to view the slides, the resulting pdf
+# is formatted in the same odd manner.  This would likely be fixed if there was 
+# an official MS office version installed.
 convert_to_pdf <- function(input_file) {
   Sys.setenv(LD_LIBRARY_PATH = "/usr/lib/libreoffice/program/")
   output_file <- gsub("\\.pptx$", ".pdf", input_file)
@@ -2807,9 +2810,10 @@ convert_to_pdf <- function(input_file) {
   return(output_file)
 }
 
+# taking this out until we can get the PDF to format properly, likely will need MS office license.
 # Convert the PowerPoint to PDF
-pdf_file <- convert_to_pdf(final_filename)
-debug_print(paste0("PDF created at: ", pdf_file))
+#pdf_file <- convert_to_pdf(final_filename)
+#debug_print(paste0("PDF created at: ", pdf_file))
 
 # ######### send email saying the file is ready #########
 
@@ -2905,6 +2909,11 @@ shp_path2 <- str_extract(shp_path, pattern2)
 debug_print(paste0("shp_path2: ", shp_path2))
 
 shp_link = paste0('http://ccvd.manoa.hawaii.edu/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
+
+# Took these two lines out of the message block below because the PDF looks weird.
+# Might need to put them back in should we ever get a MS office license which should format it correctly.
+# "<br><br>PDF:<br>", 
+# "<a href='", URLencode(pdf_link, reserved = FALSE), "'>", pdf_link, "</a>",
 req <- list(
   "recepients" = c(email), # add hcdp@hawaii.edu
   "type" = "Info",
@@ -2913,8 +2922,6 @@ req <- list(
     "Your data is ready and can be downloaded via the following links:", 
     "<br><br>Powerpoint slides:<br>", 
     "<a href='", URLencode(ppt_link, reserved = FALSE), "'>", ppt_link, "</a>",
-    "<br><br>PDF:<br>", 
-    "<a href='", URLencode(pdf_link, reserved = FALSE), "'>", pdf_link, "</a>",
     "<br><br>Shapefile of the target area:<br>", 
     "<a href='", URLencode(shp_link, reserved = FALSE), "'>", shp_link, "</a>",
     "<br><br>All links expire in 7 days, so please be sure to retrieve your data before that time.",
