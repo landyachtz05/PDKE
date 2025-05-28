@@ -2917,14 +2917,13 @@ shp_link = paste0('http://ccvd.manoa.hawaii.edu/shapefile/', shp_path2, PROJECT_
 req <- list(
   "recepients" = c(email), # add hcdp@hawaii.edu
   "type" = "Info",
-  "source" = "PDKE",
+  "source" = "CCVD Portfolio",
   "message" = paste0("<html><body>",
-    "Your data is ready and can be downloaded via the following links:", 
-    "<br><br>Powerpoint slides:<br>", 
+    "Your Climate Change, Climate Variability and Drought (CCVD) Portfolio is ready for download at:<br>", 
     "<a href='", URLencode(ppt_link, reserved = FALSE), "'>", ppt_link, "</a>",
-    "<br><br>Shapefile of the target area:<br>", 
+    "<br><br>You may also download the shapefile of your area of interest here:<br>", 
     "<a href='", URLencode(shp_link, reserved = FALSE), "'>", shp_link, "</a>",
-    "<br><br>All links expire in 7 days, so please be sure to retrieve your data before that time.",
+    "<br><br>All links expire in 7 days, so please be sure to retrieve your data before that time.  If you experience any issues with your download, please forward this message to djford@hawaii.edu and include a brief description of the issues.",
     "</body></html>")
 )
 
