@@ -94,6 +94,12 @@ ui <- fluidPage(
         align-self: flex-end; /* Align the contact line to the left */
         margin-top: 5px; /* Add some spacing */
       }
+      .explanation-text {
+        margin-top: 15px;
+        font-size: 16px;
+        color: #555;
+        line-height: 1.5;
+      }
     "))
   ),
 
@@ -116,6 +122,16 @@ ui <- fluidPage(
       tags$p(
         "Contact Us: ",
         tags$a(href = "mailto:djford@hawaii.edu", "djford@hawaii.edu")
+      )
+    ),
+    # Add this new div for your explanatory text
+    div(
+      class = "explanation-text",
+      style = "text-align: left; margin: 15px 0 25px 0; max-width: 800px;",
+      tags$p(
+       HTML("This <strong>CCVD portfolio</strong> is a comprehensive synthesis of climate and drought information developed for specific areas of interest within the State of Hawaii. It is designed to provide relevant climate and drought information for a wide variety of users. When generated, each CCVD portfolio is delivered via email as a Microsoft PowerPoint presentation of approximately 40 slides. To learn more or to view sample portfolios, please visit the <a href='https://www.soest.hawaii.edu/pdke/'>PDKE website</a>.<br><br>
+
+    <strong>Disclaimer</strong>: Some data used within this portfolio are produced in near-real-time, and may be subject to futher quality control measures. For any questions or concerns regarding the data or content of a CCVD portfolio, please email the contact listed in the top right corner of this webpage.")
       )
     )
   ),
