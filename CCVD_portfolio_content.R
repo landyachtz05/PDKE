@@ -6509,10 +6509,10 @@ ly <- 1949 + nrow(MEI)
 #Cell.MEI_All[u:1] <- UNIT_N[u]
 #Cell.MEI_All[u,8] <- W_MRF_MEAN
 #Cell.MEI_All[UNIT_C+u,8] <- D_MRF_MEAN
-# remove first row from wet season (1950 wet season not available because it starts in 1949)
-MEI_W <- subset(MEI, select = -c(MEI_D))
 # MEI_W <- MEI_W[2:nrow(MEI_W), ]
 MEI_D <- subset(MEI, select = -c(MEI_W))
+# remove first row from wet season (1950 wet season not available because it starts in 1949)
+MEI_W <- subset(MEI, select = -c(MEI_D))
 
 debug_print("98.4, MEI")
 
@@ -6619,8 +6619,8 @@ MEI_Dly <- max(MEI_D$Year)
 DryRF
 # DryRFly <- DryRF[which(DryRF$Year <= MEI_Dly), ]
 
-if(nrow(MEI_D[which(!is.na(MEI_D$MEI_D)),]) != nrow(DryRF))
-{DryRF<-DryRF[1:nrow(MEI_D[which(!is.na(MEI_D$MEI_D)),]), ]}
+if(nrow(MEI_D[which(!is.na(MEI_D$MEI_D)), , drop = FALSE]) != nrow(DryRF))
+{DryRF<-DryRF[1:nrow(MEI_D[which(!is.na(MEI_D$MEI_D)), , drop = FALSE]), ]}
 
 L0_D<-cbind(DryRF,MEI_D[which(!is.na(MEI_D$MEI_D)),])
 L0_D
@@ -6631,8 +6631,8 @@ MEI_W[which(!is.na(MEI_W$MEI_W)), ]
 WetRF <- seasons[which(seasons$season == "wet"), ]
 WetRF
 
-if(nrow(MEI_W[which(!is.na(MEI_W$MEI_W)),]) != nrow(WetRF))
-{WetRF<-WetRF[1:nrow(MEI_W[which(!is.na(MEI_W$MEI_W)),]), ]}
+if(nrow(MEI_W[which(!is.na(MEI_W$MEI_W)), , drop = FALSE]) != nrow(WetRF))
+{WetRF<-WetRF[1:nrow(MEI_W[which(!is.na(MEI_W$MEI_W)), , drop = FALSE]), ]}
 
 L0_W <- cbind(WetRF, MEI_W[which(!is.na(MEI_W$MEI_W)), ])
 L0_W
