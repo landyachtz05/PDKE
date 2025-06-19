@@ -191,16 +191,80 @@ run_ccvd <- function(session, sf_object, island_boundaries, shapefile_full_path,
     )
 
     print("run ccvd")
-    result <- processx::run(
-      command = RSCRIPT_PATH,  # The Rscript or other command
-      args = args,            # Arguments as a character vector
-      echo = TRUE              # Print the output to the console
-    )
+    tryCatch({
+      # Create a specific temporary directory
+      temp_dir <- tempdir()
+      if (!dir.exists(temp_dir)) {
+        dir.create(temp_dir, recursive = TRUE)
+      }
+      
+      # Create full paths for stdout and stderr files
+      stdout_file <- file.path(temp_dir, "ccvd_stdout.txt")
+      stderr_file <- file.path(temp_dir, "ccvd_stderr.txt")
+      cat("temp_dir: ", temp_dir, "\n")
+      
+      # Make sure these files can be created
+      cat("", file = stdout_file)
+      cat("", file = stderr_file)
+      
+      # Run the command with explicit stdout/stderr redirection
+      result <- processx::run(
+        command = RSCRIPT_PATH,
+        args = args,
+        stdout = stdout_file,
+        stderr = stderr_file,
+        error_on_status = FALSE,
+        echo = TRUE                 # print the output to the console
+      )
+      
+      # Read and display the output
+      if (file.exists(stdout_file)) {
+        stdout_content <- readLines(stdout_file)
+        if (length(stdout_content) > 0) {
+          cat(paste(stdout_content, collapse = "\n"), "\n")
+        }
+      }
+      
+      if (file.exists(stderr_file)) {
+        stderr_content <- readLines(stderr_file)
+        if (length(stderr_content) > 0) {
+          cat("Error:", paste(stderr_content, collapse = "\n"), "\n")
+        }
+      }
+      
+      # Clean up
+      unlink(stdout_file)
+      unlink(stderr_file)
+      
+    }, error = function(e) {
+      # If processx::run fails completely, fall back to system command
+      cat("processx::run failed, falling back to system():", conditionMessage(e), "\n")
+      
+      full_run_string <- paste0(
+        shQuote(RSCRIPT_PATH), " ",
+        shQuote(myscript_path), " ",
+        shQuote(email), " ",
+        shQuote(file.path(BASE_DIR, "PDKESite", shapefile_full_path)), " ",
+        shQuote(polygon_name), " ",
+        shQuote(polygon_short_name), " ",
+        shQuote(island_full_name), " ",
+        shQuote(island_short_name)
+      )
+      
+      cat("Executing fallback command:", full_run_string, "\n")
+      system(full_run_string, wait = FALSE)
+    })
 
-    cat(result$stdout)
-    if (result$stderr != "") {
-      cat("Error:", result$stderr)
-    }
+    # result <- processx::run(
+    #   command = RSCRIPT_PATH,  # The Rscript or other command
+    #   args = args,            # Arguments as a character vector
+    #   echo = TRUE              # Print the output to the console
+    # )
+    # 
+    #cat(result$stdout)
+    #if (result$stderr != "") {
+    #  cat("Error:", result$stderr)
+    #}
   }
 
   # Disable the save button to prevent a re-submission.
@@ -290,7 +354,7 @@ server <- function(input, output, session) {
     # made this not use pipes so I could add debugging statements between actions
     leaf <- leaflet()
     leaf <- addTiles(leaf)
-    
+
     # Add satellite view
     leaf <- addProviderTiles(leaf, providers$Esri.WorldImagery)
     
@@ -318,9 +382,12 @@ server <- function(input, output, session) {
       leaf <- addDrawToolbar(
         leaf,
         targetGroup = "drawnFeatures",
-        polyline = FALSE, # Exclude polyline tool
-        marker = FALSE,   # Exclude marker tool
+        polylineOptions = FALSE, # Exclude polyline tool
+        markerOptions = FALSE,   # Exclude marker tool
+        circleOption = FALSE, # Exclude circlemarker tool
         circleMarker = FALSE, # Exclude circlemarker tool
+        rectangleOptions = TRUE, 
+        polygonOptions = TRUE,    # Keep polygon drawing enabled
         singleFeature = TRUE,
         editOptions = editToolbarOptions(
           selectedPathOptions = selectedPathOptions()
