@@ -271,7 +271,7 @@ run_ccvd <- function(session, sf_object, island_boundaries, shapefile_full_path,
   updateActionButton(session, "save_button", disabled = TRUE)
   
   datetime_str <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-  csv_output_string <- paste0(datetime_str, ",", shapefile_full_path, ", ", island_full_name, ", ", polygon_name)
+  csv_output_string <- paste0(datetime_str, ", ", shapefile_full_path, ", ", island_full_name, ", ", polygon_name, ", ", email)
   print(paste0("csv_output_string: ", csv_output_string))
   record_location_to_file(csv_output_string)
 }
