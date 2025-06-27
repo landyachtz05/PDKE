@@ -3046,6 +3046,8 @@ dev.off()
 
 WS_P_Crop_df<-as.data.frame(WS_P_Crop, xy = TRUE, na.rm = TRUE)
 brks<- round(((max(BI_brksWS) - min(BI_brksWS))/4),1)
+if(brks == 0){brks <- 1}
+
 png(
   paste0(PATH_WITH_PROJECT_NAME, "Climate_less_WS.png"),
   width = 5 * dpi,
