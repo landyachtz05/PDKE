@@ -21,13 +21,18 @@
 
 import os
 from datetime import datetime
+from pathlib import Path
 import requests
 
+base_dir = str(Path(__file__).resolve().parent)
+
 # Specify the directory to find existing rainfall files and save any newly downloaded rainfall files
-rainfall_directory_path = "/Users/jgeis/Work/PDKE/CCVD/NEW_RF_MAPS/statewide_rf_mm/rf_mm/"
+rainfall_directory_path = base_dir + "/CCVD/NEW_RF_MAPS/statewide_rf_mm/rf_mm/"
+#rainfall_directory_path = "/Users/jgeis/Work/PDKE/CCVD/NEW_RF_MAPS/statewide_rf_mm/rf_mm/"
 
 # Specify the directory to find existing temperature files and save any newly downloaded temperature files
-temperature_directory_path = "/Users/jgeis/Work/PDKE/CCVD/CCVD_INPUTS/air_temp/data_map_newer/"
+temperature_directory_path = base_dir + "/CCVD/CCVD_INPUTS/air_temp/data_map_newer/"
+#temperature_directory_path = "/Users/jgeis/Work/PDKE/CCVD/CCVD_INPUTS/air_temp/data_map_newer/"
 
 def list_files_sorted(directory):
   # Check if the directory exists
@@ -123,13 +128,16 @@ def get_last_sorted_directory(directory_path):
         return "No folders found"
 
   
+#print("temperature_directory_path: ", temperature_directory_path)
+#print("rainfall_directory_path: ", rainfall_directory_path)
+
 # get the most recent rainfall file
 last_rain_file = list_files_sorted(rainfall_directory_path)
 #print("Last file in the directory:", last_rain_file)
 
 # get the most recent temperature file
 last_temp_dir = get_last_sorted_directory(temperature_directory_path)
-#print("Last sorted directory:", last_sorted_directory)
+#print("Last sorted directory:", last_temp_dir)
 temp_dir = temperature_directory_path + last_temp_dir
 last_temp_file = list_files_sorted(temp_dir)
 #print("Last file in the directory:", last_temp_file)
