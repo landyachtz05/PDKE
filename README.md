@@ -54,7 +54,7 @@ Instructions for this were obtained from the following links:
 
 ### Setup nginx:
 ```
-sudo apt update;
+-- sudo apt update;
 sudo apt install nginx;
 
 sudo ufw allow ssh;
@@ -182,9 +182,6 @@ install.packages("/home/exouser/Downloads/maptools_1.1-8.tar.gz", repos = NULL, 
 ###  Install and Setup Shiny Server   
 Back in the original terminal use: 
 ```
-sudo wget https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb
-sudo gdebi shiny-server-1.5.23.1030-amd64.deb
-
 cd /srv/shiny-server
 sudo git clone https://github.com/landyachtz05/PDKE.git
 sudo chown -R exouser:exouser /srv/shiny-server
@@ -192,6 +189,16 @@ sudo chown -R exouser:exouser /srv/shiny-server
 cd /srv/shiny-server/PDKE
 mkdir -p CCVD/CCVD_OUTPUTS CCVD/MINI_PPT CCVD/MINI_Phase2 Shapefiles/SelectedPolygon Shapefiles/UserDefinedPolygon
 sudo chmod -R 777 CCVD/CCVD_OUTPUTS CCVD/MINI_PPT CCVD/MINI_Phase2
+```
+
+Edit the r server config file, should only have to edit /etc/shiny-server/shiny-server.conf but I had to edit /opt/shiny-server/config/default.config before it would stick.  
+```
+sudo vi /etc/shiny-server/shiny-server.conf
+sudo vi /opt/shiny-server/config/default.config
+```
+Change site_dir variable to the following:
+```
+site_dir /srv/shiny-server/PDKE/PDKESite;  
 ```
 
 ## Download files 
@@ -223,6 +230,7 @@ Make links to the Shapefiles and MINI_PPT folders so they can be accessed from t
 ```
 sudo ln -s /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/PDKESite/www/shapefile   
 sudo ln -s /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/PDKESite/www/results   
+sudo ln -s /srv/shiny-server/PDKE/locations.csv /srv/shiny-server/PDKE/PDKESite/www/locations.csv
 ```
 Make an empty file which will be used for logging.  Open it, save the empty file, and exit vi.
 ```
@@ -232,6 +240,10 @@ Fix permissions
 ```
 sudo chown -R shiny:shiny /srv/shiny-server/PDKE/PDKESite /srv/shiny-server/PDKE/CCVD/CCVD_INPUTS /srv/shiny-server/PDKE/CCVD/CCVD_OUTPUTS /srv/shiny-server/PDKE/CCVD/MINI_PPT /srv/shiny-server/PDKE/CCVD/MINI_Phase2 /srv/shiny-server/PDKE/PDKESite/Shapefiles /srv/shiny-server/PDKE/CCVD/data /srv/shiny-server/PDKE/CCVD/IMAGE /srv/shiny-server/PDKE/CCVD/NEW_RF_MAPS 
 sudo chown shiny:shiny locations.csv  
+```
+Set timezone to Hawaii
+```
+sudo timedatectl set-timezone Pacific/Honolulu
 ```
 
 ### Setup your credentials file  
@@ -279,6 +291,22 @@ Use the following to check logs:
 cat /var/log/rainfall_update.log  
 cat /var/log/delete_week_old_files.log
 ```
+
+### Install libreoffice (for turning ppt into pdf)
+sudo apt install libreoffice
+
+
+### ONI cron stuff
+pip install pandas requests beautifulsoup4
+##### might be needed
+sudo apt-get install default-jre libreoffice-java-common
+sudo apt install libreoffice-gtk3
+
+
+
+
+
+
 
 ## Useful information:
 
@@ -349,3 +377,176 @@ MINI, and/or CCVD_Phase2) to 777.  This is a temporary fix, but it works for now
 
 ### Sean Umida's PDKE setup instructions:
 https://docs.google.com/document/d/1OXuDyXvY6pl52HOKsZnMY2UvB8dJUcW6UoqyAZ75R1Q/edit?tab=t.0  
+
+------------------
+
+# To move PDKE from one Jetstream2 allocation to another with more resources.
+# Doing it the straightforward way fails due to this known bug: https://gitlab.com/jetstream-cloud/jetstream2/docs/-/issues/108
+# I had to follow the workaround steps below.
+   
+# Step-by-Step Guide: Create a Sharable Image from a Volume-Backed Instance in OpenStack Horizon and OpenStack CLI
+
+This guide will walk you through creating a sharable (glance) image from a volume-backed instance using both the OpenStack Horizon dashboard and the OpenStack CLI.
+
+---
+
+## 1. Make a Snapshot of the Volume-Backed Instance
+
+**In Horizon:**
+1. **Log into the Horizon dashboard.**
+2. Go to **Project > Compute > Instances**.
+3. Locate the volume-backed instance you want to image.
+4. In the instance's row, open the **Actions** menu and select **Create Snapshot**.
+5. Enter a **name** for the snapshot and confirm.
+6. Wait for the snapshot to complete (status: Available).
+
+**In OpenStack CLI:**
+```bash
+# List instances to get the instance ID
+openstack server list
+
+# Create a snapshot (this creates a snapshot of the attached volume)
+openstack server snapshot create --name <snapshot-name> <instance-name-or-id>
+```
+- The snapshot will appear as an image. For volume-backed instances, this is typically a snapshot of the root volume.
+
+---
+
+## 2. Find the Corresponding Volume Snapshot
+
+**In Horizon:**
+1. Go to **Project > Compute > Images**.
+2. Find the snapshot you just created. Click its name to view its details.
+3. In the image details, look for the **Source** or **Volume Snapshot ID**. This links to the actual Cinder volume snapshot.
+   - If you don’t see this, go to **Project > Volumes > Volumes**, find the instance’s root volume, and check its **Snapshots**.
+
+**In OpenStack CLI:**
+```bash
+# List volumes to get the root volume of your instance
+openstack server show <instance-name-or-id> -c volumes_attached
+
+# List snapshots to find the corresponding snapshot
+openstack volume snapshot list
+
+# Or see details for a specific snapshot
+openstack volume snapshot show <snapshot-id>
+```
+
+---
+
+## 3. Create a New Volume from This Volume Snapshot
+
+**In Horizon:**
+1. Go to **Project > Volumes > Snapshots**.
+2. Find the snapshot that corresponds to your instance snapshot.
+3. Click **Create Volume** from the snapshot’s action menu.
+4. Fill in a **name**, select the availability zone, and confirm.
+5. Wait for the new volume to become available.
+
+**In OpenStack CLI:**
+```bash
+# Create a new volume from the snapshot
+openstack volume create --snapshot <snapshot-id> --size <size-in-gb> <new-volume-name>
+```
+- The `<size-in-gb>` must be at least as large as the snapshot.
+
+---
+
+## 4. Upload the New Volume to Image
+
+**In Horizon:**
+1. Go to **Project > Volumes > Volumes**.
+2. Find the new volume you just created.
+3. In the **Actions** menu for this volume, select **Upload to Image**.
+4. In the dialog, provide:
+   - **Image Name** (the name for your new glance image)
+   - **Image Format** (usually `qcow2` or `raw`)
+   - **Force** (set to Yes if the volume is in-use)
+5. Click **Upload** and wait for the process to complete.
+
+**In OpenStack CLI:**
+```bash
+# Upload the volume to the image service
+openstack volume set --bootable <new-volume-id>
+openstack image create --disk-format qcow2 --container-format bare --volume <new-volume-id> <new-image-name>
+```
+- If your deployment does not support `--volume`, use:
+```bash
+openstack volume upload-to-image <new-volume-id> --container-format bare --disk-format qcow2 <new-image-name>
+```
+- The image will now appear in the glance image list.
+
+---
+
+## 5. Set the Minimum Disk Size for the New Image
+
+**In Horizon:**
+1. Go to **Project > Compute > Images**.
+2. Find the image you just created.
+3. Click on the image name to view details.
+4. Click **Edit Image**.
+5. Set the **Minimum Disk (GB)** field to the size of the original volume (or as appropriate to your needs).
+6. Save the changes.
+
+**In OpenStack CLI:**
+```bash
+# Update the minimum disk property
+openstack image set --min-disk <size-in-gb> <new-image-id-or-name>
+```
+
+---
+
+## 6. Launch a New Instance in a Different Allocation/Project from the Shared Image
+
+**In Horizon:**
+1. **Switch to the target allocation/project**  
+   - In Horizon, click your user/account name (top right) and choose the desired project/allocation.
+
+2. **Locate the Shared Image**  
+   - Go to **Project > Compute > Images**.
+   - Find your shared image by name. It should appear if it is set to “public” or is shared with your project.
+
+3. **Start Instance Creation**  
+   - Click the **Launch** button next to the image.
+
+4. **Configure Instance Details**  
+   - Enter a **name** for your instance.
+   - Select an **availability zone** if required.
+   - Choose a **flavor** with a root disk size **at least as large as the image’s Minimum Disk**.
+   - Configure any other required settings (network, keypair, security groups, etc.)
+
+5. **Review and Launch**  
+   - Double-check all settings.
+   - Click **Launch Instance**.
+
+6. **Verify Launch**  
+   - Go to **Project > Compute > Instances** to check the status.
+   - If the status is "Error," review the flavor disk size and other settings as per troubleshooting guidance.
+
+**In OpenStack CLI:**
+```bash
+# Switch to the correct project if needed
+openstack project list
+openstack token issue  # Shows current project. Use env vars or clouds.yaml to switch.
+
+# List available images (should see your shared/public image)
+openstack image list
+
+# Choose a flavor with sufficient disk size
+openstack flavor list
+
+# Boot a new instance
+openstack server create --image <new-image-name-or-id> --flavor <flavor-name-or-id> --network <network-name-or-id> --key-name <keypair-name> <instance-name>
+```
+- Ensure the flavor root disk is at least as large as the image’s minimum disk size.
+- Add other options as needed (e.g., security group, availability zone).
+
+---
+
+**Tips:**
+- If the image does not appear, check its visibility settings in the source project.
+- If you receive an error, ensure the flavor’s root disk is large enough and that all required networks and resources are available in the target allocation.
+- For troubleshooting, refer to the logs (`nova`, `cinder`, `glance`) for detailed error messages.
+- Use `openstack help <command>` for more CLI options.
+
+---
