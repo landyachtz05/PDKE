@@ -267,7 +267,7 @@ It should look something like this:
 
 ### Setup the cronjobs
 
-The cronjobs below will update rainfall (GetRainfallDataFromHCDP.py) and delete files in CCVD_OUTPUTS & MINI_PPT older than 7 days (delete_week_old_files.py)
+The cronjobs below will update rainfall (GetRainfallDataFromHCDP.py), update 2x yearly ONI ENSO data (get_onsi_data.py and ONI_Season.R), and delete files in CCVD_OUTPUTS & MINI_PPT older than 7 days (delete_week_old_files.py)
 
 Enter cronjobs editor with:  
 
@@ -279,33 +279,37 @@ Select 1 for editor options and paste in the following:
 
 ```
 0 0 1 * * /usr/bin/env python3 /srv/shiny-server/PDKE/GetRainfallDataFromHCDP.py >> /var/log/rainfall_update.log 2>&1  
+0 1 16 5,11 * /usr/bin/env python3 /srv/shiny-server/PDKE/ONI/get_onsi_data.py >> /var/log/oni_season_update.log 2>&1  
+0 2 16 5,11 * /usr/bin/env Rscript /srv/shiny-server/PDKE/ONI/ONI_Season.R  >> /var/log/oni_season_update.log 2>&1
 0 2 * * * /usr/bin/env python3 /srv/shiny-server/PDKE/delete_week_old_files.py >> /var/log/delete_week_old_files.log 2>&1
 ```
 
-Change cronjob timing as need, the above uses:
-- 0 0 1 * * : occurs once every month 
-- 0 2 * * * : occurs everyday at 2 AM
+Change cronjob timing as needed:
+```
+a b c d e
+a: Minute
+b: Hour (24hr clock, so 0 = midnight)
+c: Day of the month, * = every day of the month
+d: Month, * = monthly
+e: Day of the week, * = every day of the week
+
+So:
+0 0 1 * * = occurs once every month at midnight
+0 1 16 5,11 * = occurs once on May 16 and November 16 at 1AM
+0 2 16 5,11 * = occurs once on May 16 and November 16 at 2AM
+0 2 * * * = occurs everyday at 2 AM
+```
 
 Use the following to check logs:
 ```
 cat /var/log/rainfall_update.log  
+cat /var/log/oni_update.log  
 cat /var/log/delete_week_old_files.log
 ```
 
-### Install libreoffice (for turning ppt into pdf)
-sudo apt install libreoffice
-
-
 ### ONI cron stuff
-pip install pandas requests beautifulsoup4
-##### might be needed
-sudo apt-get install default-jre libreoffice-java-common
-sudo apt install libreoffice-gtk3
-
-
-
-
-
+pip install pandas requests beautifulsoup4    
+sudo apt install python3-pandas # had to reboot after this
 
 
 ## Useful information:
@@ -317,11 +321,12 @@ sudo systemctl start shiny-server
 sudo systemctl stop shiny-server  
 sudo systemctl restart shiny-server
 ```
-If you wish to reload the configuration but keep the server and all Shiny processes running without interruption, you can use the systemctl command to send a SIGHUP signal.  This will cause the server to re-initialize, but will not interrupt the current processes or any of the open connections to the server.  
-:  
+
+If you wish to reload the configuration but keep the server and all Shiny processes running without interruption, you can use the systemctl command to send a SIGHUP signal.  This will cause the server to re-initialize, but will not interrupt the current processes or any of the open connections to the server.
 ```
 sudo systemctl kill -s HUP --kill-who=main shiny-server
 ```
+
 You can check the status of the shiny-server service using:  
 ```
 sudo systemctl status shiny-server
@@ -379,12 +384,34 @@ MINI, and/or CCVD_Phase2) to 777.  This is a temporary fix, but it works for now
 https://docs.google.com/document/d/1OXuDyXvY6pl52HOKsZnMY2UvB8dJUcW6UoqyAZ75R1Q/edit?tab=t.0  
 
 ------------------
+# Update procedure.
+## Update the dev environment first and test the changes there.   
+- Go to https://jetstream2.exosphere.app/exosphere/projects/ae2152821a6a4d5d866e10698d616466/regions/IU/servers/66f5df4a-4906-49cb-a525-529d644b9ae7
+- Click on the "Web Desktop" button
+- Open a terminal and run the following commands:
+```
+cd /srv/shiny-server/PDKE
+git fetch
+git pull
+```
+- test the site by  going to: 149.165.171.173:3838
+- make sure you get the email with the results and the downloads look ok.  You'll need to edit the urls in the email to use 149.165.171.173:3838 instead of ccvd.manoa.hawaii.edu.
+- take a look at the logs at the following locations:
+```
+sudo tail -f /var/log/shiny-server/PDKESite-shiny-<date-time>.log
+sudo tail -f /var/log/shiny-server.log
+sudo tail -f /var/log/nginx/error.log
+```
+- If everything works, then you can update the production site by going to the following site and doing the same steps:
+https://jetstream2.exosphere.app/exosphere/projects/e547d834b2fe4beda5061b60dfc9df1b/regions/IU/servers/0f1b49a6-871c-42ab-970e-9cd847938d9c
+
+------------------
 
 # To move PDKE from one Jetstream2 allocation to another with more resources.
-# Doing it the straightforward way fails due to this known bug: https://gitlab.com/jetstream-cloud/jetstream2/docs/-/issues/108
-# I had to follow the workaround steps below.
+Doing it the straightforward way fails due to this known bug: https://gitlab.com/jetstream-cloud/jetstream2/docs/-/issues/108
+I had to follow the workaround steps below.
    
-# Step-by-Step Guide: Create a Sharable Image from a Volume-Backed Instance in OpenStack Horizon and OpenStack CLI
+### Step-by-Step Guide: Create a Sharable Image from a Volume-Backed Instance in OpenStack Horizon and OpenStack CLI
 
 This guide will walk you through creating a sharable (glance) image from a volume-backed instance using both the OpenStack Horizon dashboard and the OpenStack CLI.
 
@@ -550,3 +577,7 @@ openstack server create --image <new-image-name-or-id> --flavor <flavor-name-or-
 - Use `openstack help <command>` for more CLI options.
 
 ---
+
+
+
+
