@@ -66,6 +66,18 @@ for (i in 1:nrow(oni)) {
 head(results, 10)
 tail(results)
 
-output_file <- paste0(CCVD_INPUTS_DIR, "ONI_Season2.csv")
+output_file <- paste0(CCVD_INPUTS_DIR, "ONI_Season.csv")
+
+# Create a backup of the existing file
+# Create a backup of the existing file
+current_date <- format(Sys.Date(), "%Y%m%d")
+backup_file <- paste0(CCVD_INPUTS_DIR, "ONI_Season_backup_", current_date, ".csv")
+if (file.exists(output_file)) {
+  file.copy(output_file, backup_file)
+  print(paste0("Existing ONI_Season.csv backed up to: ", backup_file))
+} else {
+  print("ONI_Season.csv does not exist, no backup created.")
+}
+
 print(paste0("output_file: ", output_file))
 write.csv(results, output_file)
