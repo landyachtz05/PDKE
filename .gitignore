@@ -15,3 +15,6 @@ garbage/
 PDKESite/old_shapefiles/
 PDKESite/www/results
 PDKESite/www/shapefile
+app-cred*
+*-image-*
+ONI/*.csv
