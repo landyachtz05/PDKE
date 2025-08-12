@@ -2900,15 +2900,15 @@ create_zip_for_base_name(shp_path, PROJECT_WITH_DATE, zip_file_name)
 
 # Define the request body
 # note: "recepients" is not a typo, it's how it is in the api, so I have to go with it.
-ppt_link = paste0('http://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
-pdf_link = paste0('http://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pdf")
+ppt_link = paste0('https://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
+pdf_link = paste0('https://ccvd.manoa.hawaii.edu/results/', PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pdf")
 
 pattern2 <- "(?<=Shapefiles/).*"
 shp_path2 <- str_extract(shp_path, pattern2)
 
 debug_print(paste0("shp_path2: ", shp_path2))
 
-shp_link = paste0('http://ccvd.manoa.hawaii.edu/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
+shp_link = paste0('https://ccvd.manoa.hawaii.edu/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
 
 # Took these two lines out of the message block below because the PDF looks weird.
 # Might need to put them back in should we ever get a MS office license which should format it correctly.
