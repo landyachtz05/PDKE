@@ -22,7 +22,7 @@ start_time <- Sys.time()
 library(gstat)
 library(raster)
 library(sp) 
-library(maptools)
+#library(maptools)
 library(RColorBrewer)
 library(gridExtra)
 library(ggplot2)
@@ -112,7 +112,7 @@ MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 
 # default values for testing, please don't check in modified values
 email <- 'djford@hawaii.edu';
-NP_FILE <- 'F:/PDKE/git/PDKE/PDKESite/Shapefiles/SelectedPolygon/Heeia Watershed_2025_04_22_12_07_59.shp';
+NP_FILE <- 'F:/PDKE/git/PDKE/PDKESite/Shapefiles/SelectedPolygon/CP_CM_2025_08_22_12_51_00.shp';
 NM <- 'Heeia Watershed';
 NM_s <- 'Heeia';
 ILE <- 'Oahu';
@@ -1284,7 +1284,7 @@ plot(st_geometry(STRMp_clipped), col = "blue", lwd = 2, add = TRUE)
 plot(st_geometry(STRMi_clipped), col = "lightblue1", lwd = 2, add = TRUE)
 plot(st_geometry(STRMc_clipped), col = "orange", lwd = 2, add = TRUE)
 plot(st_geometry(STRMpi_clipped), col = "black", lwd = 2, add = TRUE)
-plot(st_geometry(STRMc_clipped), col = "yellow", lwd = 2, add = TRUE)
+plot(st_geometry(STRMc_clipped), col = "orange", lwd = 2, add = TRUE)
 
 plot(st_geometry(HALE), add = TRUE, border = "red", lwd = 2)  # Add HALE boundary
 
@@ -3397,14 +3397,18 @@ png(
 ggplot() +
   # Plot the classified raster
   geom_raster(data = hmap_df, aes(x = x, y = y, fill = val)) +
-  scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
-                       na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
-                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  scale_fill_gradientn(
+    colors = colfuncTA,
+    limits = range(BI_brksTA),
+    na.value = "transparent",
+    breaks = pretty(range(BI_brksTA), n = 5),   # <-- exactly 5 breaks
+    guide = guide_colorbar(barheight = unit(4, "cm"))
+  ) +
   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
   coord_sf() + theme_minimal() +
-  theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+  theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
         axis.ticks = element_blank(),  axis.title = element_blank(),  
-        plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
         plot.margin = margin(10, 10, 10, 10)) +
   labs(
     title = paste0(mnh," Temp (°F)"),
@@ -3430,14 +3434,21 @@ png(
 ggplot() +
   # Plot the classified raster
   geom_raster(data = cmap_df, aes(x = x, y = y, fill = val)) +
-  scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
-                       na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
-                       guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  # scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
+  #                      na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
+  #                      guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
+  scale_fill_gradientn(
+    colors = colfuncTA,
+    limits = range(BI_brksTA),
+    na.value = "transparent",
+    breaks = pretty(range(BI_brksTA), n = 5),   # <-- exactly 5 breaks
+    guide = guide_colorbar(barheight = unit(4, "cm"))
+  ) +
   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
   coord_sf() + theme_minimal() +
-  theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+  theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
         axis.ticks = element_blank(),  axis.title = element_blank(),  
-        plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
         plot.margin = margin(10, 10, 10, 10)) +
   labs(
     title = paste0(mnc," Temp (°F)"),
@@ -3964,9 +3975,9 @@ ggplot() +
                        guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
   coord_sf() + theme_minimal() +
-  theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
+   theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
         axis.ticks = element_blank(),  axis.title = element_blank(),  
-        plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
         plot.margin = margin(10, 10, 10, 10)) +
   labs(title = paste0(mnw," Rainfall (in.)"),fill = NULL) +
   annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, 
@@ -4086,11 +4097,15 @@ png(
 title1=textGrob(paste("Seasonal Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
 title1=textGrob(paste("Seasonal Rainfall:", UNIT_Ns[u]),gp=gpar(col="darkred",fontface="bold",fontsize=15)) 
 grid.arrange(top = title1,
- ggplot() +
-   geom_raster(data = WetSeasonRF_df, aes(x = x, y = y, fill = layer)) +
-   scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksSEA),
-                        na.value = "transparent", breaks = seq(min(BI_brksSEA), max(BI_brksSEA), by = 5),
-                        guide = guide_colorbar(barheight = unit(4, "cm"))) +
+    ggplot() +
+        geom_raster(data = WetSeasonRF_df, aes(x = x, y = y, fill = layer)) +
+        scale_fill_gradientn(
+          colors = colfuncRF,
+          limits = range(BI_brksSEA),
+          na.value = "transparent",
+          breaks = pretty(range(BI_brksSEA), n = 5),   # <-- exactly 5 breaks
+          guide = guide_colorbar(barheight = unit(4, "cm"))
+          ) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4103,9 +4118,13 @@ grid.arrange(top = title1,
  
  ggplot() +
    geom_raster(data = DrySeasonRF_df, aes(x = x, y = y, fill = layer)) +
-   scale_fill_gradientn(colors = colfuncRF, limits = range(BI_brksSEA),
-                        na.value = "transparent", breaks = seq(min(BI_brksSEA), max(BI_brksSEA), by = 5),
-                        guide = guide_colorbar(barheight = unit(4, "cm"))) +
+   scale_fill_gradientn(
+     colors = colfuncRF,
+     limits = range(BI_brksSEA),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brksSEA), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(4, "cm"))
+   ) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 18), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4485,7 +4504,6 @@ StRF100LO <- min(c(St4.5A_n, St4.5D_n, St4.5W_n, St8.5A_n, St8.5D_n, St8.5W_n))
 RFdsup <- max(c(abs(DyRF100UP),abs(DyRF100LO),abs(StRF100UP),abs(StRF100LO)))
 RFdslo <- RFdsup * -1
 
-
 ##########   Write all DS results
 
 write.csv(
@@ -4505,6 +4523,7 @@ debug_print("68, FIGURES")
 #These graphs make use of North arrow and scale bar from RF Maps
 colfunc2 <- colorRampPalette(brewer.pal(11, "RdBu"))(100)
 BI_brks2 <- round(seq(RFdslo, RFdsup , length = 9), 0)
+brks <- 5
 
 Dy4.5A_C_df<-as.data.frame(Dy4.5A_C, xy=TRUE, na.rm=TRUE)
 colnames(Dy4.5A_C_df)[3] <- "val"
@@ -4530,9 +4549,14 @@ title1=textGrob("Changes in Annual Rainfall by 2100", gp=gpar(col="darkred",font
 grid.arrange(top = title1,
  ggplot() +
    geom_raster(data = Dy4.5A_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   # scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
+   #                      na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 7),   # <-- exactly 5 breaks
+                        guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4545,9 +4569,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = St4.5A_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+  scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 7),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4560,9 +4587,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = Dy8.5A_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 7),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4575,9 +4605,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = St8.5A_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 7),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4619,9 +4652,12 @@ title1=textGrob("Dynamical and Statistical DS RCP 4.5, 2100", gp=gpar(col="darkr
 grid.arrange(top = title1,
  ggplot() +
    geom_raster(data = Dy4.5A_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4634,9 +4670,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = St4.5A_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4649,9 +4688,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = Dy4.5D_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4664,9 +4706,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = St4.5D_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4679,9 +4724,12 @@ grid.arrange(top = title1,
  , 
  ggplot() +
    geom_raster(data = Dy4.5W_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4694,9 +4742,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = St4.5W_C_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 10), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4732,9 +4783,12 @@ title1=textGrob("Changes in Annual Rainfall by Mid-Century", gp=gpar(col="darkre
 grid.arrange(top = title1,
  ggplot() +
    geom_raster(data = St4.5A_C40_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 7),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4747,9 +4801,12 @@ grid.arrange(top = title1,
  ,
  ggplot() +
    geom_raster(data = St8.5A_C40_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc2, limits = range(BI_brks2),
-                        na.value = "transparent", breaks = seq(min(BI_brks2), max(BI_brks2), by = brks),
-                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc2,
+     limits = range(BI_brks2),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brks2), n = 7),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4793,9 +4850,15 @@ title4=textGrob("Changes in Air Temperature by 2100", gp=gpar(col="darkred",font
 grid.arrange(top = title4,
  ggplot() +
    geom_raster(data = Dy4.5A_CT_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
-                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   # scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+   #                      na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+   #                      guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc3,
+     limits = range(BI_brksF),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brksF), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4808,9 +4871,12 @@ grid.arrange(top = title4,
  ,
  ggplot() +
    geom_raster(data = St4.5A_CT_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
-                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc3,
+     limits = range(BI_brksF),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brksF), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4823,9 +4889,12 @@ grid.arrange(top = title4,
  ,
  ggplot() +
    geom_raster(data = Dy8.5A_CT_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
-                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc3,
+     limits = range(BI_brksF),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brksF), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4838,9 +4907,12 @@ grid.arrange(top = title4,
  ,
  ggplot() +
    geom_raster(data = St8.5A_CT_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
-                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
-                        guide = guide_colorbar(barheight = unit(0.2, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc3,
+     limits = range(BI_brksF),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brksF), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.3, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4875,9 +4947,15 @@ title4=textGrob("Changes in Air Temperature by Mid-Century", gp=gpar(col="darkre
 grid.arrange(top = title4,
  ggplot() +
    geom_raster(data = St4.5A_CT40_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
-                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
-                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   # scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
+   #                      na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
+   #                      guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc3,
+     limits = range(BI_brksF),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brksF), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -4890,9 +4968,12 @@ grid.arrange(top = title4,
  , 
  ggplot() +
    geom_raster(data = St8.5A_CT40_df, aes(x = x, y = y, fill = val)) +
-   scale_fill_gradientn(colors = colfunc3, limits = range(BI_brksF),
-                        na.value = "transparent", breaks = seq(min(BI_brksF), max(BI_brksF), by = brkst),
-                        guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
+   scale_fill_gradientn(
+     colors = colfunc3,
+     limits = range(BI_brksF),
+     na.value = "transparent",
+     breaks = pretty(range(BI_brksF), n = 5),   # <-- exactly 5 breaks
+     guide = guide_colorbar(barheight = unit(0.5, "npc"))) +
    geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
    coord_sf() + theme_minimal() +
    theme(legend.position = "right",legend.text = element_text(size = 12), panel.grid = element_blank(),axis.text = element_blank(),  
@@ -5521,8 +5602,13 @@ RFDATA <- cbind(MRF100[, c(2, 3)])
 ##################################
 #SPI-12 Calculation
 SPI12 <- spi(RF, scale = 12, distribution = 'Gamma')
+spi12 <- spi(ts(RF, freq = 12, start = c(1920, 1)), scale = 12)
 #SPI-3 Calculation
 SPI3 <- spi(RF, scale = 3, distribution = 'Gamma')
+
+# extract the fitted values
+spi_vals <- as.numeric(spi12$fitted)
+time_vals <- time(spi12$fitted)
 
 #PlOT ALL SPI
 png(
@@ -5532,9 +5618,15 @@ png(
   res = dpi
 )
 
-plot(spi(ts(RF, freq = 12, start = c(1920, 1)), scale = 12), main = paste0("SPI-12 1920-", ey, ": ", UNIT_Ns[u]))
+# custom barplot style
+plot(time_vals, spi_vals, type = "h",
+     col = ifelse(spi_vals >= 0, "blue", "red"),
+     main = paste0("SPI-12 1920-", ey, ": ", UNIT_Ns[u]),
+     xlab = "Year", ylab = "SPI")
+abline(h = 0, lwd = 2)
 
 dev.off()
+
 ##########   Table Metrics SPI 12
 debug_print("85, Table Metrics SPI 12")
 
@@ -5945,7 +6037,13 @@ ggplot(xx, aes(x = DT, y = SP)) +
   annotate("text", x = xx$DT[350], y = 3.4, label = paste0("Drought Events = ",  D_Cnt),size=5, fontface="bold") +
   annotate("text", x = xx$DT[350], y = 3.1, label = paste0("Moderate Droughts = ", MO_Cnt2),size=5, fontface="bold",colour = "orange") +
   annotate("text", x = xx$DT[350], y = 2.8, label = paste0("Severe Droughts = ", SV_Cnt2),size=5, fontface="bold",colour = "red") +
-  annotate("text", x = xx$DT[350], y = 2.5, label = paste0("Extreme Droughts = ", EX_Cnt),size=5, fontface="bold",colour = "darkred")
+  annotate("text", x = xx$DT[350], y = 2.5, label = paste0("Extreme Droughts = ", EX_Cnt),size=5, fontface="bold",colour = "darkred") +
+  theme(
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5)
+  )
 
 
 
@@ -6217,7 +6315,13 @@ print(
     annotate("text", x = xx$DT[70], y = 3.1, label = paste0("Moderate Droughts = ", MO_Cnt2),size=5, fontface="bold",colour = "orange") +
     annotate("text", x = xx$DT[70], y = 2.8, label = paste0("Severe Droughts = ", SV_Cnt2),size=5, fontface="bold",colour = "red") +
     annotate("text", x = xx$DT[70], y = 2.5, label = paste0("Extreme Droughts = ", EX_Cnt),size=5, fontface="bold",colour = "darkred")+
-    annotate("text", x = xx$DT[300], y = 3.1, label = "SPI-3",size=12, fontface="bold",colour = "black")
+    annotate("text", x = xx$DT[300], y = 3.1, label = "SPI-3",size=12, fontface="bold",colour = "black") +
+    theme(
+      axis.text.x = element_text(size = 14),
+      axis.text.y = element_text(size = 14),
+      axis.title.y = element_text(size = 16, face = "bold"),
+      plot.title = element_text(size = 18, face = "bold", hjust = 0.5)
+    )
   
 )
 
@@ -6482,7 +6586,13 @@ print(
     annotate("text", x = xx$DT[70], y = 3.1, label = paste0("Moderate Droughts = ", MO_Cnt2),size=5, fontface="bold",colour = "orange") +
     annotate("text", x = xx$DT[70], y = 2.8, label = paste0("Severe Droughts = ", SV_Cnt2),size=5, fontface="bold",colour = "red") +
     annotate("text", x = xx$DT[70], y = 2.5, label = paste0("Extreme Droughts = ", EX_Cnt),size=5, fontface="bold",colour = "darkred")+
-    annotate("text", x = xx$DT[300], y = 3.1, label = "SPI-12",size=12, fontface="bold",colour = "black")
+    annotate("text", x = xx$DT[300], y = 3.1, label = "SPI-12",size=12, fontface="bold",colour = "black") +
+      theme(
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5)
+  )
 )
 
 dev.off()
