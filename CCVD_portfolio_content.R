@@ -854,22 +854,20 @@ png(
 
 par(mfrow=c(1,1))
 
-# SH$name<-NM
-# SH$island<-ILE
-# SH_df <- data.frame(
-#   objectid = SH$objectid,
-#   watershed_ = SH$watershed_,
-#   name = SH$name,
-#   lat = SH$lat,
-#   long = SH$long,
-#   st_areasha = SH$st_areasha,
-#   st_perimet = SH$st_perimet
-# )
-
 plot(st_geometry(CoastM), lwd = 1, lty = "solid", axes = FALSE, las = 2)
 title(TITF, line = 0.5, cex.main = 1.5)
 plot(st_geometry(SH_sf), add = TRUE, lwd = 2, col = "cyan")
 plot(FIRE_CropI,add=TRUE,col="darkred")
+
+# legend("topright", 
+#        legend = c("Fire Occurrence", UNIT_Ns[[u]]), 
+#        pch = c(20, 20), 
+#        col = c("darkred", "cyan"),
+#        bty = "n", 
+#        horiz = FALSE, 
+#        inset = c(-0.08, -0.08), 
+#        cex = 0.8,          # Adjust text size
+#        pt.cex = 2)         # Adjust symbol size (increase to make bigger)
 
 legend("topright", 
        legend = c("Fire Occurrence", UNIT_Ns[[u]]), 
@@ -877,9 +875,9 @@ legend("topright",
        col = c("darkred", "cyan"),
        bty = "n", 
        horiz = FALSE, 
-       inset = c(-0.08, -0.08), 
-       cex = 0.8,          # Adjust text size
-       pt.cex = 2)         # Adjust symbol size (increase to make bigger)
+       inset = c(0.02, 0.02),  # always 2% inward from the corner
+       cex = 0.8,
+       pt.cex = 2)
 
 dev.off()
 
@@ -3402,7 +3400,7 @@ ggplot() +
     limits = range(BI_brksTA),
     na.value = "transparent",
     breaks = pretty(range(BI_brksTA), n = 5),   # <-- exactly 5 breaks
-    guide = guide_colorbar(barheight = unit(4, "cm"))
+    guide = guide_colorbar(barheight = unit(0.6, "npc"))
   ) +
   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
   coord_sf() + theme_minimal() +
@@ -3434,15 +3432,12 @@ png(
 ggplot() +
   # Plot the classified raster
   geom_raster(data = cmap_df, aes(x = x, y = y, fill = val)) +
-  # scale_fill_gradientn(colors = colfuncTA, limits = range(BI_brksTA),
-  #                      na.value = "transparent", breaks = seq(min(BI_brksTA), max(BI_brksTA), by = brks),
-  #                      guide = guide_colorbar(barheight = unit(0.6, "npc"))) +
   scale_fill_gradientn(
     colors = colfuncTA,
     limits = range(BI_brksTA),
     na.value = "transparent",
     breaks = pretty(range(BI_brksTA), n = 5),   # <-- exactly 5 breaks
-    guide = guide_colorbar(barheight = unit(4, "cm"))
+    guide = guide_colorbar(barheight = unit(0.6, "npc"))
   ) +
   geom_sf(data = HALE_sf, fill = NA, color = "black", linewidth = 1) +
   coord_sf() + theme_minimal() +
