@@ -103,7 +103,7 @@ debug_print(paste("1,P_FOLDER: ", P_FOLDER))
 #RANL[f]
 
 # VERSION
-ver <- 5.4
+ver <- 5.5
 
 # UNITS
 TUnit = "\u00B0F"
@@ -1226,13 +1226,13 @@ AT_FILE <- paste0(PROJECT_FILE_BASE, "monthly_airtemp.csv")
 debug_print(paste("AT_FILE: ", AT_FILE))
 AT <- read.csv(AT_FILE, sep = ",")
 #debug_print(paste("AT: ", AT))
-
+AT
 # get average annual air temperature values
 AT2 <- aggregate(mean ~ year, AT, mean)
 
 # find start and end values for linear trend
-s <- AT2[1, ]$year
-e <- AT2[nrow(AT2), ]$year
+s <- AT[1, ]$year
+e <- AT[nrow(AT), ]$year
 yrs <- e - s
 
 mod <- lm(mean ~ year, data = AT2)
