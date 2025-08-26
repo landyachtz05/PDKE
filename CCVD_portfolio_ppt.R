@@ -2910,6 +2910,10 @@ debug_print(paste0("shp_path2: ", shp_path2))
 
 shp_link = paste0('https://ccvd.manoa.hawaii.edu/shapefile/', shp_path2, PROJECT_WITH_DATE, ".zip")
 
+ccvd_link = paste0('https://ccvd.manoa.hawaii.edu/')
+
+pdke_link = paste0('https://www.soest.hawaii.edu/pdke/')
+
 # Took these two lines out of the message block below because the PDF looks weird.
 # Might need to put them back in should we ever get a MS office license which should format it correctly.
 # "<br><br>PDF:<br>", 
@@ -2923,6 +2927,10 @@ req <- list(
     "<a href='", URLencode(ppt_link, reserved = FALSE), "'>", ppt_link, "</a>",
     "<br><br>You may also download the shapefile of your area of interest here:<br>", 
     "<a href='", URLencode(shp_link, reserved = FALSE), "'>", shp_link, "</a>",
+    "<br><br>CCVD generator tool:<br>",
+    "<a href='", URLencode(ccvd_link, reserved = FALSE), "'>", ccvd_link, "</a>",
+    "<br><br>Pacific Drought Knowledge Exchange website:<br>",
+    "<a href='", URLencode(pdke_link, reserved = FALSE), "'>", pdke_link, "</a>",
     "<br><br>All links expire in 7 days, so please be sure to retrieve your data before that time.  If you experience any issues with your download, please forward this message to djford@hawaii.edu and include a brief description of the issues.",
     "</body></html>")
 )
