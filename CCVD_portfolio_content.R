@@ -829,7 +829,7 @@ ggplot() +
   geom_sf(data = Coast, col = "black", fill = "aliceblue", alpha = 0.5, linewidth = 1) +
   geom_sf(data = AI3, col = "brown", fill = NA, linewidth = 1) +
   geom_sf(data = HALE, col = "blue", fill = NA, linewidth = 1) +
-  geom_text(data = AId, aes(label = moku, x = cent_long, y = cent_lat), 
+  geom_text(data = AId, aes(label = ahupuaa, x = cent_long, y = cent_lat), 
             colour = "black", size = 4, fontface = "bold") +
   coord_sf(xlim = c(xm, xma), ylim = c(ym, yma)) +
   theme_void()
