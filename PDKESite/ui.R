@@ -133,7 +133,7 @@ ui <- fluidPage(
     <strong>Instructions for use:</strong><br>
     <strong>1)</strong> Select a predefined location by choosing from the dropdown menu then clicking a specific location on the map, or create a custom area of interest by using the area drawing tools on the map.<br>
     <strong>2)</strong> Enter a full location name and a short name which will appear in the text throughout the portfolio. Pre-defined locations will auto-populate these fields.<br>
-    <stong>3)</strong> Enter the email address where the portfolio will be sent once generated.<br>
+    <strong>3)</strong> Enter the email address where the portfolio will be sent once generated.<br>
     <strong>4)</strong> Click the “Generate  Report” button.<br><br>
     <strong>Disclaimer</strong>: Some data used within this portfolio are produced in near-real-time, and may be subject to futher quality control measures. For any questions or concerns regarding the data or content of a CCVD portfolio, please email the contact listed in the top right corner of this webpage.")
       )
