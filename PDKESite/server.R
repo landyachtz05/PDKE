@@ -684,8 +684,11 @@ server <- function(input, output, session) {
         # call the other script asynchronously to do the processing
         run_ccvd(session, sf_object, island_boundaries, full_filename, polygon_name, polygon_short_name, email)
         # Render the confirmation message when the submit button is clicked
-        output$status_messages <- renderText({
-          status_message
+        # output$status_messages <- renderText({
+        #   status_message
+        # })
+        output$status_messages <- renderUI({
+          HTML(paste0("<span style='color: green;'>", status_message, "</span>"))
         })
         
         # Disable the save button to prevent a re-submission.

@@ -171,7 +171,8 @@ ui <- fluidPage(
         style = "text-align: center;" # Inline CSS for centering
       ),
       # Placeholder for submission confirmation message
-      textOutput("status_messages"),
+      # textOutput("status_messages"),
+      uiOutput("status_messages"),
       
       # JavaScript code snippet to handle email validation
       tags$script(HTML('
