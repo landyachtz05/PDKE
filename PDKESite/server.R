@@ -688,7 +688,7 @@ server <- function(input, output, session) {
         #   status_message
         # })
         output$status_messages <- renderUI({
-          HTML(paste0("<span style='color: green;'>", status_message, "</span>"))
+          HTML(paste0("<span style='color: green; font-weight: bold;'>", status_message, "</span>"))
         })
         
         # Disable the save button to prevent a re-submission.
