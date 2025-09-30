@@ -310,7 +310,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_polygon_name, {
     showModal(modalDialog(
       title = "Polygon Name Information",
-      "The full name of the location you have selected, sans Island name, ex: 'Waikiki Watershed'.  This will be in the title of the resulting powerpoint.  Do not include the island name, as that will already be automatically inserted into the title.  If you selected a pre-defined shape, this will be filled in for you, but you can edit it if you wish.",
+      "The full name of your area of interest, ex: “Waikiki Watershed”. This will appear in the title of the CCVD Portfolio. Fill this out after selecting you area of interest on the map.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -320,7 +320,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_polygon_short_name, {
     showModal(modalDialog(
       title = "Polygon Short Name Information",
-      "A short name of the location you have selected, sans Island name, ex: 'Waikiki' instead of 'Waikiki Watershed'.  This will be used in the text of many slides in the resulting powerpoint.  If you selected a pre-defined shape, this will be filled in for you, but you can edit it if you wish.",
+      "The short name of your area of interest, ex: “Waikiki” instead of “Waikiki Watershed”. This will appear in the text of the CCVD Portfolio. Fill this out after selecting your area of interest on the map.",
       easyClose = TRUE,
       footer = NULL
     ))
