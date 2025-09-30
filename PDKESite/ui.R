@@ -132,7 +132,10 @@ ui <- fluidPage(
        HTML("This <strong>CCVD portfolio</strong> is a comprehensive synthesis of climate and drought information developed for any area of interest within the State of Hawaii. It is designed to provide relevant climate and drought information for a wide variety of users at the scale of one-hundred acres to whole islands. When generated, each CCVD portfolio is delivered via email as a Microsoft PowerPoint presentation of approximately 40 slides and 16MB in size. To learn more or to view sample portfolios, please visit the <a href='https://www.soest.hawaii.edu/pdke/'>PDKE website</a>.<br><br>
     <strong>Instructions for use:</strong><br>
     <strong>1)</strong> Select a predefined location by choosing from the dropdown menu then clicking a specific location on the map, or create a custom area of interest by using the area drawing tools on the map.<br>
-    <strong>2)</strong> Enter a full location name and a short name which will appear in the text throughout the portfolio. Pre-defined locations will auto-populate these fields.<br>
+    <strong>1)</strong> Select your area of interst (two options):<br>
+    <span style='margin-left: 10px;'>a) Select a predefined location by choosing from the dropdown menu then selecting on the map.<br>
+    <span style='margin-left: 10px;'>b) Create a custom area of interest by using the area drawing tools found at the top-left of the map.<br>
+    <strong>2)</strong> Enter the Location name and Location short name. If you selected a pre-defined location, this will be auto-populated but can be edited if needed.<br>
     <strong>3)</strong> Enter the email address where the portfolio will be sent once generated.<br>
     <strong>4)</strong> Click the “Generate  Report” button.<br><br>
     <strong>Disclaimer</strong>: Some data used within this portfolio are produced in near-real-time, and may be subject to futher quality control measures. For any questions or concerns regarding the data or content of a CCVD portfolio, please email the contact listed in the top right corner of this webpage.")
