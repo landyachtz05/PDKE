@@ -162,7 +162,7 @@ ui <- fluidPage(
       # Text input for email address
       textInput("email", "Your email address:", value = "", placeholder = "your.email@example.com"),
       # Warning message for email validation
-      tags$div(id = "email_warning", style = "color: red; margin-top: 12px;",
+      tags$div(id = "email_warning", style = "color: grey; margin-top: 12px;",
         tags$p("An email address is required since results will be emailed to you once generated.  The submit button will not be enabled until a shape is selected or drawn and all values are provided.")
       ),
       div(
