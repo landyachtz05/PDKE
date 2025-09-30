@@ -129,7 +129,7 @@ ui <- fluidPage(
       class = "explanation-text",
       style = "text-align: left; margin: 15px 0 25px 0; max-width: 800px;",
       tags$p(
-       HTML("This <strong>CCVD portfolio</strong> is a comprehensive synthesis of climate and drought information developed for specific areas of interest within the State of Hawaii. It is designed to provide relevant climate and drought information for a wide variety of users. When generated, each CCVD portfolio is delivered via email as a Microsoft PowerPoint presentation of approximately 40 slides. To learn more or to view sample portfolios, please visit the <a href='https://www.soest.hawaii.edu/pdke/'>PDKE website</a>.<br><br>
+       HTML("This <strong>CCVD portfolio</strong> is a comprehensive synthesis of climate and drought information developed for any area of interest within the State of Hawaii. It is designed to provide relevant climate and drought information for a wide variety of users at the scale of one-hundred acres to whole islands. When generated, each CCVD portfolio is delivered via email as a Microsoft PowerPoint presentation of approximately 40 slides and 16MB in size. To learn more or to view sample portfolios, please visit the <a href='https://www.soest.hawaii.edu/pdke/'>PDKE website</a>.<br><br>
     <strong>Instructions for use:</strong><br>
     <strong>1)</strong> Select a predefined location by choosing from the dropdown menu then clicking a specific location on the map, or create a custom area of interest by using the area drawing tools on the map.<br>
     <strong>2)</strong> Enter a full location name and a short name which will appear in the text throughout the portfolio. Pre-defined locations will auto-populate these fields.<br>
