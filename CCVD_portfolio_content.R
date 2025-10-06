@@ -113,10 +113,10 @@ MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 # default values for testing, please don't check in modified values
 email <- 'djford@hawaii.edu';
 NP_FILE <- 'F:/PDKE/git/PDKE/PDKESite/Shapefiles/SelectedPolygon/CP_CM_2025_08_22_12_51_00.shp';
-NM <- 'Heeia Watershed';
-NM_s <- 'Heeia';
-ILE <- 'Oahu';
-ILE_s <- 'OA';
+NM <- 'Central Maui Community Planning Area';
+NM_s <- 'Central Maui';
+ILE <- 'Maui';
+ILE_s <- 'MN';
 
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
@@ -952,6 +952,17 @@ elev_df <- as.data.frame(ELEV_CropI, xy = TRUE, na.rm = TRUE)
 CoastM_sf <- st_as_sf(CoastM)
 HALE_sf <- st_as_sf(HALE)
 
+
+# Get map bounds (so the arrow scales with your map)
+xrange <- range(elev_df$x, na.rm = TRUE)
+yrange <- range(elev_df$y, na.rm = TRUE)
+
+# Define arrow placement near top-right corner
+x_arrow <- xrange[2] - 0.05 * diff(xrange)   # 5% from right edge
+y_arrow_bottom <- yrange[1] + 0.01 * diff(yrange)  # base of arrow (15% up)
+y_arrow_top <- yrange[1] + 0.12 * diff(yrange)     # arrow tip (30% up)
+y_N_label <- y_arrow_top + 0.04 * diff(yrange)     # N label slightly above arrow
+
 debug_print(paste0("ELMap: ", PATH_WITH_PROJECT_NAME, "ELMap.png"))
 png(
   paste0(PATH_WITH_PROJECT_NAME, "ELMap.png"),
@@ -968,14 +979,27 @@ ggplot() +
   geom_sf(data = CoastM_sf, fill = NA, color = "black", size = 0.8) +
   geom_sf(data = HALE_sf, fill = NA, color = "darkred", linewidth = 1) +
   coord_sf() +  # Use coord_sf() to handle spatial data
+  
+  # Add the N label
+  annotate("text", x = x_arrow, y = y_N_label, label = "N", size = 4, fontface = "bold") +
+  
+  # Add the arrow line
+  annotate("segment",
+           x = x_arrow, xend = x_arrow,
+           y = y_arrow_bottom, yend = y_arrow_top,
+           arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+           size = 1, color = "black") +
+  
   theme_minimal() +
-  theme(legend.position = "right") +
-  labs(title = paste0("Elevation"," ",Iname," (",ELUnit2,")")) +
-  theme(axis.text = element_text(size = 8), 
-        axis.title = element_text(size = 10),
-        plot.title = element_text(hjust = 0.5, size = 14),
-        axis.title.x = element_blank(),  # Remove x-axis title
-        axis.title.y = element_blank())  # Remove y-axis title
+  theme(
+    legend.position = "right",
+    axis.text = element_text(size = 8),
+    axis.title = element_text(size = 10),
+    plot.title = element_text(hjust = 0.5, size = 14),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) +
+  labs(title = paste0("Elevation ", Iname, " (", ELUnit2, ")"))
 
 dev.off()
 
