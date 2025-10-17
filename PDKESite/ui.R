@@ -227,7 +227,7 @@ ui <- fluidPage(
       urls_funders <- c(
         "https://www.drought.gov/",
         "https://www.nrcs.usda.gov/",
-        "https://www.ewc.hawaii.edu/",
+        "https://www.eastwestcenter.org/",
         "https://pi-casc.soest.hawaii.edu/",
         "https://dlnr.hawaii.gov/cwrm/"
       )
@@ -251,9 +251,9 @@ ui <- fluidPage(
         "https://manoa.hawaii.edu/",
         "https://seagrant.soest.hawaii.edu/",
         "https://www.clarku.edu/",
-        "https://www.mesonet.org/",
+        "https://www.hawaii.edu/climate-data-portal/hawaii-mesonet/",
         "https://www.soest.hawaii.edu/pdke/",
-        "https://climateadaptation.hawaii.gov/hcdp/"
+        "https://www.hawaii.edu/climate-data-portal/"
       )
       div(
         class = "logo-item",
