@@ -71,18 +71,7 @@ ui <- fluidPage(
         height: auto;
         width: auto;
         display: block; /* Remove extra space below images */
-      }
-       /* --- Hover effect for logos --- */
-      .logo-item a {
-        display: inline-block;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-      }
-      .logo-item a:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
-        filter: brightness(1.1);
-      }
+      },
       .btn-primary {
         background-color: #007bff; /* Blue background color */
         border-color: #007bff; /* Blue border color */
