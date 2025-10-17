@@ -221,15 +221,48 @@ ui <- fluidPage(
   # Header for the first row of images
   h3(""),
   h3("Funders:"),
-  div(class = "logo-container",
-    lapply(logo_files_funders, function(file) {
-      div(class = "logo-item", img(src = file))
+  div(
+    class = "logo-container",
+    lapply(seq_along(logo_files_funders), function(i) {
+      urls_funders <- c(
+        "https://www.drought.gov/",
+        "https://www.nrcs.usda.gov/",
+        "https://www.ewc.hawaii.edu/",
+        "https://pi-casc.soest.hawaii.edu/",
+        "https://dlnr.hawaii.gov/cwrm/"
+      )
+      div(
+        class = "logo-item",
+        tags$a(
+          href = urls_funders[i],
+          target = "_blank",
+          img(src = logo_files_funders[i], alt = basename(logo_files_funders[i]))
+        )
+      )
     })
   ),
+  
   h3("Partners:"),
-  div(class = "logo-container",
-    lapply(logo_files_partners, function(file) {
-      div(class = "logo-item", img(src = file))
+  div(
+    class = "logo-container",
+    lapply(seq_along(logo_files_partners), function(i) {
+      urls_partners <- c(
+        "https://www.fs.usda.gov/",
+        "https://manoa.hawaii.edu/",
+        "https://seagrant.soest.hawaii.edu/",
+        "https://www.clarku.edu/",
+        "https://www.mesonet.org/",
+        "https://www.soest.hawaii.edu/pdke/",
+        "https://climateadaptation.hawaii.gov/hcdp/"
+      )
+      div(
+        class = "logo-item",
+        tags$a(
+          href = urls_partners[i],
+          target = "_blank",
+          img(src = logo_files_partners[i], alt = basename(logo_files_partners[i]))
+        )
+      )
     })
   )
 )
