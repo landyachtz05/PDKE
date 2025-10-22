@@ -54,16 +54,21 @@ def fetch_oni_data():
     response = requests.get(url)
     response.raise_for_status()
 
-    # Read CSV directly from the response text
+    # Read CSV directly
     df = pd.read_csv(io.StringIO(response.text))
     print(f"Loaded {len(df)} rows from the new ONI CSV")
 
-    # Clean up column names (in case of extra spaces)
+    # Clean up column names
     df.columns = [col.strip() for col in df.columns]
+    print("Columns found:", df.columns.tolist())
+
+    # Identify the ONI column automatically (the one that contains 'ONI')
+    oni_col = next((col for col in df.columns if "ONI" in col), None)
+    if not oni_col:
+        raise ValueError("Could not find an ONI column in the CSV.")
     
-    # Rename for consistency (optional)
-    if "ONI from CPC" in df.columns:
-        df.rename(columns={"ONI from CPC": "ONI"}, inplace=True)
+    # Rename for simplicity
+    df.rename(columns={oni_col: "ONI"}, inplace=True)
 
     # Convert Date to datetime
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
@@ -72,6 +77,7 @@ def fetch_oni_data():
     df["ONI"].replace(-9999, pd.NA, inplace=True)
 
     return df
+
 
 def main():
     # Get the directory containing the current script
