@@ -78,7 +78,6 @@ def fetch_oni_data():
 
     return df
 
-
 def main():
     # Get the directory containing the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
