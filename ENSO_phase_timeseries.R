@@ -1,45 +1,117 @@
 ##### Calculate rainfall by ENSO phase state-wide #####
-
-setwd("E:/PDKE/CCVD/CCVD INPUTS/")
-
-# load ENSO phase dataset (using same ONI dataset from Guam analysis)
-enso<-read.csv("enso_oni_1950_2022.csv")
-head(enso)
-
-# make date column if needed
-enso$month<-rep(c(1:12))
-enso$date<-as.Date(paste0(enso$YR,"-",enso$month,"-01"))
-
-### plot ENSO phases over time
+library(here)
 library(ggplot2)
 library(scales)
-  
-  # make table for background color bars
-  data_breaks<-data.frame(start=c(-2.8,-1.5,-0.5,0.5,1.5),
-                          end=c(-1.5,-0.5,0.5,1.5,2.8),
-                          colors=c("blue3","lightskyblue1","white","indianred1","red3"))
-  
-  # plot
-  ggplot() +
-    geom_rect(data=data_breaks, aes(ymin=start, ymax=end,
-                                    xmin=as.Date("1950-01-01"), 
-                                    xmax=as.Date("2022-01-01")),
-              fill=data_breaks$colors, alpha=0.5) +
-    geom_line(data=enso, aes(x=date, y=ANOM, group=1),size=1) +
-    scale_x_date(date_breaks = "5 years", labels = date_format(format="%Y"),
-                 expand=c(0,0)) +
-    scale_y_continuous(expand=c(0,0)) +
-    labs(title="ENSO Phases based on Sea Surface Temperature (SST)",
-         y="Change in SST (°F)", x="Year") +
-    geom_hline(yintercept=0) +
-    theme_bw() +
-    theme(axis.text.x=element_text(angle=45, vjust=0.65, size=12),
-          axis.text.y=element_text(size=12))
+library(grid)
 
-    
+BASE_DIR <- here()
+ONI_FILE <- file.path(BASE_DIR,"ONI","enso_oni_raw.csv")
+OUT_DIR <- file.path(BASE_DIR,"CCVD/IMAGE")
+
+# load ENSO phase dataset (using same ONI dataset from Guam analysis)
+enso<-read.csv(ONI_FILE)
+head(enso)
+
+# format Date column
+enso$Date <- as.Date(enso$Date)
+
+### plot ENSO phases over time
+
+# ---- Define color bands ----
+data_breaks <- data.frame(
+  start = c(-2.8, -1.5, -0.5, 0.5, 1.5),
+  end   = c(-1.5, -0.5, 0.5, 1.5, 2.8),
+  colors = c("blue3", "lightskyblue1", "white", "indianred1", "red3"),
+  label = c("Strong La Niña", "Weak La Niña", "Neutral", "Weak El Niño", "Strong El Niño")
+)
+
+# ---- Define positions ----
+y_positions <- (data_breaks$start + data_breaks$end) / 2
+x_min <- min(enso$Date, na.rm = TRUE)
+x_max <- max(enso$Date, na.rm = TRUE)
+
+# ---- Define color bands ----
+data_breaks <- data.frame(
+  start = c(-2.8, -1.5, -0.5, 0.5, 1.5),
+  end   = c(-1.5, -0.5, 0.5, 1.5, 2.8),
+  colors = c("blue3", "lightskyblue1", "white", "indianred1", "red3"),
+  label = c("Strong La Niña", "Weak La Niña", "Neutral", "Weak El Niño", "Strong El Niño")
+)
+
+# ---- Define positions ----
+y_positions <- (data_breaks$start + data_breaks$end) / 2
+x_min <- min(enso$Date, na.rm = TRUE)
+x_max <- max(enso$Date, na.rm = TRUE)
+
+# ---- Base plot ----
+p <- ggplot() +
+  # ENSO phase color bands
+  geom_rect(
+    data = data_breaks,
+    aes(ymin = start, ymax = end,
+        xmin = x_min, xmax = x_max),
+    fill = data_breaks$colors, alpha = 0.5
+  ) +
+  # ONI line
+  geom_line(
+    data = enso,
+    aes(x = Date, y = ONI, group = 1),
+    linewidth = 1
+  ) +
+  # Black horizontal line at 0
+  geom_hline(yintercept = 0, color = "black") +
+  # Axes
+  scale_x_date(
+    limits = c(x_min, x_max),
+    date_breaks = "5 years",
+    labels = date_format("%Y"),
+    expand = c(0, 0)
+  ) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(
+    title = "ENSO Phases based on Sea Surface Temperature (SST)",
+    y = "Change in SST (°F)",
+    x = "Year"
+  ) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 0.65, size = 16),  # increased from 12 → 16
+    axis.text.y = element_text(size = 16),                            # increased from 12 → 16
+    axis.title.x = element_text(size = 18),                           # optional: larger axis titles
+    axis.title.y = element_text(size = 18),
+    plot.title  = element_text(size = 24, face = "bold"),             # optional: larger title
+    plot.margin = margin(10, 160, 10, 10)
+  ) +
+  coord_cartesian(clip = "off")
+
+# ---- Add labels outside the plot ----
+for (i in seq_along(data_breaks$label)) {
+  p <- p + annotation_custom(
+    grid::textGrob(
+      label = data_breaks$label[i],
+      gp = gpar(fontsize = 18, fontface = "bold"),
+      just = "left"
+    ),
+    xmin = x_max + 100,  # nudged ~50 days to right of plot
+    xmax = x_max + 100,
+    ymin = y_positions[i],
+    ymax = y_positions[i]
+  )
+}
+
+p
+
+# ---- Save plot as PNG ----
+ggsave(
+  filename = file.path(OUT_DIR,"ENSO_timeseries.png"),
+  plot = p,
+  width = 3902,   # in inches
+  height = 1929,   # in inches
+  units = "px",
+  bg = "white"     # ensures white background instead of transparent
+)
   
-  
-  
+########################
 ### process statewide rainfall maps into monthly values
 setwd("E:/PDKE/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
 
