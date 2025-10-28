@@ -112,11 +112,11 @@ MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 
 # default values for testing, please don't check in modified values
 email <- 'djford@hawaii.edu';
-NP_FILE <- 'F:/PDKE/git/PDKE/PDKESite/Shapefiles/SelectedPolygon/CP_CM_2025_08_22_12_51_00.shp';
-NM <- 'Central Maui Community Planning Area';
-NM_s <- 'Central Maui';
-ILE <- 'Maui';
-ILE_s <- 'MN';
+NP_FILE <- 'D:/PDKE/git/PDKE/PDKESite/Shapefiles/UserDefinedPolygon/Moaka Property_2025_07_08_14_20_29.shp';
+NM <- 'Moaka Property';
+NM_s <- 'Moaka';
+ILE <- 'Oahu';
+ILE_s <- 'OA';
 
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
@@ -243,7 +243,7 @@ debug_print(paste("1,NP_FILE", NP_FILE))
 debug_print(file.exists(NP_FILE))
 
 # this now gets passed in via command line or GUI, do not hard-code
-#NP_ALL <- readOGR("F:/PDKE/CCVD/sites/honouliuli_national_historic_site.shp") 
+#NP_ALL <- readOGR("D:/PDKE/CCVD/sites/honouliuli_national_historic_site.shp") 
 NP_ALL <- st_read(NP_FILE)
 
 # these all get passed in via command line or GUI, do not hard-code
@@ -561,7 +561,7 @@ D2_files = dir(
 ##########   Month Year Rainfall Maps (Frazier et al., 2016)
 debug_print("Month Year Rainfall Maps (Frazier et al., 2016)")
 
-# RF_Map_Path_A <- ("F:/PDKE/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
+# RF_Map_Path_A <- ("D:/PDKE/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
 RF_Map_Path_A_DIR <- paste0(BASE_DIR, "/CCVD/data/production/rainfall/legacy/month/statewide/data_map/")
 debug_print(paste("27,RF_Map_Path_A_DIR: ", RF_Map_Path_A_DIR))
 RF_Map_Path_A <- (RF_Map_Path_A_DIR)
@@ -573,7 +573,7 @@ RF_Map_Path_A <- (RF_Map_Path_A_DIR)
 # Matty maps 1990-NRT
 # Put in INput folder
 #For now Read this path in seperate as not in input folder
-#RF_Map_Path <- ("F:/PDKE/CCVD/NEW RF MAPS/statewide_rf_mm/rf_mm/")
+#RF_Map_Path <- ("D:/PDKE/CCVD/NEW RF MAPS/statewide_rf_mm/rf_mm/")
 RF_Map_Path_DIR <- paste0(BASE_DIR, "/CCVD/NEW_RF_MAPS/statewide_rf_mm/rf_mm/")
 RF_Map_Path <- (RF_Map_Path_DIR)
 debug_print(paste("28,RF_Map_Path: ", RF_Map_Path))
@@ -582,14 +582,14 @@ debug_print(paste("28,RF_Map_Path: ", RF_Map_Path))
 
 #Replace this with the ONI Dataset at some point
 MEI <- read.csv(paste0(INPUTS_FOLDER, "ONI_Season.csv"), sep = ",")
-MEI 
+ONI_raw <- read.csv(paste0(BASE_DIR, "/ONI/enso_oni_raw.csv"))
 
 ########## Month Year Air Temperature Maps
 # moved the definition of this to where it's actually used.
-#AT_Map_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/") 
+#AT_Map_Path_A <- ("D:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/") 
 
 ########## Monthly Climatology Air Temperature Maps
-#AT_CLIM_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/air_temp_climatology/")
+#AT_CLIM_Path_A <- ("D:/PDKE/CCVD/CCVD INPUTS/air_temp/air_temp_climatology/")
 AT_CLIM_Path_A <- paste0(INPUTS_FOLDER, "/air_temp/air_temp_climatology/")
 
 #################################################################################################################################
@@ -4018,10 +4018,10 @@ DrySM <- (DrySeasonRF / 6)
 DrySMV <- round(cellStats(DrySM, 'mean'), 1)
 
 # get min and max values for figure scale
-DryUPm   <- round(cellStats(DrySM, 'max'), 1)
-DryLOm   <- round(cellStats(DrySM, 'min'), 1)
-WetUPm   <- round(cellStats(WetSM, 'max'), 1)
-WetLOm  <- round(cellStats(WetSM, 'min'), 1)
+DryUPm   <- ceiling(cellStats(DrySM, 'max')* 10) / 10
+DryLOm   <- floor(cellStats(DrySM, 'min')* 10) / 10
+WetUPm   <- ceiling(cellStats(WetSM, 'max')* 10) / 10
+WetLOm  <- floor(cellStats(WetSM, 'min')* 10) / 10
 
 DryUPMOm   <- round(DryUPm / 6, 1)
 DryLOMOm   <- round(DryLOm / 6, 1)
@@ -5162,7 +5162,7 @@ png(
 )
 
 plot(MRF_A3~MRF_N3,ylim=c(0,Mx),xlim=c(0,Mx),main=TITLE,
-  ylab = "Frazier et al. (2016)",xlab="Lucas et al. (In Review)")
+  ylab = "Frazier et al. (2016)",xlab="Lucas et al. (2022)")
 abline(0,1)
 legend("topleft",c(paste("R2 = ",LM1R),paste("MBE = ",MBE),paste("MAE = ",MAE)))
 
@@ -6621,6 +6621,107 @@ dev.off()
 
 ##########  MEI
 
+# load ENSO phase dataset (using same ONI dataset from Guam analysis)
+enso<-ONI_raw
+head(enso)
+
+# format Date column
+enso$Date <- as.Date(enso$Date)
+
+### plot ENSO phases over time
+
+# ---- Define color bands ----
+data_breaks <- data.frame(
+  start = c(-2.8, -1.5, -0.5, 0.5, 1.5),
+  end   = c(-1.5, -0.5, 0.5, 1.5, 2.8),
+  colors = c("blue3", "lightskyblue1", "white", "indianred1", "red3"),
+  label = c("Strong La Niña", "Weak La Niña", "Neutral", "Weak El Niño", "Strong El Niño")
+)
+
+# ---- Define positions ----
+y_positions <- (data_breaks$start + data_breaks$end) / 2
+x_min <- min(enso$Date, na.rm = TRUE)
+x_max <- max(enso$Date, na.rm = TRUE)
+
+# ---- Base plot ----
+p <- ggplot() +
+  # ENSO phase color bands
+  geom_rect(
+    data = data_breaks,
+    aes(ymin = start, ymax = end,
+        xmin = x_min, xmax = x_max),
+    fill = data_breaks$colors, alpha = 0.5
+  ) +
+  # ONI line
+  geom_line(
+    data = enso,
+    aes(x = Date, y = ONI, group = 1),
+    linewidth = 1
+  ) +
+  # Black horizontal line at 0
+  geom_hline(yintercept = 0, color = "black") +
+  # Axes
+  scale_x_date(
+    limits = c(x_min, x_max),
+    date_breaks = "5 years",
+    labels = date_format("%Y"),
+    expand = c(0, 0)
+  ) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(
+    title = "ENSO Phases based on Sea Surface Temperature (SST)",
+    y = "Change in SST (°F)",
+    x = "Year"
+  ) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 0.65, size = 16),  # increased from 12 → 16
+    axis.text.y = element_text(size = 16),                            # increased from 12 → 16
+    axis.title.x = element_text(size = 18),                           # optional: larger axis titles
+    axis.title.y = element_text(size = 18),
+    plot.title  = element_text(size = 24, face = "bold"),             # optional: larger title
+    plot.margin = margin(10, 160, 10, 10)
+  ) +
+  coord_cartesian(clip = "off")
+
+# ---- Add labels outside the plot ----
+for (i in seq_along(data_breaks$label)) {
+  p <- p + annotation_custom(
+    grid::textGrob(
+      label = data_breaks$label[i],
+      gp = gpar(fontsize = 18, fontface = "bold"),
+      just = "left"
+    ),
+    xmin = x_max + 100,  # nudged ~50 days to right of plot
+    xmax = x_max + 100,
+    ymin = y_positions[i],
+    ymax = y_positions[i]
+  )
+}
+
+p
+
+# ---- Save plot as PNG ----
+
+# Define the output dimensions
+width_px <- 3902
+height_px <- 1929
+
+png(
+  filename = paste0(PATH_WITH_PROJECT_NAME, "ENSO_timeseries.png"),
+  width = width_px,
+  height = height_px,
+  res = dpi,
+  units = "px",
+  bg = "white"
+)
+
+# Print or draw your ggplot here
+print(p)
+
+# Close device
+dev.off()
+
 ##########   UNIT
 debug_print("98, MEI")
 
@@ -7113,7 +7214,7 @@ write.csv(cc, paste0(PATH_WITH_PROJECT_NAME, "MEI_S.csv"))
 debug_print("102, Air temperature graph")
 
 ########## Month Year Air Temperature Maps
-#AT_Map_Path_A <- ("F:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/")
+#AT_Map_Path_A <- ("D:/PDKE/CCVD/CCVD INPUTS/air_temp/data_map_newer/")
 AT_Map_Path_A <- paste0(INPUTS_FOLDER, "/air_temp/data_map_newer/")
 maps <- AT_Map_Path_A
 
@@ -7308,7 +7409,7 @@ ggplot(dat2, aes(x=date,y=mean.x)) +
 dev.off()
 
 ######## Air Temp Anomalies ########
-#setwd("F:/PDKE/CCVD/MINI_Phase2/")
+#setwd("D:/PDKE/CCVD/MINI_Phase2/")
 debug_print("105, Air Temp Anomalies")
 
 setwd(WORKING_DIR)

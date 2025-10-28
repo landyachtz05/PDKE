@@ -320,6 +320,7 @@ FTXTT3 <- fp_text(italic = TRUE, color = "darkred", font.size = 40)
 FTXTT4 <- fp_text(color = "black", font.size = 38)
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20)
+fp_Tx16 <- fp_text(italic = TRUE, color = "black", font.size = 16)
 
 #May or may not be used
 fp_TxB <- fp_text(italic = TRUE, color = "black", font.size = 20) 
@@ -399,9 +400,12 @@ CCVD<- paste0("In describing any area of management in Hawaii, it is important t
   "the natural flow of resources throughout the landscape. 
 
 This portfolio provides a brief description of ",SNameF," in context of traditional Hawaiian landscapes, as well as contemporary knowledge on ",
-  "elevation and current landcover.")
+  "elevation and current landcover.
+  
+Please note that this portfolio uses Hawaiian diacritical marks whenever possible; however due to source dataset limitations some 
+diacriticals may be omitted.")
 
-fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 19)
+fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17)
 fp_CCVD <- fpar(ftext(CCVD, fp_Tx))
 FIG_1 <- block_list(fpar(ftext(paste0("Credit: Matt Foster"), fp_Fig2)))
 
@@ -626,16 +630,26 @@ if(AQc > 45) {AQT_end<-paste0("Record stops at 45 aquifers. Contact PDKE for
 # AQ_T
 
 #Body text
-AQ_Tt<- paste0("Aquifers in Hawai‘i are critical sources of fresh water for the islands, supplying the majority of drinking water and irrigation needs. 
+# AQ_Tt<- paste0("Aquifers in Hawai‘i are critical sources of fresh water for the islands, supplying the majority of drinking water and irrigation needs. 
+# 
+# There are ",AQc," aquifers in ", SNameF, ". See Annex III for a complete list of aquifers and their characteristics.
+# 
+# In general, basal aquifers are more susceptible to saltwater intrusion than high level aquifers.")
 
-There are ",AQc," aquifers in ", SNameF, ". See Annex III for a complete list of aquifers and their characteristics.
+AQ_Tt<- paste0("There are ",AQc," aquifers in ", SNameF, ".
 
-In general, basal aquifers are more susceptible to saltwater intrusion than high level aquifers.")
+Aquifers are underground layers of porous rock or sediment that store water and can be tapped through wells. In Hawai‘i, they serve as vital freshwater reservoirs, providing most of the islands’ drinking water and irrigation supply.
+
+Basal aquifers occur at low elevations near the coast and are in direct contact with the ocean, making them more vulnerable to saltwater intrusion. 
+
+High-level aquifers are found at higher elevations, often perched above impermeable layers, and are largely protected from seawater but can respond more quickly to drought conditions.")
+
+
 AQ_Tt
 
 
 M_AQ <- block_list(
-  fpar(ftext(AQ_Tt, fp_Tx)))
+  fpar(ftext(AQ_Tt, fp_Tx16)))
 M_AQ
 
 # map
@@ -659,8 +673,9 @@ image_write(AQmapimg, path = tmp_file)
 
 # Figure caption
 FIG_5.b <- block_list(
-  fpar(ftext(paste0("Figure 5. Department of Health aquifer mapping labeled by DOH Aquifer number. ",
+  fpar(ftext(paste0("Figure 5. Department of Health (DOH) aquifer mapping labeled by aquifer number. ",
     "Basal aquifers are blue, and high level aquifers are gray. ",SNameF," outlined in red."), fp_Fig)))
+
 FIG_5.b
 
 # Table caption
@@ -835,7 +850,7 @@ T[6, ]$X2 <- CLIM[3, 10]
 T[6, ]$X3 <- CLIM[2, 10]
 T[7, ]$X2 <- CLIM[3, 12]
 T[7, ]$X3 <- CLIM[2, 12]
-colnames(T) <- c("Climate Variable", "Min", "Max")
+colnames(T) <- c("Climate Variable", "Minimum", "Maximum")
 
 # format table
 Tt <- flextable(T)
@@ -903,10 +918,10 @@ CLIMO_RF <- paste0("Average monthly rainfall patterns vary over the course of th
 fp_CLIMO_RF <- fpar(ftext(CLIMO_RF, fp_Tx))
 
 FIG_6a <- block_list(
-  fpar(ftext(paste0("Figure 9. Mean monthly rainfall at ", SNameF, "."), fp_Fig)))
+  fpar(ftext(paste0("Figure 9. Average monthly rainfall at ", SNameF, "."), fp_Fig)))
 
 FIG_7a <- block_list(
-  fpar(ftext(paste0("Figure 10. Monthly rainfall maps for the wettest (top) and driest (bottom) months."), fp_Fig)))
+  fpar(ftext(paste0("Figure 10. Average monthly rainfall maps for the wettest (top) and driest (bottom) months."), fp_Fig)))
 
 #Monthly rainfall barchart
 RFBfile <- paste0(PROJECT_FILE_BASE, "Climograph_RF.png")
@@ -959,10 +974,10 @@ CLIMO_TA <- paste0("Average monthly air temperature patterns vary over the cours
 fp_CLIMO_TA <- fpar(ftext(CLIMO_TA, fp_Tx))
 
 FIG_8a <- block_list(
-  fpar(ftext(paste0("Figure 11. Mean monthly air temperature at ",SNameF," with monthly rainfall in the background."), fp_Fig)))
+  fpar(ftext(paste0("Figure 11. Average monthly air temperature at ",SNameF," with monthly rainfall in the background."), fp_Fig)))
 
 FIG_9a <- block_list(
-  fpar(ftext(paste0("Figure 12. Monthly air temperature maps for the coldest (top) and hottest (bottom) months."), fp_Fig)))
+  fpar(ftext(paste0("Figure 12. Average monthly air temperature maps for the coldest (top) and hottest (bottom) months."), fp_Fig)))
 
 #Monthly temp line chart
 TALfile <- paste0(PROJECT_FILE_BASE, "Climograph_AT.png")
@@ -991,11 +1006,11 @@ debug_print(paste0("RFFfile: ", RFFfile))
 RFFimg <- external_img(src = RFFfile, height = 3, width = 3)
 
 FIG_5 <- block_list(
-  fpar(ftext(paste0("Figure 13. Mean monthly rainfall  ",SNameF,
+  fpar(ftext(paste0("Figure 13. Average monthly rainfall  ",SNameF,
     " with area average shown in heading of each plot."), fp_Fig)))
 
 FIG_6 <- block_list(
-  fpar(ftext(paste0("Figure 14. Mean monthly temperature at ",SNameF,
+  fpar(ftext(paste0("Figure 14. Average monthly temperature at ",SNameF,
     " with area average shown in heading of each plot."), fp_Fig)))
 
 ###############   Slide 9 Seasonal Rainfall
@@ -1044,7 +1059,7 @@ D_RF_P <- P[1, 2]
 W_RF_P <- P[1, 1]
 RFUnit3
 
-SEA <- paste0("Hawaii has two distinct 6-month seasons of rainfall: hooilo (Wet season: November to April) and kau (Dry season: May to October).",
+SEA <- paste0("Hawaii has two distinct 6-month seasons of rainfall: Ho'oilo (Wet season: November to April) and Kau (Dry season: May to October).",
   " Average Wet season monthly rainfall across ",SNameF," is ",WetM," ",RFUnit2," and Dry season is ",DryM," ",RFUnit2,
   ". These monthly values are in the ",W_RF_P," and ",D_RF_P," percentiles for rainfall across the whole state, respectively.
               
@@ -1110,17 +1125,21 @@ InterAn <-  block_list(
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17)
 # fp_InterAn <- fpar(ftext(InterAn, fp_Tx))
-
-MEIfile <- paste0(I_FOLDER, "ENSO_timeseries.png")
+PROJECT_FILE_BASE
+MEIfile <- paste0(PROJECT_FILE_BASE, "ENSO_timeseries.png")
 MEIimg <- external_img(src = MEIfile, height = 1, width = 2)
 
 ENSOfile <- paste0(I_FOLDER, "ENSO_New.png")
 ENSO2img <- external_img(src = ENSOfile, height = 1.2, width = 1.2)
 
-FIG_10.1 <- block_list(
-  fpar(ftext(paste0("Figure 16. Timeseries of changes in sea surface temperature (SST) and associated ENSO phase from 1950 - 2022. ",SNameF,"."), fp_Fig)))
+# get last year
+rf <- read.csv(paste0(PROJECT_FILE_BASE, "Annual_RF_in.csv"), sep = ",")
+yr <- rf[nrow(rf), ]$Date
 
-ft4 <- block_list(fpar(ftext(paste0("https://origin.cpc.ncep.noaa.gov/"), fp_ft)))
+FIG_10.1 <- block_list(
+  fpar(ftext(paste0("Figure 16. Timeseries of changes in sea surface temperature (SST) and associated ENSO phase from 1950 - ",yr,"."), fp_Fig)))
+
+ft4 <- block_list(fpar(ftext(paste0("https://psl.noaa.gov/data/timeseries/month/"), fp_ft)))
 
 ################ Slide 13 Seasonal Rainfall and ENSO
 debug_print("Slide 13 Seasonal Rainfall and ENSO")
@@ -1130,10 +1149,6 @@ p17 <- p
 
 MEIRF <- read.csv(paste0(PROJECT_FILE_BASE, "MEI_S.csv"), sep = ",")
 MEIRF
-
-# get last year
-rf <- read.csv(paste0(PROJECT_FILE_BASE, "Annual_RF_in.csv"), sep = ",")
-yr <- rf[nrow(rf), ]$Date
 
 EN_TIT<- block_list(
   fpar(ftext("Seasonal Rainfall and ENSO", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -1258,7 +1273,7 @@ ATd_FILE <- paste0(PROJECT_FILE_BASE, "daily_airtemp.csv")
 debug_print(paste("ATd_FILE: ", ATd_FILE))
 ATd <- read.csv(ATd_FILE, sep = ",")
 head(ATd)
-mt <- max(ATd$max.x, na.rm = T)
+mt <- max(ATd$max.x, na.rm = TRUE)
 mt2 <- round(mt, 1)
 
 hot <- ATd[which(ATd$max.x == mt), ]
@@ -1303,6 +1318,7 @@ FIG_10_11 <- block_list(
     "p-value is less than 0.05."), fp_Fig2)))
 
 ft5 <- block_list(fpar(ftext(paste0("https://www.hawaii.edu/climate-data-portal/"), fp_ft)))
+ft5a <- block_list(fpar(ftext(paste0("Kodama et al. 2024"), fp_ft)))
 
 ################ Slide 15 PART 4 Drought and Fire Occurrence ###############
 debug_print("Slide 15 PART 4 Drought and Fire Occurrence")
@@ -1440,7 +1456,7 @@ DHistfile <- paste0(PROJECT_FILE_BASE, "Drought_History.png")
 DHistimg <- external_img(src = DHistfile, height = 2, width = 4)
 
 FIG_13 <- block_list(
-  fpar(ftext(paste0("Figure 21. SPI time series (1920-",yr,") (reversed axis) at ", SNameF ,
+  fpar(ftext(paste0("Figure 21. SPI-12 time series (1920-",yr,") (reversed axis) at ", SNameF ,
     ". Dashed lines show, moderate (yellow), severe (red), and extreme (dark red), drought thresholds."), fp_Fig)))
 
 
@@ -1468,10 +1484,14 @@ FIG_14 <- block_list(
   fpar(ftext(paste0("Figure 22. SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
 FIG_15 <- block_list(
   fpar(ftext(paste0("Figure 23. SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+
+fp_Txa15 <- fp_text(italic = TRUE, color = "black", font.size = 15)
+
 SPI3v12<- block_list(
-  fpar(ftext(paste0("SPI-3 provides a comparison of rainfall over a specific 3-month period and reflects short-term ", 
-    "conditions. SPI-12 provides 12-month comparisions and reflects long-term conditions. It is important ",
-    "to consider both timescales for planning."), fp_Txa)))
+  fpar(ftext(paste0("SPI-3 reflects short-term conditions (3-month intervals). ", 
+    "SPI-12 reflects long-term conditions (12-month intervals). It is important ",
+    "to consider both timescales for understanding drought conditions and impacts. ",
+    "See \"Five Types of Drought\" slide for more information."), fp_Txa15)))
 
 # bring in monthly rainfall dataset to get dates
 MRF <- read.csv(paste0(PROJECT_FILE_BASE, "Monthly Rainfall_in.csv"), sep = ",")
@@ -1755,22 +1775,22 @@ ifelse(RFA_Thresh100_D8.5 >= 0, c <- 1, c <- 2)
 ifelse(RFA_Thresh100_S8.5 >= 0, d <- 1, d <- 2)
 
 if(a==b && c==d)
-{RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{RF2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
   " inches (RCP 4.5), or ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a!=b && c==d)
-{RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{RF2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", the models do not agree on the direction of change for RCP 4.5. Annual ",
   "rainfall is projected to ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a==b && c!=d)
-{RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{RF2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
   " inches (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
 if(a!=b && c!=d)
-{RF2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{RF2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
 AnnualR
@@ -1908,22 +1928,22 @@ ifelse(TAA_Thresh100_S8.5 >= 0, d <- 1, d <- 2)
 
 
 if(a==b && c==d)
-{TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{TA2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in air temperature under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", air temperature is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
   "°F (RCP 4.5), or ",TA100_8.5t," by ",abs(TA100_8.5c),"°F (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a!=b && c==d)
-{TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{TA2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", the models do not agree on the direction of change for RCP 4.5. Annual ",
   "rainfall is projected to ",TA100_8.5t," by ",abs(TA100_8.5c),"°F (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a==b && c!=d)
-{TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{TA2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", annual rainfall is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
   "°F (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
 if(a!=b && c!=d)
-{TA2100t<-ftext(paste0("These Dynamical and Statistical Downscaling maps show the projected ",
+{TA2100t<-ftext(paste0("These downscaling maps show the projected ",
   "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
   ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
 TA2100t
@@ -1964,7 +1984,7 @@ DecD <- (CNTDRT/10)
 
 Summary<- paste0(NameF," (",SNameF,") is located on the island of ", ISL, " at mean elevation of ", El_Mean, ELUnit," (",El_Min, " to ", El_Max,ELUnit,"). ",  
   "Rainfall varies over the course of the year with a maximum of ",RFx, RFUnit3," occurring in ", MONLIST[RFxm], " and a minimum of ",RFn, RFUnit3,
-  " occurring in ", MONLIST[RFnm],". On average, wet season months (Nov-Apr) receive ",SeaD,RFUnit," more rainfall than dry season months (May-Oct). ",
+  " occurring in ", MONLIST[RFnm],". On average, Ho'oilo or wet season months (Nov-Apr) receive ",SeaD,RFUnit," more rainfall than Kau or dry season months (May-Oct). ",
   "Seasonal rainfall can vary within the unit as well, with dry season rainfall ranging from ",D_RF_R, RFUnit3," and wet season rainfall ",
   "ranging from ",W_RF_R, RFUnit3," across the ",EL_Dif,ELUnit, " elevation gradient. ",
   "Rainfall can also vary considerably from year-to-year with the driest years occurring during a Strong El Niño event, when on ",
@@ -1978,7 +1998,7 @@ Summary<- paste0(NameF," (",SNameF,") is located on the island of ", ISL, " at m
   " to ", TAA_Thresh40_8.5,TUnit," by mid century (2040-2070) ",
   "and an increase of ", TAA_100m,TUnit," to ",  TAA_100ma, TUnit," by the end of the century (2100). ")
 
-fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17) 
+fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 16) 
 fp_Summary <- fpar(ftext(Summary, fp_Tx))
 
 
@@ -2037,7 +2057,7 @@ S26_TIT <- block_list(
   fpar(ftext("Acknowledgements", FTXTT), fp_p = fp_par(text.align = "center")))
 
 
-Ack <- paste0( "Ryan Longman, Abby Frazier, Christian Giardina, Derek Ford, Keri Kodama, Alyssa Anderson (PDKE), Mari-Vaughn Johnson, Heather Kerkering, Patrick Grady (PI-CASC), Elliott Parsons (PI-RISCC), ",
+Ack <- paste0( "Ryan Longman, Abby Frazier, Christian Giardina, Derek Ford, Keri Kodama (PDKE), Mari-Vaughn Johnson, Heather Kerkering, Patrick Grady (PI-CASC), Elliott Parsons (PI-RISCC), ",
   "Clay Trauernicht, Melissa Kunz, Cherryle Heu (NREM, UH Manoa), Amanda Sheffield, Britt Parker, John Marra (NOAA), ",
   "Sean Cleveland, Jared McLean (ITS, UH Manoa), Katie Kamelamela (Arizona State University), Thomas Giambelluca (WRRC, UH Manoa), ",
   "Jim Poterma (SOEST, UH Manoa), Carolyn Auweloa (NRCS), Nicole Galase (Hawaii Cattlemen's Council), Mark Thorne (CTAHR, UH Manoa)")
@@ -2052,13 +2072,13 @@ fp_CITA3 <- fp_text(color = "red", font.size = 14)
 
 CITA <- block_list(
   fpar(ftext       ("Suggested Citation", fp_CITA1)),
-  fpar(ftext(paste0("Longman, R.J., Ford, D.J., Anderson, A., Frazier, A.G, Giardina, C.P (2023). ",
+  fpar(ftext(paste0("Longman, R.J., Ford, D.J., Anderson, A., Frazier, A.G, Giardina, C.P (",yr,"). ",
     "Climate Change, Climate Variability and Drought Portfolio ", NameF,
     " Pacific Drought knowledge Exchange CCVD Series Version ",ver,"."), fp_CITA2)))
 
 
 Draft <- block_list(
-  fpar(ftext       ("For the most up-to-date version of this portfolio contact Derek Ford: fordd@eastwestcenter.org for more information.", fp_CITA3)))
+  fpar(ftext       ("For the most up-to-date version of this portfolio contact Derek Ford: djford@hawaii.edu for more information.", fp_CITA3)))
 
 ############## Slide 30 Works Cited ###########
 debug_print("Slide 30 Works Cited")
@@ -2197,8 +2217,8 @@ mypowerpoint <- read_pptx() %>%
   #                   left = 6.9, top = 6.2, width = 1, height = 1)) %>%
   ph_with(value = PDKE_L, location = ph_location(label = "my_name",
     left = 0, top = 0.3, width = 10, height = 2))%>%
-  ph_with(value = EWClimg, location = ph_location(label = "my_name",
-    left = 6.6, top = 6.6, width = 2.9, height = 0.6))%>%
+  # ph_with(value = EWClimg, location = ph_location(label = "my_name",
+  #   left = 6.6, top = 6.6, width = 2.9, height = 0.6))%>%
   
   
   #Slide 2
@@ -2281,12 +2301,14 @@ mypowerpoint <- read_pptx() %>%
   add_slide("Two Content", "Office Theme") %>%
   ph_with(S6.2_TIT, ph_location_type("title")) %>%
   ph_with(value = p6, location = ph_location_type(type = "sldNum")) %>%
-  ph_with(value = M_AQ, location = ph_location(label = "my_name", left = 0.7, top = 1.2, width = 4.5, height = 5)) %>%
+  ph_with(value = M_AQ, location = ph_location(label = "my_name", left = 0.7, top = 1.8, width = 4.5, height = 5)) %>%
   
   # Use ph_with to insert the image from the file path
   ph_with(value = external_img(tmp_file), location = ph_location(label = "my_name", left = 5.4, top = 1.7, width = desired_width, height = desired_height)) %>%
   
   ph_with(value = FIG_5.b, location = ph_location(label = "my_name", left = 6, top = 5.7, width = 3.2, height = 1.3)) %>%
+  ph_with(my_pres, value = "See Annex III", location = ph_location_type(type = "dt"))%>%
+  
   
   
   #Slide 7.2 Streams
@@ -2492,8 +2514,10 @@ mypowerpoint <- mypowerpoint %>%
   ph_with(value = FIG_10_11, location = ph_location(label = "my_name", 
     left = 4.3, top = 6, width = 5, height = 1.4))%>%
   ph_with(value = p19, location = ph_location_type(type = "sldNum"))%>%
-  ph_with(value = ft5, location = ph_location(label = "my_name",
+  ph_with(value = ft5a, location = ph_location(label = "my_name",
     left = 0.5, top = 5.73, width = 4, height = 3)) %>%
+  ph_with(value = ft5, location = ph_location(label = "my_name",
+    left = 5.7, top = 5.73, width = 4, height = 3)) %>%
   
   #Slide 15 #Part 3
   add_slide("Title and Content","Office Theme") %>%
@@ -2557,13 +2581,13 @@ mypowerpoint <- mypowerpoint %>%
   ph_with(value = FIG_15, location = ph_location(label = "my_name",
     left = 5.2, top = 4.1, width = 4.2, height = 0.5)) %>%
   ph_with(value = SPI3v12, location = ph_location(label = "my_name",
-    left = 0.2, top = 3.9, width = 9.68, height = 2.5)) %>%
+    left = 0.4, top = 3.9, width = 9, height = 2.5)) %>%
   ph_with(value = SPI3v12.1, location = ph_location(label = "my_name",
-    left = 0.4, top = 4.6, width = 9.68, height = 2.5)) %>%
+    left = 0.4, top = 4.5, width = 9, height = 2.5)) %>%
   ph_with(value = SPI3v12.2, location = ph_location(label = "my_name",
-    left = 0.4, top = 5.1, width = 8.7, height = 2.5)) %>%
+    left = 0.4, top = 5, width = 9, height = 2.5)) %>%
   ph_with(value = SPI3v12.3, location = ph_location(label = "my_name",
-    left = 0.4, top = 5.6, width = 8.7, height = 2.5)) %>%
+    left = 0.4, top = 5.7, width = 9, height = 2.5)) %>%
   
   #Slide 20
   add_slide("Two Content","Office Theme") %>%
