@@ -310,7 +310,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_polygon_name, {
     showModal(modalDialog(
       title = "Polygon Name Information",
-      "The full name of your area of interest, ex: “Waikiki Watershed”. This will appear in the title of the CCVD Portfolio. Fill this out after selecting you area of interest on the map.",
+      "The full name of your area of interest, ex: “Waikiki Watershed”. This will appear in the title of the CCVD Portfolio. Fill this out after selecting you area of interest on the map. Do not use diacriticals or special characters.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -320,7 +320,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_polygon_short_name, {
     showModal(modalDialog(
       title = "Polygon Short Name Information",
-      "The short name of your area of interest, ex: “Waikiki” instead of “Waikiki Watershed”. This will appear in the text of the CCVD Portfolio. Fill this out after selecting your area of interest on the map.",
+      "The short name of your area of interest, ex: “Waikiki” instead of “Waikiki Watershed”. This will appear in the text of the CCVD Portfolio. Fill this out after selecting your area of interest on the map. Do not use diacriticals or special characters.",
       easyClose = TRUE,
       footer = NULL
     ))
