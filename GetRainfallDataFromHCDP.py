@@ -59,7 +59,7 @@ def get_month_from_filename(filename):
   #print("File month:", file_month)  
   return file_month
 
-# downlad either temperature or rainfall data to the given directory
+# download either temperature or rainfall data to the given directory
 # directory = the location of the existing rainfall or temperature data.
 # filename = the name of the last file in the given directory
 # is_rain = boolean, true if supposed to get rainfall data, false if getting temperature data.
@@ -99,13 +99,16 @@ def download_data(directory, filename, is_rain):
         # # Here you can add code to download the file using the URL
         response = requests.get(url)
         if response.status_code == 200:
+            download_dir = f"{directory}{year}"
+            if not os.path.exists(download_dir):
+                os.makedirs(download_dir)
             # Write the downloaded content to a file in the specified directory
             if (is_rain):
-              with open(os.path.join(directory, f"rainfall_new_month_statewide_data_map_{year}_{month:02d}.tif"), "wb") as f:
+              with open(os.path.join(download_dir, f"rainfall_new_month_statewide_data_map_{year}_{month:02d}.tif"), "wb") as f:
                   f.write(response.content)
               print("File downloaded successfully")
             else: 
-              with open(os.path.join(directory, f"temperature_mean_month_statewide_data_map_{year}_{month:02d}.tif"), "wb") as f:
+              with open(os.path.join(download_dir, f"temperature_mean_month_statewide_data_map_{year}_{month:02d}.tif"), "wb") as f:
                   f.write(response.content)
         else:
             print("Failed to download file")
@@ -145,6 +148,6 @@ last_temp_file = list_files_sorted(temp_dir)
 # download any missing rainfall files
 download_data(rainfall_directory_path, last_rain_file, True)
 # download any missing temperature files
-download_data(temp_dir, last_temp_file, False)
+download_data(temperature_directory_path, last_temp_file, False)
 
 
