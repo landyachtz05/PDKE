@@ -47,34 +47,44 @@ import os
 import io
 
 def fetch_oni_data():
-    """Fetch the latest ONI data (monthly) from NOAA PSL CSV."""
-    url = "https://psl.noaa.gov/data/correlation/oni.csv"
+    """Fetch the latest ONI data (monthly) from NOAA CPC ASCII text file."""
+    url = "https://www.cpc.ncep.noaa.gov/data/indices/Rnino34.ascii.txt"
     
     print("Fetching URL:", url)
     response = requests.get(url)
     response.raise_for_status()
 
-    # Read CSV directly
-    df = pd.read_csv(io.StringIO(response.text))
-    print(f"Loaded {len(df)} rows from the new ONI CSV")
+    # Read the text file using whitespace as the delimiter
+    df = pd.read_csv(io.StringIO(response.text), sep=r'\s+')
+    print(f"Loaded {len(df)} rows from the ASCII text file")
 
-    # Clean up column names
+    # Clean up column names just in case of trailing spaces
     df.columns = [col.strip() for col in df.columns]
     print("Columns found:", df.columns.tolist())
 
-    # Identify the ONI column automatically (the one that contains 'ONI')
-    oni_col = next((col for col in df.columns if "ONI" in col), None)
-    if not oni_col:
-        raise ValueError("Could not find an ONI column in the CSV.")
-    
-    # Rename for simplicity
-    df.rename(columns={oni_col: "ONI"}, inplace=True)
+    # Ensure required columns are present
+    required_cols = ["YR", "MTH", "ANOM"]
+    for col in required_cols:
+        if col not in df.columns:
+            raise ValueError(f"Could not find the expected '{col}' column in the text file.")
 
-    # Convert Date to datetime
-    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+    # Create the 'Date' column by combining YR and MTH, adding '01' for the day
+    df["Date"] = pd.to_datetime(
+        df["YR"].astype(str) + "-" + df["MTH"].astype(str).str.zfill(2) + "-01", 
+        errors="coerce"
+    )
 
-    # Replace missing values (-9999) with NaN
-    df["ONI"].replace(-9999, pd.NA, inplace=True)
+    # Rename ANOM to ONI
+    df.rename(columns={"ANOM": "ONI"}, inplace=True)
+
+    # Keep only the requested columns
+    df = df[["Date", "ONI"]]
+
+    # Drop any rows where Date failed to parse (e.g., text footers in NOAA files)
+    df.dropna(subset=["Date"], inplace=True)
+
+    # Replace missing values (-9999 or -99.99) with NaN
+    df["ONI"] = df["ONI"].replace([-9999, -99.99], pd.NA)
 
     return df
 
