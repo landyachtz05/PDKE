@@ -2969,7 +2969,7 @@ json_data <- fromJSON(paste0(BASE_DIR,"/credentials.json"))
 bearer_value <- paste0("Bearer ", json_data$bearer)
 
 response <- POST(
-  url = "https://api.hcdp.ikewai.org/notify",
+  url = "https://api.hcdp.ikewai.org/notify/emails",
   body = req_json,
   encode = "json",
   add_headers(
