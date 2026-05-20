@@ -112,11 +112,11 @@ MYSCRIPT_PATH = paste0(BASE_DIR, "/CCVD_portfolio_ppt.R")
 
 # default values for testing, please don't check in modified values
 email <- 'djford@hawaii.edu';
-NP_FILE <- 'D:/PDKE/git/PDKE/PDKESite/Shapefiles/UserDefinedPolygon/Moaka Property_2025_07_08_14_20_29.shp';
-NM <- 'Moaka Property';
-NM_s <- 'Moaka';
-ILE <- 'Oahu';
-ILE_s <- 'OA';
+NP_FILE <- 'F:/PDKE/git/PDKE/PDKESite/Shapefiles/UserDefinedPolygon/Hanalei_NWR_2026_05_19_12_50_00.shp';
+NM <- 'Hanalei NWR';
+NM_s <- 'Hanalei';
+ILE <- 'Kauai';
+ILE_s <- 'KA';
 
 # Get the command-line arguments passed from the main script
 args <- commandArgs(trailingOnly = TRUE)
@@ -403,41 +403,9 @@ Mean_RF_Data_dir <- paste0(INPUTS_FOLDER, "Mean_RF_Data/StateMaps/")
 MeanRF_ALL = dir(
   Mean_RF_Data_dir,
   pattern = "*x.adf",
-  recursive = T,
-  full.names = T
+  recursive = TRUE,
+  full.name = TRUE
 )
-
-#
-# ## Find state-wide mean monthly rainfall stats (min, mean, max, percentiles)
-# # loop through month maps and calculate stats, also make average monthly rainfall map
-# n<-1
-# fq<-data.frame(quantile(c(0:0)))
-#
-# sm<-stack()
-#
-# for (i in MeanRF_ALL[1:12]) {
-#   m<-raster(i)
-#
-#   # convert mm to inches
-#   if(RFUnit == " in") {m  <- m  * 0.0393701}
-#
-#   # calculate quantiles and put in dataframe
-#   mq<-data.frame(quantile(m))
-#   colnames(mq)<-n
-#   fq<-cbind(fq,mq)
-#   n<-n+1
-#
-#   # add raster to stack
-#   sm<-stack(sm, m)
-# }
-#
-# sm
-#
-# rm(mean)
-#
-# fq<-round(fq[2:ncol(fq)], 2)
-# fq
-# write.csv(fq, paste0(INPUTS_FOLDER,"Mean_RF_Data/stateRFM_quantiles_input.csv"))
 
 # TODO: Move this stuff to where it's actually getting used (around line 5816)
 # import static data table of statewide monthly rainfall quantiles
@@ -452,7 +420,7 @@ stateRF <- rowMeans(fq[2:ncol(fq)])
 # stateRFM
 
 # # make dataframe from average monthly rainfall map
-# stateRFMd<-as.data.frame(stateRFM, na.rm=T)
+# stateRFMd<-as.data.frame(stateRFM, na.rm= TRUE)
 # stateRFMd<-data.frame(stateRFMd[1])
 # write.csv(stateRFMd, "stateRFMd_input.csv")
 
@@ -470,16 +438,6 @@ FIRE_Shape_File <- paste0(INPUTS_FOLDER, "StateFire_1999/fires_1999_2022/fires_1
 debug_print(paste("17,FIRE_Shape_File", FIRE_Shape_File))
 FIRE_Shape <- st_read(FIRE_Shape_File)
 FIRE_Shape_T <- st_transform(FIRE_Shape, st_crs(EXAMP))
-# Fire_Mask <- mask(x = FIRE_Shape_T, mask = UNIT_X[[u]])
-# Fire_Crop <- crop(x = FIRE_Shape_T, y = extent(UNIT_X[[u]]))
-
-# #Fire risk categories 2023 (From Clay)
-# FRISK <- raster(paste0(INPUTS_FOLDER,"FireRisk/Avg_Landscape_Fire_Risk_Hawaii_2023/Avg_Landscape_Fire_Risk_Hawaii_fire_risk_categories_2023.tif"))
-# crs(FRISK) <- "+proj=longlat +datum=WGS84 +no_defs"
-#
-# FRISK_Sh
-# FRISK_Shape_T <- spTransform(FRISK_Shape, crs(EXAMP))
-# crs(FRISK_Shape_T) <- CRS(proj4string(EXAMP))
 
 ##########   Forest Roads
 debug_print(paste0("22.2, INPUTS_FOLDER: ", INPUTS_FOLDER))
@@ -496,11 +454,11 @@ plot(F_Roads[1])
 ELEV2 = dir(
   paste0(INPUTS_FOLDER, "ned_dem/"),
   pattern = "*x.adf",
-  recursive = T,
-  full.names = T
+  recursive = TRUE,
+  full.name = TRUE
 )
 # ### if doing portfolio for whole island (needed for Big Island at least)
-#   ELEV2 = dir(paste0(INPUTS_FOLDER), pattern="*ned_dem_crs.tif", recursive=T, full.names=T)
+#   ELEV2 = dir(paste0(INPUTS_FOLDER), pattern="*ned_dem_crs.tif", recursive= TRUE, full.names= TRUE)
 ELEV <- raster(ELEV2[1])
 if (ELUnit == " ft") { ELEV = ELEV * 3.28084 }
 crs(ELEV) <- "+proj=longlat +datum=WGS84 +no_defs"
@@ -514,8 +472,8 @@ crs(HS) <- "+proj=longlat +datum=WGS84 +no_defs"
 LC2 = dir(
   paste0(INPUTS_FOLDER, "Landcover/"),
   pattern = "*LCMAP_HI_2020_V10_LCPRI_crs.tif$",
-  recursive = T,
-  full.names = T
+  recursive = TRUE,
+  full.name = TRUE
 )
 LC <- raster(LC2)
 crs(LC) <- "+proj=longlat +datum=WGS84 +no_defs"
@@ -542,20 +500,56 @@ STRM <- st_read(paste0(INPUTS_FOLDER, "NHD_H_Hawaii_State_Shape/NHD_Flowlines2.s
 AQU <- st_read(paste0(INPUTS_FOLDER, "Aquifers/DOH_Aquifers_type_status.shp")) %>%
   st_transform(st_crs(EXAMP))
 
+##########  Groundwater
+# conditional for selecting correct island's groundwater recharge rasters
+GRDir <- paste0(INPUTS_FOLDER, "Groundwater_recharge/")
+
+# Map island short codes to filename prefixes
+island_prefix <- c(
+  KA = "kauai",
+  OA = "oahu",
+  MO = "molokai",
+  LA = "lanai",
+  MN = "maui",
+  BI = "bi"
+)
+if (ILE_s == "KO") {
+  message("KO selected: no groundwater recharge rasters loaded.")
+  
+  GRC   <- NULL
+  DGRC  <- NULL
+  DGRCP <- NULL
+  FGRC  <- NULL
+  FGRCP <- NULL
+  
+} else if (!ILE_s %in% names(island_prefix)) {
+  stop("Unknown ILE_s value: ", ILE_s)
+  
+} else {
+  
+  prefix <- island_prefix[[ILE_s]]
+  
+  GRC   <- raster(paste0(GRDir, paste0(prefix, "_recharge_meanannual2.tif")))
+  DGRC  <- raster(file.path(GRDir, paste0(prefix, "_recharge_D1_minus_mean.tif")))
+  DGRCP <- raster(file.path(GRDir, paste0(prefix, "_recharge_D1_minus_mean_pct.tif")))
+  FGRC  <- raster(file.path(GRDir, paste0(prefix, "_recharge_FuD1_minus_mean.tif")))
+  FGRCP <- raster(file.path(GRDir, paste0(prefix, "_recharge_FuD1_minus_mean_pct.tif")))
+}
+
 ##########  Downscaling
 debug_print("Downscaling")
 
 # should be 132 DyDs_files. If TIF's were opened in arcgis, extra files may have been created
 DyDs_files = dir(
   paste0(INPUTS_FOLDER, "HI_Downscaling_Final/"),
-  recursive = T,
-  full.names = T,
+  recursive = TRUE,
+  full.name = TRUE,
   pattern = "\\.tif$"
 )
 D2_files = dir(
   paste0(INPUTS_FOLDER, "Lulin_Downscaling/"),
-  recursive = T,
-  full.names = T
+  recursive = TRUE,
+  full.name = TRUE
 )
 
 ##########   Month Year Rainfall Maps (Frazier et al., 2016)
@@ -748,7 +742,7 @@ MI3<-MOKU[MI2$ObjectID,]
 MId <- st_drop_geometry(MI3)
 write.csv(data.frame(MId),
   paste0(PATH_WITH_PROJECT_NAME, "Moku.csv"),
-  row.names = F
+  row.names = FALSE
 )
 
 bbox <- st_bbox(MI3)  # Get bounding box
@@ -806,7 +800,7 @@ AId<-as.data.frame(AI3_clipped)
 
 AI3_clipped_df <- st_drop_geometry(AI3_clipped)
 
-write.csv(data.frame(AI3_clipped_df), paste0(PATH_WITH_PROJECT_NAME, "Ahupuaa.csv"),row.names = F)
+write.csv(data.frame(AI3_clipped_df), paste0(PATH_WITH_PROJECT_NAME, "Ahupuaa.csv"),row.names = FALSE)
 
 bbox <- st_bbox(AI3)  # Get bounding box
 
@@ -1014,7 +1008,7 @@ LC_Mask <- mask(x = LC, mask = HALE)
 LC_Crop <- crop(x = LC_Mask, y = extent(HALE))
 
 #Convert raster to dataframe for stats
-LC_Crop2 <- as.data.frame(LC_Crop, xy = T)
+LC_Crop2 <- as.data.frame(LC_Crop, xy = TRUE)
 
 # remove LC "0" (no data)
 LC_Crop3 <- LC_Crop2[which(LC_Crop2$LCMAP_HI_2020_V10_LCPRI_crs != 0), ]
@@ -1059,7 +1053,7 @@ LC_ct2
 # write to table
 write.csv(LC_ct2,
   paste0(PATH_WITH_PROJECT_NAME, "Landcover.csv"),
-  row.names = F)
+  row.names = FALSE)
 
 # set class names as leveled factors
 LC_ct2$class_name<-factor(LC_ct2$class_name, 
@@ -1213,7 +1207,7 @@ colnames(AQe)[1] = "DOH Aquifer"
 write.csv(
   data.frame(AQe),
   paste0(PATH_WITH_PROJECT_NAME, "Aquifer.csv"),
-  row.names = F
+  row.names = FALSE
 )
 
 bbox <- st_bbox(HALE)  # Get bounding box
@@ -1342,8 +1336,593 @@ ht
 write.csv(
   data.frame(ht),
   paste0(PATH_WITH_PROJECT_NAME, "Hydro_features.csv"),
-  row.names = F
+  row.names = FALSE
 )
+
+###############################
+########## Groundwater Recharge
+debug_print("39b, Groundwater Recharge")
+
+# Conditional to skip this if there's no recharge data
+if(ILE_s != "KO"){
+  # 1) sf -> Spatial
+  HALE_sp <- as(HALE, "Spatial")
+  
+  # 2) Reproject HALE into GRC CRS (UTM 4N)
+  HALE_sp_utm <- spTransform(HALE_sp, crs(GRC))
+  
+  # 3) Crop + mask using the reprojected polygon
+  GRC_Crop <- crop(GRC, HALE_sp_utm)
+  GRC_Mask <- mask(GRC_Crop, HALE_sp_utm)
+  
+  # Convert raster from in/year to mgal/day
+  cell_area_m2 <- 900
+  
+  # Define standard conversion metrics
+  inch_to_m       <- 0.0254        # Depth: inches to meters
+  m3_to_gallons   <- 264.172052    # Volume: cubic meters to US gallons
+  gallons_to_mgal <- 1 / 1000000   # Scale: gallons to million gallons
+  years_to_days   <- 1 / 365.25       # Time: annual rate to daily rate
+  
+  # Combine all constants into a single optimized scalar multiplier
+  # This keeps the raster math lightning fast
+  conversion_multiplier <- inch_to_m * cell_area_m2 * m3_to_gallons * years_to_days
+  # This evaluates to exactly: ~1.654513e-05
+  
+  # Multiply the raster directly by the single conversion factor
+  GRC_gald <- GRC_Mask * conversion_multiplier
+  plot(GRC_gald)
+  
+  # Calculate total island-wide daily recharge rate
+  total_daily_recharge <- (cellStats(GRC_gald, stat = "sum", na.rm = TRUE)*0.000001)
+  
+  # (Optional) stats for table/reporting, same pattern as elevation
+  GRC_Mean <- round(cellStats(GRC_Crop, "mean"), 2)
+  GRC_Max  <- round(cellStats(GRC_Crop, "max"),  2)
+  GRC_Min  <- round(cellStats(GRC_Crop, "min"),  2)
+  
+  # Total recharge in million gallons
+  r <- GRC_gald  # inches per cell
+  # total_recharge_mgal <- calc_total_mgal(r)
+  
+  # Create data table for stats
+  GRC_tbl <- data.frame(
+    map   = "GRC",
+    type  = "recharge",
+    # value = total_recharge_mgal,
+    value = total_daily_recharge,
+    stringsAsFactors = FALSE
+  )
+  
+  GRC_tbl
+  
+  # --- Convert raster to data.frame for ggplot ---
+  grc_df <- as.data.frame(GRC_gald, xy = TRUE, na.rm = TRUE)
+  grc_col <- names(grc_df)[3]  # the value column name (whatever your raster layer name is)
+  
+  grc_df <- as.data.frame(GRC_gald, xy = TRUE, na.rm = TRUE)
+  grc_col <- names(grc_df)[3]  # the value column name (whatever your raster layer name is)
+  
+  # --- sf layers ---
+  HALE_sf  <- st_as_sf(HALE)
+  HALE_sf
+  CoastM_sf <- st_as_sf(CoastM)  # optional; will show only the part that overlaps the zoom
+  
+  # --- Bounds for north arrow scaling (now based on HALE-zoomed raster) ---
+  xrange <- range(grc_df$x, na.rm = TRUE)
+  yrange <- range(grc_df$y, na.rm = TRUE)
+  
+  x_arrow <- xrange[2] - 0.05 * diff(xrange)
+  y_arrow_bottom <- yrange[1] + 0.01 * diff(yrange)
+  y_arrow_top    <- yrange[1] + 0.12 * diff(yrange)
+  y_N_label      <- y_arrow_top + 0.04 * diff(yrange)
+  
+  GRUnit2 <- "in/year"
+  GRUnit2 <- "gal/day"
+  
+  # ---- INPUTS: swap these two lines only ----
+  ex <- extent(r)
+  ex
+  
+  # convert for ggplot
+  r_df <- as.data.frame(r, xy = TRUE, na.rm = TRUE)
+  names(r_df)[3] <- "val"
+  
+  # r_aoi is UTM; HALE_sf is lon/lat
+  HALE_utm <- st_transform(HALE_sf, crs = crs(r))
+  
+  # Get map bounds (so the arrow scales with your map)
+  xrange <- range(r_df$x, na.rm = TRUE)
+  yrange <- range(r_df$y, na.rm = TRUE)
+  
+  # Define arrow placement near top-right corner
+  x_arrow <- xrange[2] - 0.05 * diff(xrange)   # 5% from right edge
+  y_arrow_bottom <- yrange[1] + 0.01 * diff(yrange)  # base of arrow (15% up)
+  y_arrow_top <- yrange[1] + 0.12 * diff(yrange)     # arrow tip (30% up)
+  y_N_label <- y_arrow_top + 0.04 * diff(yrange)     # N label slightly above arrow
+  
+  lims <- quantile(r_df$val, probs = c(0.01, 0.5, 0.75, 0.8, 0.9, 0.99), na.rm = TRUE)
+  
+  # 2. Define thresholds for "too close" to BOTH the bottom and the top
+  range_total       <- lims[6] - lims[1]
+  floor_threshold   <- lims[1] + (0.1 * range_total) # Must be above this
+  ceiling_threshold <- lims[6] - (0.1 * range_total) # Must be below this
+  
+  # 3. Logic to pick the middle label and its name
+  if (lims[2] >= floor_threshold && lims[2] <= ceiling_threshold) {
+    mid_val  <- lims[2]
+    mid_name <- " (Median)"
+  } else if (lims[3] >= floor_threshold && lims[3] <= ceiling_threshold) {
+    mid_val  <- lims[3]
+    mid_name <- " (75th %)"
+  } else if (lims[4] >= floor_threshold && lims[4] <= ceiling_threshold) {
+    mid_val  <- lims[4]
+    mid_name <- " (80th %)"
+  } else {
+    # Fallback: If everything else is pushed to the extremes, default to the 80th 
+    # or 75th as a safe middle ground rather than letting it default to the cramped 90th.
+    mid_val  <- lims[3] 
+    mid_name <- " (75th %)"
+  }
+  
+  message("Selected ", mid_val," (", mid_name, ") as the middle legend break to avoid overlap.")
+  
+  mid  <- mean(r_df$val, na.rm = TRUE)
+  
+  # pal <- c("#e6f5a9", "#7fcdbb", "#2c7fb8", "#081d58")
+  
+  pal <- c("#f9fbf2", "#e6f5a9", "#7fcdbb", "#2c7fb8", "#081d58")
+  
+  # Buffer plot area for north arrow
+  map_width <- ex@xmax - ex@xmin
+  buffer <- map_width * 0.15
+  
+  # 2. Set the arrow X-position to be OUTSIDE the right edge
+  x_arrow_new <- ex@xmax + (buffer / 2)
+  
+  debug_print(paste0("GRCMap: ", PATH_WITH_PROJECT_NAME, "GRCMap.png"))
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "GRCMap.png"),
+    width  = 5 * dpi,
+    height = 5 * dpi,
+    res    = dpi
+  )
+  
+  p<-ggplot() +
+    # Plot the recharge raster
+    geom_raster(data = r_df, aes(x = x, y = y, fill = val)) +
+    # scale_fill_gradientn(colors = pal, name = "Recharge (in/yr)") +
+    scale_fill_gradientn(
+      colors = pal,
+      limits = c(lims[1], lims[5]),
+      breaks = c(lims[1], mid_val, lims[5]),
+      # labels = scales::number_format(accuracy = 1),
+      # Custom label formatting
+      labels = c(
+        round(lims[1], 0),                   # Lower limit
+        paste0(round(mid_val, 0), mid_name), # Dynamic middle with text
+        round(lims[5], 0)                    # Upper limit
+      ),
+      oob = scales::squish,
+      # name = "Recharge (in/yr)"   # <- change label if needed
+      name = "Recharge\n(gal/day)"   # <- change label if needed
+      
+    ) +
+    # Plot the HALE polygon layer
+    geom_sf(data = HALE_utm, fill = NA, color = "black", linewidth = 1) +
+    coord_sf(
+      crs = st_crs(HALE_utm),
+      xlim = c(ex@xmin, ex@xmax + buffer), # This "opens up" the white space on the right
+      ylim = c(ex@ymin, ex@ymax),
+      expand = FALSE
+    ) +
+    # 4. Use the NEW x_arrow_new in your annotations
+    annotate("text", x = x_arrow_new, y = y_N_label, label = "N", size = 4, fontface = "bold") +
+    annotate("segment",
+             x = x_arrow_new, xend = x_arrow_new,
+             y = y_arrow_bottom, yend = y_arrow_top,
+             arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+             size = 1, color = "black") +
+    theme_minimal() +
+    theme(
+      # plot.margin = margin(t = 10, r = 50, b = 10, l = 10), # Adds 50pt margin to the right
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text  = element_blank(),
+      axis.ticks = element_blank(),
+      legend.title = element_text(size = 12),
+      legend.text  = element_text(size = 12)
+    )
+  print(p)
+  dev.off()
+  
+  ########## Recharge Change during Recent Drought Conditions
+  debug_print("39c, Groundwater Recharge Change in Drought")
+  
+  # 2) Reproject HALE into GRC CRS (UTM 4N)
+  HALE_sp_utm <- spTransform(HALE_sp, crs(DGRC))
+  
+  # 3) Crop + mask using the reprojected polygon
+  DGRC_Crop <- crop(DGRC, HALE_sp_utm)
+  DGRC_Mask <- mask(DGRC_Crop, HALE_sp_utm)
+  
+  # Multiply the raster directly by the single conversion factor
+  DGRC_gald <- DGRC_Mask * conversion_multiplier
+  plot(DGRC_gald)
+  
+  # Calculate total island-wide daily recharge rate
+  total_daily_recharge_d <- (cellStats(DGRC_gald, stat = "sum", na.rm = TRUE)*0.000001)
+  
+  # Append to stats table 
+  GRC_tbl <- rbind(
+    GRC_tbl,
+    data.frame(
+      map   = "DGRC",
+      type  = "change",
+      value = total_daily_recharge_d,
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  GRC_tbl
+  
+  # Convert to data frame for plotting
+  r_df <- as.data.frame(DGRC_gald, xy = TRUE, na.rm = TRUE)
+  names(r_df)[3] <- "val"
+  HALE_utm <- st_transform(HALE_sf, crs = st_crs(r))
+  
+  # Get extent for plotting
+  ex <- extent(r)
+  
+  # Symmetric limit (max absolute change)
+  L <- max(abs(r_df$val), na.rm = TRUE)
+  
+  # Dynamic breaks: -L, -50%, 0, +50%, +L
+  brks <- c(-L, -0.5 * L, 0, 0.5 * L, L)
+  
+  # --- Bounds for north arrow scaling (now based on HALE-zoomed raster) ---
+  xrange <- range(r_df$x, na.rm = TRUE)
+  yrange <- range(r_df$y, na.rm = TRUE)
+  
+  x_arrow <- xrange[2] - 0.05 * diff(xrange)
+  y_arrow_bottom <- yrange[1] + 0.01 * diff(yrange)
+  y_arrow_top    <- yrange[1] + 0.12 * diff(yrange)
+  y_N_label      <- y_arrow_top + 0.04 * diff(yrange)
+  
+  GRUnit2 <- "gal/day"
+  
+  debug_print(paste0("DGRCMap: ", PATH_WITH_PROJECT_NAME, "DGRCMap.png"))
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "DGRCMap.png"),
+    width  = 5 * dpi,
+    height = 5 * dpi,
+    res    = dpi
+  )
+  
+  p<-ggplot() +
+    # Plot the recharge raster
+    geom_raster(data = r_df, aes(x = x, y = y, fill = val)) +
+    geom_sf(data = HALE_utm, fill = NA, color = "black", linewidth = 1) +
+    coord_sf(
+      crs = st_crs(HALE_utm),
+      xlim = c(ex@xmin, ex@xmax + buffer), # This "opens up" the white space on the right
+      ylim = c(ex@ymin, ex@ymax),
+      expand = FALSE
+    ) +
+    # 4. Use the NEW x_arrow_new in your annotations
+    annotate("text", x = x_arrow_new, y = y_N_label, label = "N", size = 4, fontface = "bold") +
+    annotate("segment",
+             x = x_arrow_new, xend = x_arrow_new,
+             y = y_arrow_bottom, yend = y_arrow_top,
+             arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+             size = 1, color = "black") +
+    scale_fill_gradientn(
+      colors = c(
+        "#3b0000", "#7f0000", "#b30000", "#ef3b2c", "#fee0d2", # 5 Reds
+        "white",                                               # 1 Center
+        "#deebf7", "#9ecae1", "#4292c6", "#2171b5", "#084594"  # 5 Blues
+      ),
+      values = scales::rescale(
+        c(-L, -0.75*L, -0.5*L, -0.25*L, -0.1*L,  # Negative side
+          0,                                      # Zero anchor
+          0.1*L, 0.25*L, 0.5*L, 0.75*L, L),     # Positive side
+        from = c(-L, L)
+      ),
+      limits = c(-L, L),
+      breaks = brks,
+      labels = scales::number_format(accuracy = 1),
+      oob = scales::squish,
+      name = "Change in Recharge\n(gal/day)"
+    ) +
+    # # Add the N label
+    # annotate("text", x = x_arrow, y = y_N_label, label = "N", size = 4, fontface = "bold") +
+    # 
+    # # Add the arrow line
+    # annotate("segment",
+    #          x = x_arrow, xend = x_arrow,
+    #          y = y_arrow_bottom, yend = y_arrow_top,
+    #          arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+    #          size = 1, color = "black") +
+    theme_minimal() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text  = element_blank(),
+      axis.ticks = element_blank(),
+      legend.title = element_text(size = 12),
+      legend.text  = element_text(size = 12)
+    )
+  print(p)
+  dev.off()
+  
+  ### Percent Change
+  # Crop + mask using the reprojected polygon
+  DGRCP_Crop <- crop(DGRCP, HALE_sp_utm)
+  DGRCP_Mask <- mask(DGRCP_Crop, HALE_sp_utm)
+  
+  # Median percent change
+  v <- values(DGRCP_Mask)
+  oapct <- round((((total_daily_recharge_d)/total_daily_recharge)*100),0)
+  
+  # Append to stats table
+  #overall percent
+  GRC_tbl <- rbind(
+    GRC_tbl,
+    data.frame(
+      map   = "DGRCP",
+      type  = "change_pct",
+      value = oapct,
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  GRC_tbl
+  
+  # prep for plotting
+  r_df <- as.data.frame(DGRCP_Mask, xy = TRUE, na.rm = TRUE)
+  names(r_df)[3] <- "val"
+  HALE_utm <- st_transform(HALE_sf, crs = st_crs(r))
+  
+  # Lower and Upper bound fixed at +-100%
+  lower_lim <- -100
+  upper_lim <- 100
+  
+  # # Breaks: -100, -50, 0, +50, max
+  brks <- c(-100, -50, 0, 50, 100)
+  
+  # --- Bounds for north arrow scaling (now based on HALE-zoomed raster) ---
+  xrange <- range(r_df$x, na.rm = TRUE)
+  yrange <- range(r_df$y, na.rm = TRUE)
+  
+  x_arrow <- xrange[2] - 0.05 * diff(xrange)
+  y_arrow_bottom <- yrange[1] + 0.01 * diff(yrange)
+  y_arrow_top    <- yrange[1] + 0.12 * diff(yrange)
+  y_N_label      <- y_arrow_top + 0.04 * diff(yrange)
+  
+  GRUnit2 <- "%"
+  
+  debug_print(paste0("DGRCPMap: ", PATH_WITH_PROJECT_NAME, "DGRCPMap.png"))
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "DGRCPMap.png"),
+    width  = 5 * dpi,
+    height = 5 * dpi,
+    res    = dpi
+  )
+  
+  p<- ggplot() +
+    # Plot the recharge raster
+    geom_raster(data = r_df, aes(x = x, y = y, fill = val)) +
+    geom_sf(data = HALE_utm, fill = NA, color = "black", linewidth = 1) +
+    coord_sf(
+      crs = st_crs(HALE_utm),
+      xlim = c(ex@xmin, ex@xmax + buffer), # This "opens up" the white space on the right
+      ylim = c(ex@ymin, ex@ymax),
+      expand = FALSE
+    ) +
+    # 4. Use the NEW x_arrow_new in your annotations
+    annotate("text", x = x_arrow_new, y = y_N_label, label = "N", size = 4, fontface = "bold") +
+    annotate("segment",
+             x = x_arrow_new, xend = x_arrow_new,
+             y = y_arrow_bottom, yend = y_arrow_top,
+             arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+             size = 1, color = "black") +
+    scale_fill_gradientn(
+      # Total of 11 colors: 5 reds, 1 white, 5 blues
+      colors = c(
+        "#3b0000", "#7f0000", "#b30000", "#ef3b2c", "#fee0d2", # Reds
+        "white",                                               # Exact Center
+        "#deebf7", "#9ecae1", "#4292c6", "#2171b5", "#084594"  # Blues (Slightly adjusted for better ramp)
+      ),
+      # Total of 11 checkpoints: 5 neg, 1 zero, 5 pos
+      values = scales::rescale(
+        c(-100, -75, -50, -25, -10, 0, 10, 25, 50, 75, 100),
+        from = c(-100, 100)
+      ),
+      limits = c(-100, 100),
+      breaks = brks,
+      labels = scales::number_format(accuracy = 1),
+      oob = scales::squish,
+      name = "Change in Recharge\n(%)"
+    ) +
+    # # Add the N label
+    # annotate("text", x = x_arrow, y = y_N_label, label = "N", size = 4, fontface = "bold") +
+    # 
+    # # Add the arrow line
+    # annotate("segment",
+    #          x = x_arrow, xend = x_arrow,
+    #          y = y_arrow_bottom, yend = y_arrow_top,
+    #          arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+    #          size = 1, color = "black") +
+    theme_minimal() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text  = element_blank(),
+      axis.ticks = element_blank(),
+      legend.title = element_text(size = 12),
+      legend.text  = element_text(size = 12)
+    )
+  print(p)
+  dev.off()
+  
+  ########## Future Groundwater Recharge
+  debug_print("39d, Future Groundwater Recharge")
+  
+  # 2) Reproject HALE into GRC CRS (UTM 4N)
+  HALE_sp_utm <- spTransform(HALE_sp, crs(DGRC))
+  
+  # 3) Crop + mask using the reprojected polygon
+  FGRC_Crop <- crop(FGRC, HALE_sp_utm)
+  FGRC_Mask <- mask(FGRC_Crop, HALE_sp_utm) 
+  FGRCP_Crop <- crop(FGRCP, HALE_sp_utm)
+  FGRCP_Mask <- mask(FGRCP_Crop, HALE_sp_utm)
+  
+  # Multiply the raster directly by the single conversion factor
+  FGRC_gald <- FGRC_Mask * conversion_multiplier
+  plot(FGRC_gald)
+  
+  # Calculate total island-wide daily recharge rate
+  total_daily_recharge_f <- (cellStats(FGRC_gald, stat = "sum", na.rm = TRUE)*0.000001)
+  
+  # Median percent change
+  v <- values(FGRCP_Mask)
+  oapct <- round(((total_daily_recharge_f/total_daily_recharge)*100),0)
+  
+  # append to stats table
+  GRC_tbl <- rbind(
+    GRC_tbl,
+    data.frame(
+      map   = "FGRC",
+      type  = "change",
+      value = total_daily_recharge_f,
+      stringsAsFactors = FALSE
+    )
+  )
+  GRC_tbl <- rbind(
+    GRC_tbl,
+    data.frame(
+      map   = "FGRCP",
+      type  = "change_oa_pct",
+      value = oapct,
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  GRC_tbl
+  
+  
+  # Add unit column to table and convert from mgal to gal if the values are low
+  # 1. Recreate your starting table
+  GRC_tbl <- data.frame(
+    GRC_tbl = c("GRC", "DGRC", "DGRCP", "FGRC", "FGRCP"),
+    map = c("recharge", "change", "change_pct", "change", "change_oa_pct"),
+    type = c("base", "change", "change_pct", "change", "change_oa_pct"), # assumed or missing column name from your printout
+    value = c(0.02462132, -0.01740494, -71.00000000, -0.02393037, -97.00000000),
+    stringsAsFactors = FALSE
+  )
+  
+  # Fix column names to match your structure exactly if needed
+  colnames(GRC_tbl)[1] <- "GRC_tbl" 
+  
+  # 2. Apply the conditional logic
+  updated_tbl <- GRC_tbl %>%
+    mutate(
+      # Step A: Assign units based on map type and absolute value threshold
+      units = case_when(
+        GRC_tbl %in% c("DGRCP", "FGRCP") ~ "pct",
+        GRC_tbl %in% c("GRC", "DGRC", "FGRC") & abs(value) < 1 ~ "kgal_d",
+        GRC_tbl %in% c("GRC", "DGRC", "FGRC") & abs(value) >= 1 ~ "mgal_d",
+        TRUE ~ NA_character_
+      ),
+      # Step B: Adjust values from mgal to gal if they were converted
+      value = case_when(
+        units == "kgal_d" ~ value * 1000,
+        TRUE ~ value
+      )
+    )
+  
+  print(updated_tbl)
+  
+  # export table 
+  write.csv(
+    data.frame(updated_tbl),
+    paste0(PATH_WITH_PROJECT_NAME, "recharge_stats.csv"),
+    row.names = F
+  )
+  
+  # Convert for plotting
+  r_df <- as.data.frame(FGRCP_Mask, xy = TRUE, na.rm = TRUE)
+  names(r_df)[3] <- "val"
+  summary(r_df[3])
+  HALE_utm <- st_transform(HALE_sf, crs = st_crs(r))
+  
+  # --- Bounds for north arrow scaling (now based on HALE-zoomed raster) ---
+  xrange <- range(r_df$x, na.rm = TRUE)
+  yrange <- range(r_df$y, na.rm = TRUE)
+  
+  x_arrow <- xrange[2] - 0.05 * diff(xrange)
+  y_arrow_bottom <- yrange[1] + 0.01 * diff(yrange)
+  y_arrow_top    <- yrange[1] + 0.12 * diff(yrange)
+  y_N_label      <- y_arrow_top + 0.04 * diff(yrange)
+  
+  GRUnit2 <- "%"
+  
+  debug_print(paste0("FGRCPMap: ", PATH_WITH_PROJECT_NAME, "FGRCPMap.png"))
+  png(
+    paste0(PATH_WITH_PROJECT_NAME, "FGRCPMap.png"),
+    width  = 5 * dpi,
+    height = 5 * dpi,
+    res    = dpi
+  )
+  
+  p <- ggplot() +
+    geom_raster(data = r_df, aes(x = x, y = y, fill = val)) +
+    geom_sf(data = HALE_utm, fill = NA, color = "black", linewidth = 1) +
+    coord_sf(
+      crs = st_crs(HALE_utm),
+      xlim = c(ex@xmin, ex@xmax + buffer),
+      ylim = c(ex@ymin, ex@ymax),
+      expand = FALSE
+    ) +
+    annotate("text", x = x_arrow_new, y = y_N_label, label = "N", size = 4, fontface = "bold") +
+    annotate("segment",
+             x = x_arrow_new, xend = x_arrow_new,
+             y = y_arrow_bottom, yend = y_arrow_top,
+             arrow = arrow(length = unit(0.2, "cm"), type = "closed"),
+             size = 1, color = "black") +
+    scale_fill_gradientn(
+      # 11 colors for perfect symmetry
+      colors = c(
+        "#3b0000", "#7f0000", "#b30000", "#ef3b2c", "#fee0d2", # Reds
+        "white",                                               # Center
+        "#deebf7", "#9ecae1", "#4292c6", "#2171b5", "#084594"  # Blues
+      ),
+      # Fixed the order: -25, -5, 0, 5, 25...
+      values = scales::rescale(
+        c(-100, -75, -50, -25, -10, 0, 10, 25, 50, 75, 100),
+        from = c(-100, 100)
+      ),
+      limits = c(-100, 100),
+      # Explicitly set breaks to prevent "clumping"
+      breaks = c(-100, -50, 0, 50, 100),
+      labels = scales::number_format(accuracy = 1),
+      oob = scales::squish,
+      name = "Change in Recharge\n(%)"
+    ) +
+    theme_minimal() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text  = element_blank(),
+      axis.ticks = element_blank(),
+      legend.title = element_text(size = 14),
+      legend.text  = element_text(size = 12)
+    )
+  print(p)
+  dev.off()
+} else {
+  
+}
 
 ########## Rainfall Stations near AOI
 debug_print("40, Rain Station Locations")
@@ -2615,7 +3194,7 @@ png(
 )
 
 par(mar = c(4, 4, 4, 4))
-my_bar <- barplot(df$PREC, border=F , names.arg=df$month ,
+my_bar <- barplot(df$PREC, border= FALSE , names.arg=df$month ,
   las=2 ,
   col="darkblue" ,
   ylim=c(0,XPR) ,
@@ -2649,7 +3228,7 @@ png(
   res = dpi
 )
 
-barplot(df$PREC, border=F , names.arg=df$month , 
+barplot(df$PREC, border= FALSE , names.arg=df$month , 
   las=2 , 
   col="darkblue" , 
   ylim=c(0,XPR) ,
@@ -2671,7 +3250,7 @@ png(
 )
 
 par(mar = c(4, 4, 4, 4))
-barplot(df$PREC, border=F , names.arg=df$month , 
+barplot(df$PREC, border= FALSE , names.arg=df$month , 
   las=2 , 
   col=col , 
   alpha = 0.5 ,
@@ -5021,7 +5600,7 @@ PWW_T <- HALE
 
 #########   Load RF MAPS
 RF_Map_Path_A
-RF_Tif_files = dir(RF_Map_Path_A, pattern="*.tif", recursive=T, full.names=T)  #Monthly RF
+RF_Tif_files = dir(RF_Map_Path_A, pattern="*.tif", recursive= TRUE, full.names= TRUE)  #Monthly RF
 nfiles <- length(RF_Tif_files)
 
 #Create a matrix for each cell
@@ -5065,7 +5644,7 @@ debug_print("74, Lucas")
 
 #Load Daily RF MAPS
 RF_Map_Path
-RF_Tif_files = dir(RF_Map_Path, pattern="*.tif", recursive=T, full.names=T)  #Monthly RF
+RF_Tif_files = dir(RF_Map_Path, pattern="*.tif", recursive= TRUE, full.names= TRUE)  #Monthly RF
 nfiles <- length(RF_Tif_files)
 
 #Create a matrix for each cell
@@ -5140,7 +5719,7 @@ MBE <- round(mean(MRF_A3 - MRF_N3), 1)
 MAE <- round(mean(abs(MRF_A3 - MRF_N3)), 1)
 
 D_Comp <- cbind(MRF_A3, MRF_N3)
-Mx <- max(D_Comp, na.rm = T)
+Mx <- max(D_Comp, na.rm = TRUE)
 
 FNAME <- paste0("RF_Compare_23_", UNIT_Ns[u], ".csv")
 
@@ -5220,7 +5799,7 @@ summary(RF_IN)
 MRF100$Day <- 1
 MRF100$Ndate <- as.Date(with(MRF100, paste(Year, Month, Day, sep = "-")), "%Y-%m-%d")
 
-MRF_Max <- round(max(RF_IN, na.rm = T), 1)
+MRF_Max <- round(max(RF_IN, na.rm = TRUE), 1)
 MRF_Min <- round(min(RF_IN, na.rm = TRUE), 1)
 MRF_MED <- round(median(RF_IN, na.rm = TRUE), 1)
 MRF_MEAN <- round(mean(RF_IN, na.rm = TRUE), 1)
@@ -5392,7 +5971,7 @@ head(WET_RF3, 12)
 WET_RF4 <- as.numeric(WET_RF3$RF)
 
 #Get seasonal average
-WET_RF5 <- as.vector(tapply(WET_RF4, gl(length(WET_RF4) / 6, 6), mean, na.rm = T))
+WET_RF5 <- as.vector(tapply(WET_RF4, gl(length(WET_RF4) / 6, 6), mean, na.rm = TRUE))
 
 # Dry Season
 DRY_RF <- MRF100[MRF100a$Month != 1 & MRF100a$Month  != 02 &
@@ -5402,16 +5981,16 @@ head(DRY_RF, 12)
 DRY_RF2 <- as.numeric(DRY_RF$RF)
 
 #Get seasonal average
-DRY_RF3 <- as.vector(tapply(DRY_RF2, gl(length(DRY_RF2) / 6, 6), mean, na.rm = T))
+DRY_RF3 <- as.vector(tapply(DRY_RF2, gl(length(DRY_RF2) / 6, 6), mean, na.rm = TRUE))
 
 ########## Season Stats
 ##########   Wet
-W_MRF_Max <- round(max(WET_RF5, na.rm = T), 0)
+W_MRF_Max <- round(max(WET_RF5, na.rm = TRUE), 0)
 W_MRF_Min <- round(min(WET_RF5, na.rm = TRUE), 0)
 W_MRF_MED <- round(median(WET_RF5, na.rm = TRUE), 0)
 W_MRF_MEAN <- round(mean(WET_RF5, na.rm = TRUE), 0)
 ##########   Dry
-D_MRF_Max <- round(max(DRY_RF3, na.rm = T), 0)
+D_MRF_Max <- round(max(DRY_RF3, na.rm = TRUE), 0)
 D_MRF_Min <- round(min(DRY_RF3, na.rm = TRUE), 0)
 D_MRF_MED <- round(median(DRY_RF3, na.rm = TRUE), 0)
 D_MRF_MEAN <- round(mean(DRY_RF3, na.rm = TRUE), 0)
@@ -5532,7 +6111,7 @@ debug_print("81, Annual and Seasonal Plot")
 par(mfrow = c(3, 1))
 par(mar = c(4, 4, 4, 2))
 
-MLIM1 <- max(c(myts1Y, myts1YW, myts1YD), na.rm = T)
+MLIM1 <- max(c(myts1Y, myts1YW, myts1YD), na.rm = TRUE)
 YLIM <-  min(myts1Y)
 MLIM <-  (MLIM1 + (MLIM1 * 0.45))
 
@@ -5559,7 +6138,7 @@ ablineclip(lm(myts6Y~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 debug_print("82, Wet Season")
 
 par(mai = c(0.3, 0.6, 0.2, 0.2))
-YLIM <-  min(myts1YW, na.rm = T)
+YLIM <-  min(myts1YW, na.rm = TRUE)
 plot(myts1YW~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",xaxt="n",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
 
 legend("topright", c(paste0("1920-",ey," R2 = ",LM1RYW, " p = ",LM1PYW),
@@ -5581,9 +6160,9 @@ ablineclip(lm(myts6YW~YDateT6),x1=14000,x2=20000,col="grey1",lwd=3)
 debug_print("83, Dry Season")
 
 par(mai = c(0.3, 0.6, 0.2, 0.2))
-YLIM <-  min(myts1YD, na.rm = T)
+YLIM <-  min(myts1YD, na.rm = TRUE)
 plot(myts1YD~YDateT1,ylab = paste0("Average Rainfall (",RFUnit2,"/month)"),type="l",col="blue",xlab="",ylim=c(YLIM,MLIM),cex.axis =1.3,las=1)
-# axis(1, labels = T)
+# axis(1, labels = TRUE)
 # title(main = "Average Wet Season Rainfall Pu'u Wa'awa'a (1920-2021)", line = 1)
 legend("topright", c(paste0("1920-",ey," R2 = ",LM1RYD, " p = ",LM1PYD),
   #paste0("1940-",ey," Trend =", T2YD,", R2 =",LM2RYD, " p = ",LM2PYD),
@@ -5841,7 +6420,7 @@ head(spi5, 50)
 spi6 <- spi5
 
 # get total events count as list
-events <- as.list(1:max(spi6$event_ct, na.rm = T))
+events <- as.list(1:max(spi6$event_ct, na.rm = TRUE))
 
 # loop through each event and label by maximum SPI value
 for (x in events) {
@@ -5990,9 +6569,9 @@ write.csv(xx,
 spi12a <- xx
 head(spi12a, 20)
 
-min <- min(spi12a$SP, na.rm = T)
-mean <- mean(spi12a$SP, na.rm = T)
-max <- max(spi12a$SP, na.rm = T)
+min <- min(spi12a$SP, na.rm = TRUE)
+mean <- mean(spi12a$SP, na.rm = TRUE)
+max <- max(spi12a$SP, na.rm = TRUE)
 
 ### Make monthly min, mean, max SPI value dataset
 
@@ -6164,7 +6743,7 @@ colnames(spi5)[which(names(spi5) == "event_ct2")] <- "event_ct"
 spi6 <- spi5
 
 # get total events count as list
-events <- as.list(1:max(spi6$event_ct, na.rm = T))
+events <- as.list(1:max(spi6$event_ct, na.rm = TRUE))
 
 # loop through each event and label by maximum SPI value
 for (x in events) {
@@ -6440,7 +7019,7 @@ colnames(spi5)[which(names(spi5) == "event_ct2")] <- "event_ct"
 spi6 <- spi5
 
 # get total events count as list
-events <- as.list(1:max(spi6$event_ct, na.rm = T))
+events <- as.list(1:max(spi6$event_ct, na.rm = TRUE))
 
 # loop through each event and label by maximum SPI value
 for (x in events) {
@@ -6467,7 +7046,7 @@ for (x in events) {
   SPI_I<-SPI_I[c("date","months","intensity","peak","mean","mag")]
   SPI_I
   
-  spi6<-merge(spi6, SPI_I, by="date", all.x=T)
+  spi6<-merge(spi6, SPI_I, by="date", all.x= TRUE)
   
   # merge intensity columns together
   if (x>1) {spi6$months<-ifelse(is.na(spi6$months.x), spi6$months.y, spi6$months.x)}
@@ -6947,16 +7526,16 @@ Cell.MEI
 ##########   Mean RF values for each season-phase
 debug_print("98.21, Mean RF values for each season-phase")
 
-Me_EL_W_S <- round(mean(EL_W_S, na.rm = T), 1)
-Me_EL_W_W <- round(mean(EL_W_W, na.rm = T), 1)
-Me_LA_W_S <- round(mean(LA_W_S, na.rm = T), 1)
-Me_LA_W_W <- round(mean(LA_W_W, na.rm = T), 1)
-Me_NU_W <-   round(mean(NU_W, na.rm = T), 1)
-Me_EL_D_S <- round(mean(EL_D_S, na.rm = T), 1)
-Me_EL_D_W <- round(mean(EL_D_W, na.rm = T), 1)
-Me_LA_D_S <- round(mean(LA_D_S, na.rm = T), 1)
-Me_LA_D_W <- round(mean(LA_D_W, na.rm = T), 1)
-Me_NU_D <-   round(mean(NU_D, na.rm = T), 1)
+Me_EL_W_S <- round(mean(EL_W_S, na.rm = TRUE), 1)
+Me_EL_W_W <- round(mean(EL_W_W, na.rm = TRUE), 1)
+Me_LA_W_S <- round(mean(LA_W_S, na.rm = TRUE), 1)
+Me_LA_W_W <- round(mean(LA_W_W, na.rm = TRUE), 1)
+Me_NU_W <-   round(mean(NU_W, na.rm = TRUE), 1)
+Me_EL_D_S <- round(mean(EL_D_S, na.rm = TRUE), 1)
+Me_EL_D_W <- round(mean(EL_D_W, na.rm = TRUE), 1)
+Me_LA_D_S <- round(mean(LA_D_S, na.rm = TRUE), 1)
+Me_LA_D_W <- round(mean(LA_D_W, na.rm = TRUE), 1)
+Me_NU_D <-   round(mean(NU_D, na.rm = TRUE), 1)
 
 Cell.MEI[1:5, 2] <- c(Me_EL_W_S, Me_EL_W_W, Me_NU_W, Me_LA_W_W, Me_LA_W_S)
 Cell.MEI[1:5, 3] <- c(Me_EL_D_S, Me_EL_D_W, Me_NU_D, Me_LA_D_W, Me_LA_D_S)
@@ -6964,16 +7543,16 @@ Cell.MEI[1:5, 3] <- c(Me_EL_D_S, Me_EL_D_W, Me_NU_D, Me_LA_D_W, Me_LA_D_S)
 ##########   MAX
 debug_print("98.22, MAX")
 
-Mx_EL_W_S <- round(max(EL_W_S, na.rm = T), 1)
-Mx_EL_W_W <- round(max(EL_W_W, na.rm = T), 1)
-Mx_LA_W_S <- round(max(LA_W_S, na.rm = T), 1)
-Mx_LA_W_W <- round(max(LA_W_W, na.rm = T), 1)
-Mx_NU_W <-   round(max(NU_W, na.rm = T), 1)
-Mx_EL_D_S <- round(max(EL_D_S, na.rm = T), 1)
-Mx_EL_D_W <- round(max(EL_D_W, na.rm = T), 1)
-Mx_LA_D_S <- round(max(LA_D_S, na.rm = T), 1)
-Mx_LA_D_W <- round(max(LA_D_W, na.rm = T), 1)
-Mx_NU_D <-   round(max(NU_D, na.rm = T), 1)
+Mx_EL_W_S <- round(max(EL_W_S, na.rm = TRUE), 1)
+Mx_EL_W_W <- round(max(EL_W_W, na.rm = TRUE), 1)
+Mx_LA_W_S <- round(max(LA_W_S, na.rm = TRUE), 1)
+Mx_LA_W_W <- round(max(LA_W_W, na.rm = TRUE), 1)
+Mx_NU_W <-   round(max(NU_W, na.rm = TRUE), 1)
+Mx_EL_D_S <- round(max(EL_D_S, na.rm = TRUE), 1)
+Mx_EL_D_W <- round(max(EL_D_W, na.rm = TRUE), 1)
+Mx_LA_D_S <- round(max(LA_D_S, na.rm = TRUE), 1)
+Mx_LA_D_W <- round(max(LA_D_W, na.rm = TRUE), 1)
+Mx_NU_D <-   round(max(NU_D, na.rm = TRUE), 1)
 
 Cell.MEI[1:5, 4] <- c(Mx_EL_W_S, Mx_EL_W_W, Mx_NU_W, Me_LA_W_W, Mx_LA_W_S)
 Cell.MEI[1:5, 5] <- c(Mx_EL_D_S, Mx_EL_D_W, Mx_NU_D, Me_LA_D_W, Mx_LA_D_S)
@@ -6981,31 +7560,31 @@ Cell.MEI[1:5, 5] <- c(Mx_EL_D_S, Mx_EL_D_W, Mx_NU_D, Me_LA_D_W, Mx_LA_D_S)
 ##########   MIN
 debug_print("98.23, MIN")
 
-Mn_EL_W_S <- round(min(EL_W_S, na.rm = T), 1)
-Mn_EL_W_W <- round(min(EL_W_W, na.rm = T), 1)
-Mn_LA_W_S <- round(min(LA_W_S, na.rm = T), 1)
-Mn_LA_W_W <- round(min(LA_W_W, na.rm = T), 1)
-Mn_NU_W <-   round(min(NU_W, na.rm = T), 1)
-Mn_EL_D_S <- round(min(EL_D_S, na.rm = T), 1)
-Mn_EL_D_W <- round(min(EL_D_W, na.rm = T), 1)
-Mn_LA_D_S <- round(min(LA_D_S, na.rm = T), 1)
-Mn_LA_D_W <- round(min(LA_D_W, na.rm = T), 1)
-Mn_NU_D <-   round(min(NU_D, na.rm = T), 1)
+Mn_EL_W_S <- round(min(EL_W_S, na.rm = TRUE), 1)
+Mn_EL_W_W <- round(min(EL_W_W, na.rm = TRUE), 1)
+Mn_LA_W_S <- round(min(LA_W_S, na.rm = TRUE), 1)
+Mn_LA_W_W <- round(min(LA_W_W, na.rm = TRUE), 1)
+Mn_NU_W <-   round(min(NU_W, na.rm = TRUE), 1)
+Mn_EL_D_S <- round(min(EL_D_S, na.rm = TRUE), 1)
+Mn_EL_D_W <- round(min(EL_D_W, na.rm = TRUE), 1)
+Mn_LA_D_S <- round(min(LA_D_S, na.rm = TRUE), 1)
+Mn_LA_D_W <- round(min(LA_D_W, na.rm = TRUE), 1)
+Mn_NU_D <-   round(min(NU_D, na.rm = TRUE), 1)
 
 Cell.MEI[1:5, 6] <- c(Mn_EL_W_S, Mn_EL_W_W, Mn_NU_W, Mn_LA_W_W, Mn_LA_W_S)
 Cell.MEI[1:5, 7] <- c(Mn_EL_D_S, Mn_EL_D_W, Mn_NU_D, Mn_LA_D_W, Mn_LA_D_S)
 
 # ##########   SUM
-# Su_EL_W_S <- round(sum(EL_W_S,na.rm=T),1)
-# Su_EL_W_W <- round(sum(EL_W_W,na.rm=T),1)
-# Su_LA_W_S <- round(sum(LA_W_S,na.rm=T),1)
-# Su_LA_W_W <- round(sum(LA_W_W,na.rm=T),1)
-# Su_NU_W <-   round(sum(NU_W,na.rm=T),1)
-# Su_EL_D_S <- round(sum(EL_D_S,na.rm=T),1)
-# Su_EL_D_W <- round(sum(EL_D_W,na.rm=T),1)
-# Su_LA_D_S <- round(sum(LA_D_S,na.rm=T),1)
-# Su_LA_D_W <- round(sum(LA_D_W,na.rm=T),1)
-# Su_NU_D <-   round(sum(NU_D,na.rm=T),1)
+# Su_EL_W_S <- round(sum(EL_W_S,na.rm= TRUE),1)
+# Su_EL_W_W <- round(sum(EL_W_W,na.rm= TRUE),1)
+# Su_LA_W_S <- round(sum(LA_W_S,na.rm= TRUE),1)
+# Su_LA_W_W <- round(sum(LA_W_W,na.rm= TRUE),1)
+# Su_NU_W <-   round(sum(NU_W,na.rm= TRUE),1)
+# Su_EL_D_S <- round(sum(EL_D_S,na.rm= TRUE),1)
+# Su_EL_D_W <- round(sum(EL_D_W,na.rm= TRUE),1)
+# Su_LA_D_S <- round(sum(LA_D_S,na.rm= TRUE),1)
+# Su_LA_D_W <- round(sum(LA_D_W,na.rm= TRUE),1)
+# Su_NU_D <-   round(sum(NU_D,na.rm= TRUE),1)
 #
 # Cell.MEI[1:5,8] <- c( Su_EL_W_S, Su_EL_W_W, Su_NU_W, Su_LA_W_W, Su_LA_W_S)
 # Cell.MEI[1:5,9] <- c( Su_EL_D_S, Su_EL_D_S, Su_NU_D, Su_LA_D_W, Su_LA_D_S)
@@ -7126,7 +7705,7 @@ Cell.MEI
 # I don't think this is used...
 write.csv(Cell.MEI,
   paste0(PATH_WITH_PROJECT_NAME, "MEI_A.csv"),
-  row.names = F)
+  row.names = FALSE)
 
 
 
@@ -7238,7 +7817,7 @@ for (i in years) {
   f <- as.list(list.files(), pattern = ".tif")
   # loop through monthly files and fill in table
   for (x in f) {
-    # x=f[[1]]
+    # x= FALSE[[1]]
     # set year and month
     y <- substr(x, nchar(x) - 10, nchar(x))
     table[no, ]$year <- substr(y, 1, 4)
@@ -7345,7 +7924,7 @@ png(
 
 ggplot(dat.y, aes(x=date, y=mean)) +
   geom_line(size=1.2, color="orange") +
-  geom_smooth(method=lm, se=F, size=1, color="black") +
+  geom_smooth(method=lm, se= FALSE, size=1, color="black") +
   stat_cor(method="pearson", label.x=as.Date("1991-01-01"), label.y=58) +
   scale_x_date(date_breaks = "5 years", labels = date_format(format="%Y")) +
   labs(title="Annual Air Temperature and Extremes",
@@ -7369,15 +7948,15 @@ tail(dat2)
 write.csv(dat2, paste0(PATH_WITH_PROJECT_NAME, "daily_airtemp.csv"))
 
 # set y-axis limits
-ylow <- min(dat.y$min, na.rm = T) * .5
-yhi <- max(dat.y$max, na.rm = T) * 1.0005
+ylow <- min(dat.y$min, na.rm = TRUE) * .5
+yhi <- max(dat.y$max, na.rm = TRUE) * 1.0005
 
 # set slope
 slope <- formatC((coef(lm(dat2$mean.x ~ dat2$date))[2]), format = "e", digits = 2)
 slope
 
 # set location for linear trend values
-yl <- min(dat.y$min, na.rm = T) * .75
+yl <- min(dat.y$min, na.rm = TRUE) * .75
 
 dpi = 300
 
@@ -7390,8 +7969,8 @@ png(
 
 ggplot(dat2, aes(x=date,y=mean.x)) +
   geom_line(color="grey60") +
-  geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
-  geom_smooth(method=lm, se=F, color="black") +
+  geom_smooth(span=0.2, se= FALSE, size=1.3, color="orange") +
+  geom_smooth(method=lm, se= FALSE, color="black") +
   stat_cor(method="pearson", label.x=as.Date("1993-01-01"), label.y=yl-5) +
   scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
   ylim(ylow,yhi) +
@@ -7489,8 +8068,8 @@ png(
 
 ggplot(anom, aes(x=date,y=anom_f)) +
   geom_line(color="grey60") +
-  geom_smooth(span=0.2, se=F, size=1.3, color="orange") +
-  geom_smooth(method=lm, se=F, color="black") +
+  geom_smooth(span=0.2, se= FALSE, size=1.3, color="orange") +
+  geom_smooth(method=lm, se= FALSE, color="black") +
   # stat_cor(method="pearson", label.x=as.Date("1993-01-01"), label.y=yl-3) +
   scale_x_date(date_breaks = "4 years", labels = date_format(format="%Y")) +
   ylim(ylow,yhi) +
