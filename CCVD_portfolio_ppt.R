@@ -2051,7 +2051,7 @@ if(file.exists(RC_file)) {
   #Slide text
   RCF_Tt<- paste0("Future changes in rainfall will impact groundwater recharge rates. ",
                   "Under a projected future dry climate scenario, ",SNameF," could experience a recharge reduction of ",RCFPv,
-                  "% (",RCFv," ",RCFvu,". Future severe drought conditions could futher impact recharge rates here.") 
+                  "% (",RCFv," ",RCFvu,". Future severe drought conditions could further impact recharge rates here.") 
   
   M_RCF <- block_list(
     fpar(ftext(RCF_Tt, fp_NM2)))
