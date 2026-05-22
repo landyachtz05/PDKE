@@ -532,8 +532,8 @@ if (ILE_s == "KO") {
   GRC   <- raster(paste0(GRDir, paste0(prefix, "_recharge_meanannual2.tif")))
   DGRC  <- raster(file.path(GRDir, paste0(prefix, "_recharge_D1_minus_mean.tif")))
   DGRCP <- raster(file.path(GRDir, paste0(prefix, "_recharge_D1_minus_mean_pct.tif")))
-  FGRC  <- raster(file.path(GRDir, paste0(prefix, "_recharge_FuD1_minus_mean.tif")))
-  FGRCP <- raster(file.path(GRDir, paste0(prefix, "_recharge_FuD1_minus_mean_pct.tif")))
+  FGRC  <- raster(file.path(GRDir, paste0(prefix, "_recharge_dryfuture_change.tif")))
+  FGRCP <- raster(file.path(GRDir, paste0(prefix, "_recharge_dryfuture_change_pct.tif")))
 }
 
 ##########  Downscaling
@@ -1354,7 +1354,7 @@ if(ILE_s != "KO"){
   # 3) Crop + mask using the reprojected polygon
   GRC_Crop <- crop(GRC, HALE_sp_utm)
   GRC_Mask <- mask(GRC_Crop, HALE_sp_utm)
-  
+
   # Convert raster from in/year to mgal/day
   cell_area_m2 <- 900
   
@@ -1371,9 +1371,8 @@ if(ILE_s != "KO"){
   
   # Multiply the raster directly by the single conversion factor
   GRC_gald <- GRC_Mask * conversion_multiplier
-  plot(GRC_gald)
-  
-  # Calculate total island-wide daily recharge rate
+
+  # Calculate total site-wide daily recharge rate
   total_daily_recharge <- (cellStats(GRC_gald, stat = "sum", na.rm = TRUE)*0.000001)
   
   # (Optional) stats for table/reporting, same pattern as elevation
@@ -1441,7 +1440,7 @@ if(ILE_s != "KO"){
   y_arrow_top <- yrange[1] + 0.12 * diff(yrange)     # arrow tip (30% up)
   y_N_label <- y_arrow_top + 0.04 * diff(yrange)     # N label slightly above arrow
   
-  lims <- quantile(r_df$val, probs = c(0.01, 0.5, 0.75, 0.8, 0.9, 0.99), na.rm = TRUE)
+  lims <- quantile(r_df$val, probs = c(0.01, 0.5, 0.75, 0.8, 0.9, 1), na.rm = TRUE)
   
   # 2. Define thresholds for "too close" to BOTH the bottom and the top
   range_total       <- lims[6] - lims[1]
@@ -1781,7 +1780,7 @@ if(ILE_s != "KO"){
   FGRC_gald <- FGRC_Mask * conversion_multiplier
   plot(FGRC_gald)
   
-  # Calculate total island-wide daily recharge rate
+  # Calculate total site-wide daily change in recharge rate
   total_daily_recharge_f <- (cellStats(FGRC_gald, stat = "sum", na.rm = TRUE)*0.000001)
   
   # Median percent change
@@ -1812,17 +1811,24 @@ if(ILE_s != "KO"){
   
   
   # Add unit column to table and convert from mgal to gal if the values are low
-  # 1. Recreate your starting table
-  GRC_tbl <- data.frame(
+  # 1. Define the new structure using a temporary name
+  new_structure <- data.frame(
     GRC_tbl = c("GRC", "DGRC", "DGRCP", "FGRC", "FGRCP"),
-    map = c("recharge", "change", "change_pct", "change", "change_oa_pct"),
-    type = c("base", "change", "change_pct", "change", "change_oa_pct"), # assumed or missing column name from your printout
-    value = c(0.02462132, -0.01740494, -71.00000000, -0.02393037, -97.00000000),
+    map = c("recharge", "change", "change_pct", "change", "change_pct"),
+    type = c("base", "change", "change_pct", "change", "change_pct"), 
+    value = NA, # Placeholder
     stringsAsFactors = FALSE
   )
   
-  # Fix column names to match your structure exactly if needed
-  colnames(GRC_tbl)[1] <- "GRC_tbl" 
+  # 2. Dynamically pull values from the original GRC_tbl before overwriting it
+  # (Using match() ensures values go to the right row even if ordered differently)
+  new_structure$value <- GRC_tbl$value[match(new_structure$GRC_tbl, GRC_tbl$map)]
+  
+  # 3. Now safely overwrite GRC_tbl with your new, complete table
+  GRC_tbl <- new_structure
+  
+  # # Fix column names to match your structure exactly if needed
+  # colnames(GRC_tbl)[1] <- "GRC_tbl" 
   
   # 2. Apply the conditional logic
   updated_tbl <- GRC_tbl %>%
