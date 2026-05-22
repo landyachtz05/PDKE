@@ -40,10 +40,10 @@ setwd(WORKING_DIR)               # WORKING DIRECTORY
 I_FOLDER <- paste0(BASE_DIR, "/CCVD/IMAGE/") # Folder with images
 
 # default values for testing
-email <- 'jgeis@hawaii.edu';
-NameF <- 'Niumalu Ahupuaa';
-SNameF <- 'Niumalu'
-SHAPEFILE <- paste0(BASE_DIR, '/PDKESite/Shapefiles/SelectedPolygon/Niumalu Ahupuaa_2025_04_21_12_32_51.shp');
+email <- 'djford@hawaii.edu';
+NameF <- 'Hanalei NWR';
+SNameF <- 'Hanalei'
+SHAPEFILE <- paste0(BASE_DIR, '/PDKESite/Shapefiles/SelectedPolygon/Hanalei_NWR_2026_05_19_12_50_00.shp');
 date_time_str <- sub(".*_(\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2})\\.shp$", "\\1", SHAPEFILE)
 #date_time_str <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
 
@@ -103,7 +103,7 @@ debug_print(paste("1,P_FOLDER: ", P_FOLDER))
 #RANL[f]
 
 # VERSION
-ver <- 5.5
+ver <- 6
 
 # UNITS
 TUnit = "\u00B0F"
@@ -176,7 +176,7 @@ CLimg <- external_img(src = CLfile, height = 1, width = 1)
 PRfile <- paste0(I_FOLDER, "PRISCC logo.png")
 PRimg <- external_img(src = PRfile, height = 1, width = 1)
 
-FLfile <- paste0(I_FOLDER, "funder_logos.png")
+FLfile <- paste0(I_FOLDER, "funder_logos2.png")
 FLimg <- external_img(src = FLfile, height = 1, width = 1)
 
 ############################ Pictures
@@ -256,8 +256,40 @@ D_AHimg <- external_img(src = D_AHfile, height = 1, width = 1)
 D_HLDfile <- paste0(I_FOLDER, "HLD_fig.jpg")
 D_HLDimg <- external_img(src = D_HLDfile, height = 1, width = 1)
 
-######
+# Map Figure Formatting Function
+make_external_img_keep_aspect <- function(file, desired_width_in) {
+  img <- magick::image_read(file)
+  info <- magick::image_info(img)
+  
+  aspect <- info$height / info$width
+  desired_height_in <- desired_width_in * aspect
+  
+  tmp <- tempfile(fileext = ".png")
+  magick::image_write(img, path = tmp, format = "png")
+  
+  list(
+    ext = officer::external_img(src = tmp),
+    width = desired_width_in,
+    height = desired_height_in
+  )
+}
 
+# Figure Counter Function
+.fig_env <- new.env(parent = emptyenv())
+.fig_env$n <- 0
+
+fig <- function(text, style = fp_Fig, align = "left") {
+  .fig_env$n <- .fig_env$n + 1
+  
+  block_list(
+    fpar(
+      ftext(paste0("Figure ", .fig_env$n, ". ", text), style),
+      fp_p = fp_par(text.align = align)
+    )
+  )
+}
+
+#####
 debug_print("2")
 
 #for(f in 1:NF) {
@@ -312,6 +344,7 @@ fp_Fig2 <- fp_text(font.size = 10, color = "black")
 fp_Fig3 <- fp_text(font.size = 14, color = "black")
 fp_Fig4<- fp_text(bold = TRUE, color = "darkred",font.size = 15,underlined = TRUE)
 fp_Fig5 <-fp_text(font.size=11, color = "black")
+fp_Fig6<-fp_text(font.size = 12, color = "black", italic = TRUE)
 fp_ft <- fp_text(font.size=12, font.family = "Calibri (Body)", color = "darkgrey")
 
 FTXTT <-  fp_text(bold = TRUE,color = "darkblue", font.size = 40)
@@ -339,50 +372,42 @@ SUB <- fpar(ftext(paste0(NameF, ", ", ISL), fp_BR2), fp_p = fp_par(text.align = 
 ################ Slide 2 PDKE
 debug_print("SLIDE 2")
 
-# start slide/page numbers
-p <- 1
-
-p <- p + 1
-p1 <- p
-#S2_TIT<- block_list(
-#fpar(ftext("Pacific Drought Knowledge Exchange", FTXTT),fp_p = fp_par(text.align = "center")))
-
 # Determine if the AOI full and short name are different and use the correct text
 if ((nchar(NameF)) > (nchar(SNameF))) {
   HDKE<- paste0("Climate change, climate variability, and drought (CCVD) will exert a growing impact on Hawaii's ecosystems, ",
-    "agriculture and communities in the future. While resource managers are tasked with preparing for this with the ",
-    "best available information, it is hard to know what data, research and recommendations are available. ",
-    "The Pacific Drought Knowledge Exchange (PDKE) program ",
-    "focuses on facilitating knowledge exchange between the research community and resource managers and stakeholders, ",
-    "thereby expanding the utility of climate and drought-related scientific products.
+                "agriculture and communities in the future. While resource managers are tasked with preparing for this with the ",
+                "best available information, it is hard to know what data, research and recommendations are available. ",
+                "The Pacific Drought Knowledge Exchange (PDKE) program ",
+                "focuses on facilitating knowledge exchange between the research community and resource managers and stakeholders, ",
+                "thereby expanding the utility of climate and drought-related scientific products.
 
 This CCVD portfolio is a comprehensive synthesis of climate and drought information developed specifically for ", NameF," (",SNameF,"). ",
-    "It is designed to provide relevant climate and drought information needed to inform land management and guide future ",
-    "research and extension. While we try to include a wide range of useful site-specific data products, we also recognize ",
-    "that every site is unique and PDKE is happy to collaborate on producing additional drought products beyond the CCVD portfolio ",
-    "to meet stakeholder needs.
+                "It is designed to provide relevant climate and drought information needed to inform land management and guide future ",
+                "research and extension. While we try to include a wide range of useful site-specific data products, we also recognize ",
+                "that every site is unique and PDKE is happy to collaborate on producing additional drought products beyond the CCVD portfolio ",
+                "to meet stakeholder needs.
                 
 The PDKE program was piloted in November of 2019 with funding from the Pacific Islands Climate Adaptation Science Center (PICASC). ",
-    "Subsequent PDKE activities and updates to the CCVD portfolio have been funded by PICASC, the East-West Center, ",
-    "and the National Integrated Drought Information System (NIDIS). ") }
+                "Subsequent PDKE activities and updates to the CCVD portfolio have been funded by PICASC, the East-West Center, ",
+                " the National Integrated Drought Information System (NIDIS), and the Commission on Water Resource Management (CWRM). ") }
 
 if((nchar(NameF)) == (nchar(SNameF))) {
   HDKE<- paste0("Climate change, climate variability, and drought (CCVD) will exert a growing impact on Hawaii's ecosystems, ",
-    "agriculture and communities in the future. While resource managers are tasked with preparing for this with the ",
-    "best available information, it is hard to know what data, research and recommendations are available. ",
-    "The Pacific Drought Knowledge Exchange (PDKE) program ",
-    "focuses on facilitating knowledge exchange between the research community and resource managers and stakeholders, ",
-    "thereby expanding the utility of climate and drought-related scientific products.
+                "agriculture and communities in the future. While resource managers are tasked with preparing for this with the ",
+                "best available information, it is hard to know what data, research and recommendations are available. ",
+                "The Pacific Drought Knowledge Exchange (PDKE) program ",
+                "focuses on facilitating knowledge exchange between the research community and resource managers and stakeholders, ",
+                "thereby expanding the utility of climate and drought-related scientific products.
 
 This CCVD portfolio is a comprehensive synthesis of climate and drought information developed specifically for ", NameF,". ",
-    "It is designed to provide relevant climate and drought information needed to inform land management and guide future ",
-    "research and extension. While we try to include a wide range of useful site-specific data products, we also recognize ",
-    "that every site is unique and PDKE is happy to collaborate on producing additional drought products beyond the CCVD portfolio ",
-    "to meet stakeholder needs.
+                "It is designed to provide relevant climate and drought information needed to inform land management and guide future ",
+                "research and extension. While we try to include a wide range of useful site-specific data products, we also recognize ",
+                "that every site is unique and PDKE is happy to collaborate on producing additional drought products beyond the CCVD portfolio ",
+                "to meet stakeholder needs.
                 
 The PDKE program was piloted in November of 2019 with funding from the Pacific Islands Climate Adaptation Science Center (PICASC). ",
-    "Subsequent PDKE activities and updates to the CCVD portfolio have been funded by PICASC, the East-West Center, ",
-    "and the National Integrated Drought Information System (NIDIS). ") }
+                "Subsequent PDKE activities and updates to the CCVD portfolio have been funded by PICASC, the East-West Center, ",
+                " the National Integrated Drought Information System (NIDIS), and the Commission on Water Resource Management (CWRM). ") }
 
 # Text for slide as a variable
 fp_HDKE <- fpar(ftext(HDKE, fp_TxBs))
@@ -390,17 +415,15 @@ fp_HDKE <- fpar(ftext(HDKE, fp_TxBs))
 ################ Slide 3 PART 1
 debug_print("SLIDE 2 PART 1")
 
-p <- p + 1
-p2 <- p
 S3_TIT <- block_list(
   fpar(ftext("Part 1: Describing the Area", FTXTT), fp_p = fp_par(text.align = "center")))
 
 CCVD<- paste0("In describing any area of management in Hawaii, it is important to present both traditional and contemporary knowledge. ",
-  "Traditional Hawaiian landscape divisions are well-documented and were established largely following geological features and ",
-  "the natural flow of resources throughout the landscape. 
+              "Traditional Hawaiian landscape divisions are well-documented and were established largely following geological features and ",
+              "the natural flow of resources throughout the landscape. 
 
 This portfolio provides a brief description of ",SNameF," in context of traditional Hawaiian landscapes, as well as contemporary knowledge on ",
-  "elevation and current landcover.
+              "elevation and current landcover.
   
 Please note that this portfolio uses Hawaiian diacritical marks whenever possible; however due to source dataset limitations some 
 diacriticals may be omitted.")
@@ -413,14 +436,11 @@ FIG_1 <- block_list(fpar(ftext(paste0("Credit: Matt Foster"), fp_Fig2)))
 ################ Slide 4 Hawaiian Land Divisions
 debug_print("SLIDE 4 Hawaiian Land Divisions")
 
-p<-p+1
-p3<-p
-
 S4a_TIT<- block_list(
   fpar(ftext("Hawaiian Land Divisions", FTXTT), fp_p = fp_par(text.align = "center")))
 
 HLD1<- paste0("There are three types of traditional Hawaiian landscape divisions available as GIS layers and ",
-  "presented here for ",SNameF,". The land divisions are shown in red and ",SNameF," is shown in blue.")
+              "presented here for ",SNameF,". The land divisions are shown in red and ",SNameF," is shown in blue.")
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 19) 
 fp_HLD1 <- fpar(ftext(HLD1, fp_Tx))
@@ -465,11 +485,11 @@ MO
 
 if(AHc<3) {AH <- block_list(
   fpar(ftext(paste0("Within each moku are several ahupuaa which commonly extend from uplands to the sea. ",SNameF,
-    " is situated within ",AHc," ahupuaa -  ",AHa), fp_Fig5)))}
+                    " is situated within ",AHc," ahupuaa -  ",AHa), fp_Fig5)))}
 
 if(AHc>2) {AH <- block_list(
   fpar(ftext(paste0("Within each moku are several ahupuaa which commonly extend from uplands to the sea. ",SNameF,
-    " is situated within ",AHc," ahupuaa including ",AHa), fp_Fig5)))}
+                    " is situated within ",AHc," ahupuaa including ",AHa), fp_Fig5)))}
 AH
 
 # Load land division maps
@@ -488,9 +508,6 @@ ft1 <- block_list(fpar(ftext(paste0("https://planning.hawaii.gov/gis"), fp_ft)))
 ###############   Slide 5 Elevation
 debug_print("Slide 5 Elevation")
 
-p <- p + 1
-p4 <- p
-
 S5_TIT <- block_list(
   fpar(ftext("Elevation", FTXTT), fp_p = fp_par(text.align = "center")))
 
@@ -505,7 +522,7 @@ El_Min <-  round(CLIM[3, 2], 0)
 EL_Dif <- El_Max - El_Min
 
 ELEV_T<- paste0(SNameF," is located on the Island of ", ISL, ". It covers ",ar," acres and a vertical elevation range of ", EL_Dif, ELUnit, ". In Hawaii, climate gradients can change ",
-  "significantly over short distances due to changes in elevation, topography, and orientation to the prevailing winds.")
+                "significantly over short distances due to changes in elevation, topography, and orientation to the prevailing winds.")
 
 M_Elev <-  block_list(
   fpar(ftext(ELEV_T, fp_Tx)),
@@ -517,8 +534,8 @@ M_Elev <-  block_list(
   fpar(ftext(paste0("Maximum = ", El_Max, ELUnit), fp_NM3)))
 
 # Figure 2 caption
-FIG_2 <- block_list(
-  fpar(ftext(paste0("Figure 2. Elevation for the Island of ",ISL," with ",SNameF," outlined in black."), fp_Fig)))
+FIG_2 <- fig(paste0("Elevation for the Island of ",ISL," with ",SNameF,
+                    " outlined in black."))
 
 #Read in elevation figure
 Elevfile <- paste0(PROJECT_FILE_BASE, "ELMap.png")
@@ -529,9 +546,6 @@ ft2 <- block_list(fpar(ftext(paste0("https://www.pacioos.hawaii.edu/"), fp_ft)))
 
 ############### Slide 6.1 (NEW) Landcover
 debug_print("Slide 6.1 (NEW) Landcover")
-
-p <- p + 1
-p5 <- p
 
 S6.1_TIT <- block_list(
   fpar(ftext("Landcover", FTXTT), fp_p = fp_par(text.align = "center")))
@@ -556,24 +570,95 @@ LCmapfile <- paste0(PROJECT_FILE_BASE, "LCMap.png")
 LCmapimg <- external_img(src = LCmapfile)
 
 # Figure 3.1 caption
-FIG_3.1 <- block_list(
-  fpar(ftext(paste0("Figure 3. Bar graph showing amount and percent of each landcover type within ",SNameF,"."), fp_Fig)))
+FIG_3.1 <- fig(paste0("Bar graph showing amount and percent of each landcover type within ",SNameF,"."))
+FIG_3.1
 
 # Figure 3.2 caption
-FIG_3.2 <- block_list(
-  fpar(ftext(paste0("Figure 4. Landcover mapping for the island of ", ISL," with ",SNameF," outlined in red. ",
-    "The maps shown in the following slides will be for the ",SNameF," area only."), fp_Fig)))
+FIG_3.2 <- fig(paste0("Landcover mapping for the island of ", ISL," with ",SNameF," outlined in red. ",
+                      "The maps shown in the following slides will be for the ",SNameF," area only."))
 
 ft3 <- block_list(fpar(ftext(paste0("https://www.usgs.gov/special-topics/lcmap"), fp_ft)))
 
-################ Slide 7.1 Water Sources - Aquifers
-debug_print("Slide 7.1 Water Sources - Aquifers")
 
-p <- p + 1
-p6 <- p
+################ Slide 7 Water Sources - Streams
+debug_print("Slide 7.2 Water Sources - Streams")
+
+S6.2a_TIT <- block_list(
+  fpar(
+    ftext("Water Sources", FTXTT),
+    fp_p = fp_par(text.align = "center")
+  ),
+  fpar(
+    ftext("Surface Water and Conveyance", fp_text(font.size = 30, italic = TRUE, color = "darkblue")),
+    fp_p = fp_par(text.align = "center")
+  )
+)
+
+#Hydrologic features spreadsheet
+HYDRO_FILE <- paste0(PROJECT_FILE_BASE, "Hydro_features.csv")
+debug_print(paste0("HYDRO_FILE: ", HYDRO_FILE))
+HF <- try(read.csv(HYDRO_FILE, sep = ","))
+#debug_print(paste0("HF: ", HF))
+#debug_print(paste0("HF[1]: ", HF[1]))
+
+if (typeof(HF) == "character") {
+  HF <- data.frame()
+}
+
+HFc <- nrow(HF)
+
+# make text string naming all feature types within AOI
+if (HFc > 0) { ft <- paste0(HF[1, ]) }
+if (HFc == 0) { ft <- "no" }
+
+for (i in 2:nrow(HF)) {
+  t<-HF[i,]
+  if(i<nrow(HF)) {ft<-paste0(ft,", ",t)}
+  if(i==nrow(HF)) {ft<-paste0(ft," and ",t)}
+  if(HFc==0) {ft<-"no"}
+}
+ft
+
+#Body text
+HF_T<- paste0("There are ",ft," hydrologic features within ",SNameF,".
+
+Perennial streams are typically reliable water sources, while intermittent ",
+              "streams stop flowing during dry periods. Well-managed waterways and canal/ditch ",
+              "systems can reduce the impacts of drought and flooding.")
+
+M_HF <-  block_list(
+  fpar(ftext(HF_T, fp_Tx)))
+M_HF
+
+# map
+HFmapfile <- paste0(PROJECT_FILE_BASE, "Streams.png")
+HFmapimg <- external_img(src = HFmapfile)
+
+# legend
+HFlmapfile <- paste0(I_FOLDER, "water_features_leg.jpg")
+HFlmapimg <- external_img(src = HFlmapfile)
+
+# Figure caption
+FIG_6.b <- fig(paste0("Streams and hydrologic features with ",
+                      SNameF," outlined in red."))
+
+# ft3.1 <- block_list(fpar(ftext(paste0("https://geoportal.hawaii.gov/datasets"), fp_ft)))
+
+################ Slide 7.1 Water Sources - Aquifers
+debug_print("Slide 8 Water Sources - Aquifers")
 
 S6.2_TIT <- block_list(
-  fpar(ftext("Water Sources", FTXTT), fp_p = fp_par(text.align = "center")))
+  fpar(
+    ftext("Water Sources", FTXTT),
+    fp_p = fp_par(text.align = "center")
+  ),
+  fpar(
+    ftext("Groundwater", fp_text(font.size = 30, italic = TRUE, color = "darkblue")),
+    fp_p = fp_par(text.align = "center")
+  )
+)
+
+S6.2_TIT
 
 #Aquifer spreadsheet
 AQ_file <- paste0(PROJECT_FILE_BASE, "Aquifer.csv")
@@ -581,7 +666,6 @@ debug_print(paste0("AQ_file: ", AQ_file))
 AQ <- read.csv(AQ_file, sep = ",")
 AQc <- nrow(AQ)
 AQc
-
 
 # split table up into smaller pieces
 if(AQc <=15) {AQ1<-AQ}
@@ -621,20 +705,6 @@ if (exists("AQ3") && is.data.frame(AQ3)) {
 
 if(AQc > 45) {AQT_end<-paste0("Record stops at 45 aquifers. Contact PDKE for
                               complete record")}
-#
-#
-# AQ_T<-flextable(AQ)
-# AQ_T<-bold(AQ_T, bold=TRUE, part="header")
-# AQ_T<-fontsize(AQ_T, size=12)
-# AQ_T<-autofit(AQ_T)
-# AQ_T
-
-#Body text
-# AQ_Tt<- paste0("Aquifers in Hawai‘i are critical sources of fresh water for the islands, supplying the majority of drinking water and irrigation needs. 
-# 
-# There are ",AQc," aquifers in ", SNameF, ". See Annex III for a complete list of aquifers and their characteristics.
-# 
-# In general, basal aquifers are more susceptible to saltwater intrusion than high level aquifers.")
 
 AQ_Tt<- paste0("There are ",AQc," aquifers in ", SNameF, ".
 
@@ -644,39 +714,27 @@ Basal aquifers occur at low elevations near the coast and are in direct contact 
 
 High-level aquifers are found at higher elevations, often perched above impermeable layers, and are largely protected from seawater but can respond more quickly to drought conditions.")
 
-
-AQ_Tt
-
-
 M_AQ <- block_list(
   fpar(ftext(AQ_Tt, fp_Tx16)))
 M_AQ
 
 # map
 AQmapfile <- paste0(PROJECT_FILE_BASE, "Aquifers.png")
-AQmapimg <- external_img(src = AQmapfile)
-AQmapimg <- image_read(AQmapfile)
-plot(AQmapimg)
+AQ_ext <- officer::external_img(src = AQmapfile, width = 3.7)
 
-# fix aspect ratio
-img_info <- image_info(AQmapimg)
-original_width <- img_info$width
-original_height <- img_info$height
+# desired displayed width (inches)
+AQ_w <- 3.7
 
-desired_width <- 4.3  # Your desired width
-aspect_ratio <- original_height / original_width
-desired_height <- desired_width * aspect_ratio  # Calculate height to maintain aspect ratio
+# compute aspect ratio from file
+info <- magick::image_info(magick::image_read(AQmapfile))
+AQ_h <- AQ_w * (info$height / info$width)
 
-# Save the AQmapimg as a temporary file (PNG format)
-tmp_file <- tempfile(fileext = ".png")
-image_write(AQmapimg, path = tmp_file)
+# create external_img from file path (not magick object)
+AQ_ext <- external_img(AQmapfile)
 
 # Figure caption
-FIG_5.b <- block_list(
-  fpar(ftext(paste0("Figure 5. Department of Health (DOH) aquifer mapping labeled by aquifer number. ",
-    "Basal aquifers are blue, and high level aquifers are gray. ",SNameF," outlined in red."), fp_Fig)))
-
-FIG_5.b
+FIG_5.b <- fig(paste0("Department of Health (DOH) aquifer mapping labeled by aquifer number. ",
+                      "Basal aquifers are blue, and high level aquifers are gray. ",SNameF," outlined in red."))
 
 # Table caption
 TAB_0 <- block_list(fpar(ftext(paste0("Table 1. Aquifer characteristics for ", SNameF, "."), fp_Fig)))
@@ -684,81 +742,181 @@ TAB_0 <- block_list(fpar(ftext(paste0("Table 1. Aquifer characteristics for ", S
 
 ft3.1 <- block_list(fpar(ftext(paste0("https://geoportal.hawaii.gov/datasets"), fp_ft)))
 
-################ Slide 7.2 Water Sources - Streams
-debug_print("Slide 7.2 Water Sources - Streams")
+################ Slide 9 Water Sources - Groundwater Recharge
+debug_print("Slide 9 Water Sources - Groundwater Recharge")
 
-p <- p + 1
-p7 <- p
+S6.3_TIT <- block_list(
+  fpar(
+    ftext("Water Sources", FTXTT),
+    fp_p = fp_par(text.align = "center")
+  ),
+  fpar(
+    ftext("Groundwater Recharge", fp_text(font.size = 30, italic = TRUE, color = "darkblue")),
+    fp_p = fp_par(text.align = "center")
+  )
+)
 
-S6.2_TIT <- block_list(
-  fpar(ftext("Water Sources", FTXTT), fp_p = fp_par(text.align = "center")))
+#Recharge spreadsheet
+RC_file <- paste0(PROJECT_FILE_BASE, "recharge_stats.csv")
+debug_print(paste0("RC_file: ", RC_file))
 
-#Hydrologic features spreadsheet
-HYDRO_FILE <- paste0(PROJECT_FILE_BASE, "Hydro_features.csv")
-debug_print(paste0("HYDRO_FILE: ", HYDRO_FILE))
-HF <- try(read.csv(HYDRO_FILE, sep = ","))
-#debug_print(paste0("HF: ", HF))
-#debug_print(paste0("HF[1]: ", HF[1]))
-
-if (typeof(HF) == "character") {
-  HF <- data.frame()
+if(file.exists(RC_file)) {
+  RC <- read.csv(RC_file, sep = ",")
+  RCc <- nrow(RC)
+  
+  #Pull out current average recharge value (mgal or kgal/day)
+  RCv <- format(round(RC$value[RC$GRC_tbl == "GRC"], 0), big.mark=",",scientific=FALSE)
+  RCv
+  RCvu <- if (RC[RC$GRC_tbl == "GRC", "units"] == "mgal_d") {
+    "million gallons per day"
+  } else if (RC[RC$GRC_tbl == "GRC", "units"] == "kgal_d") {
+    "thousand gallons per day"
+  } else {
+    "percent"
+  }
+  
+  #Slide text
+  RC_Tt<- paste0(SNameF," has an estimated total recharge rate of ",RCv," ",RCvu,"*.
+  
+Areas with higher recharge help to support municipal water supply and natural streamflow. Vegetation and landscape management can greatly affect groundwater recharge rates. Natural landscapes support higher recharge, while paved or built environments reduce recharge and increase runoff.") 
+  
+  M_RC <- block_list(
+    fpar(ftext(RC_Tt, fp_Tx16)))
+  M_RC
+  
+  # # map
+  RCmapfile <- paste0(PROJECT_FILE_BASE, "GRCMap.png")
+  
+  RC_ext <- officer::external_img(src = RCmapfile, width = 3.7)
+  
+  # desired displayed width (inches)
+  RC_w <- 3.9
+  
+  # compute aspect ratio from file
+  info <- magick::image_info(magick::image_read(RCmapfile))
+  RC_h <- RC_w * (info$height / info$width)
+  
+  # create external_img from file path (not magick object)
+  RC_ext <- external_img(RCmapfile)
+  
+  # Figure caption
+  FIG_5.c <- fig(paste0("Estimated daily groundwater recharge rate for ",SNameF,"."))
+  FIG_5.c
+  
+  RC_asterisk <- block_list(
+    fpar(ftext(paste0("*Groundwater recharge estimates are based on rainfall data from 1978-2007 and landcover data from 2020. Changes in land cover/land use can affect recharge rates."), fp_Fig6)))
+  
+} else {
+  #Slide text
+  RC_Tt<- paste0("No groundwater recharge data is available for this location.") 
+  M_RC <- block_list(
+    fpar(ftext(RC_Tt, fp_Tx)))
+  M_RC
 }
 
-HFc <- nrow(HF)
+################ Slide 10 Water Sources - Groundwater Recharge Change in Drought
+debug_print("Slide 9 Water Sources - Groundwater Recharge in Drought")
 
-# make text string naming all feature types within AOI
-if (HFc > 0) { ft <- paste0(HF[1, ]) }
-if (HFc == 0) { ft <- "no" }
+S6.4_TIT <- block_list(
+  fpar(
+    ftext("Water Sources", FTXTT),
+    fp_p = fp_par(text.align = "center")
+  ),
+  fpar(
+    ftext("Groundwater Recharge during Drought", fp_text(font.size = 30, italic = TRUE, color = "darkblue")),
+    fp_p = fp_par(text.align = "center")
+  )
+)
 
-for (i in 2:nrow(HF)) {
-  t<-HF[i,]
-  if(i<nrow(HF)) {ft<-paste0(ft,", ",t)}
-  if(i==nrow(HF)) {ft<-paste0(ft," and ",t)}
-  if(HFc==0) {ft<-"no"}
+#Pull out current change in recharge during drought values (mgal/year and %)
+
+if(file.exists(RC_file)) {
+  RC
+  RCDv <- format(round(abs(RC$value[RC$GRC_tbl == "DGRC"]), 0),big.mark=",",scientific=FALSE)
+  RCDv
+  RCDPv <- round(abs(RC$value[RC$GRC_tbl == "DGRCP"]), 0)
+  RCDPv
+  
+  #Pull out value (mgal or kgal/day)
+  RCDvu <- if (RC[RC$GRC_tbl == "DGRC", "units"] == "mgal_d") {
+    "million gallons) total per day"
+  } else if (RC[RC$GRC_tbl == "DGRC", "units"] == "kgal_d") {
+    "thousand gallons) total per day"
+  } else {
+    "percent"
+  }
+  RCDvu
+  
+  #Slide text
+  RCD_Tt<- paste0("Drought reduces groundwater recharge through decreased rainfall and increased evapotranspiration. ",
+                  "These maps show estimated changes in recharge under severe drought conditions seen in the recent past ",
+                  "(1998-2002). In these conditions, ",SNameF," recharge experienced a reduction of ",RCDPv,"% (",
+                  RCDv," ",RCDvu,".") 
+  
+  M_RCD <- block_list(
+    fpar(ftext(RCD_Tt, fp_Tx16)))
+  M_RCD
+  
+  # maps
+  RCD_obj  <- make_external_img_keep_aspect(paste0(PROJECT_FILE_BASE, "DGRCMap.png"),  desired_width_in = 4.3)
+  RCDP_obj <- make_external_img_keep_aspect(paste0(PROJECT_FILE_BASE, "DGRCPMap.png"), desired_width_in = 4.3)
+  
+  #RCD
+  RCDmapfile <- paste0(PROJECT_FILE_BASE, "DGRCMap.png")
+  RCD_magick <- magick::image_read(RCDmapfile)  # for info/sizing
+  
+  img_info <- magick::image_info(RCD_magick)
+  aspect_ratio <- img_info$height / img_info$width
+  
+  RCD_w <- 4.3
+  RCD_h <- RCD_w * aspect_ratio
+  
+  tmpRCD_file <- tempfile(fileext = ".png")
+  magick::image_write(RCD_magick, path = tmpRCD_file, format = "png")
+  
+  RCDmapimg <- officer::external_img(src = tmpRCD_file)  # <-- this is what goes to ph_with()
+  
+  #RCDP
+  RCDPmapfile <- paste0(PROJECT_FILE_BASE, "DGRCPMap.png")
+  RCDP_magick <- magick::image_read(RCDPmapfile)
+  
+  img_info <- magick::image_info(RCDP_magick)
+  aspect_ratio <- img_info$height / img_info$width
+  
+  RCDP_w <- 4.3
+  RCDP_h <- RCDP_w * aspect_ratio
+  
+  tmpRCDP_file <- tempfile(fileext = ".png")
+  magick::image_write(RCDP_magick, path = tmpRCDP_file, format = "png")
+  
+  RCDPmapimg <- officer::external_img(src = tmpRCDP_file)
+  
+  # Figure caption
+  FIG_5.d <- fig(paste0("Estimated change in groundwater recharge for ",SNameF," under recent drought conditions."))
+  FIG_5.d
+  
+  FIG_5.e <- fig(paste0("Estimated percent change in groundwater recharge for ",SNameF," under recent drought conditions."))
+  FIG_5.e
+  
+} else {
+  #Slide text
+  RCD_Tt<- paste0("No groundwater recharge data is available for this location.") 
+  M_RCD <- block_list(
+    fpar(ftext(RCD_Tt, fp_Tx)))
+  M_RCD
 }
-ft
-
-#Body text
-HF_T<- paste0("There are ",ft," hydrologic features within ",SNameF,".
-
-Perennial streams are typically reliable water sources, while intermittent ",
-  "streams stop flowing during dry periods. Well-managed waterways and canal/ditch ",
-  "systems can reduce the impacts of drought and flooding.")
-
-M_HF <-  block_list(
-  fpar(ftext(HF_T, fp_Tx)))
-M_HF
-
-# map
-HFmapfile <- paste0(PROJECT_FILE_BASE, "Streams.png")
-HFmapimg <- external_img(src = HFmapfile)
-
-# legend
-HFlmapfile <- paste0(I_FOLDER, "water_features_leg.jpg")
-HFlmapimg <- external_img(src = HFlmapfile)
-
-# Figure caption
-FIG_6.b <- block_list(
-  fpar(ftext(paste0("Figure 6. Streams and hydrologic features with ",
-    SNameF," outlined in red."), fp_Fig)))
-
-# ft3.1 <- block_list(fpar(ftext(paste0("https://geoportal.hawaii.gov/datasets"), fp_ft)))
-
 
 ################ Slide 7 PART 1
 debug_print("Slide 7 PART 1")
-
-p <- p + 1
-p8 <- p
 
 P1_TIT <- block_list(
   fpar(ftext("Part 2: Climate Characteristics", FTXTT)),
   fpar(ftext(SNameF, FTXTT3), fp_p = fp_par(text.align = "center")))
 
 PART1<- paste0("In developing this Portfolio, we relied on several gridded climate products available for the State of Hawaii. Annual and monthly estimates of rainfall were ",
-  "obtained from the Hawaii Climate Data Portal (HCDP). Gridded estimates of other climate variables were ",
-  "obtained from the UH Manoa Climate of Hawaii data page. ",
-  "We retrieved all the data points that fell within the boundaries of ",SNameF," from our 250 meter resolution state-wide maps to support the presented analyses.")
+               "obtained from the Hawaii Climate Data Portal (HCDP). Gridded estimates of other climate variables were ",
+               "obtained from the UH Manoa Climate of Hawaii data page. ",
+               "We retrieved all the data points that fell within the boundaries of ",SNameF," from our 250 meter resolution state-wide maps to support the presented analyses.")
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 19)
 fp_PART1 <- fpar(ftext(PART1, fp_Tx))
@@ -768,9 +926,6 @@ fp_PART1 <- fpar(ftext(PART1, fp_Tx))
 
 ###############   Rainfall Stations Slide 8a
 debug_print("Slide 8a Rainfall Stations")
-
-p <- p + 1
-p9 <- p
 
 S8.0_TIT <- block_list(
   fpar(ftext("Rainfall Station Locations", FTXTT), fp_p = fp_par(text.align = "center")))
@@ -794,7 +949,7 @@ if(ISL == c("Hawaii")) {ISL2<-c("Big Island")}
 if(ISL != c("Hawaii")) {ISL2<-ISL}
 
 RS1<- paste0("Rainfall data for this portfolio were estimated based on measurements made ",
-  "by hundreds of stations across the state.
+             "by hundreds of stations across the state.
 
 The closest station to ",SNameF," is ",s1,", part of the ",snn," climate station network.")
 
@@ -803,15 +958,13 @@ fp_RS1 <- fpar(ftext(RS1, fp_Tx))
 fp_RS1
 
 # Figure 5 caption
-FIG_5.a <- block_list(
-  fpar(ftext(paste0("Figure 6. Rainfall station locations across ",ISL2," with ",SNameF,
-    " outlined in blue and three closest stations in orange."), fp_Fig)))
+FIG_5.a <- fig(paste0("Rainfall station locations across ",ISL2," with ",SNameF,
+                      " outlined in blue and three closest stations in orange."))
 
 # Figure 6 caption 
-FIG_6.a <- block_list(
-  fpar(ftext(paste0("Figure 7. Three closest stations to ",SNameF," with links to more ",
-    "information on the station network. If there are more than three stations ",
-    "at the site, only three will be listed here."), fp_Fig)))
+FIG_6.a <- fig(paste0("Three closest stations to ",SNameF," with links to more ",
+                      "information on the station network. If there are more than three stations ",
+                      "at the site, only three will be listed here."))
 
 # get map of stations and AOI
 RSfile <- paste0(PROJECT_FILE_BASE, "rf_stations.png")
@@ -821,21 +974,18 @@ RSimg <- external_img(src = RSfile)
 ###############   Slide 6 Mean Climate
 debug_print("Slide 6 Mean Climate")
 
-p <- p + 1
-p10 <- p
-
 S6_TIT<- block_list(
   fpar(ftext("Annual Climate Characteristics", FTXTT),fp_p = fp_par(text.align = "center")))
 
 ANNCLIM_T<- paste0("Climatic conditions in Hawaii can vary greatly across the landscape. ",
-  "These maps show the variation in select climate variables across ",SNameF," and the table below has min. and max. values taken from the maps.")
+                   "These maps show the variation in select climate variables across ",SNameF," and the table below has min. and max. values taken from the maps.")
 M_ANNCLIM <-  block_list(
   fpar(ftext(ANNCLIM_T, fp_Tx)))
 
 # Make a table of min and maxes
 T <- data.frame(matrix(0, ncol = 3, nrow = 7))
 T$X1<-c("Rainfall (in.)","Air Temperature (°F)","Relative Humidity (%)",
-  "Solar Radiation (W/m2)","Soil Moisture (Ratio)","Evapotranspiration (in.)","Windspeed (mph)")
+        "Solar Radiation (W/m2)","Soil Moisture (Ratio)","Evapotranspiration (in.)","Windspeed (mph)")
 T[1, ]$X2 <- CLIM[3, 3]
 T[1, ]$X3 <- CLIM[2, 3]
 T[2, ]$X2 <- CLIM[3, 4]
@@ -862,11 +1012,10 @@ Tt <- autofit(Tt, add_h=-0.5, part=c("body","header"), unit = "in")
 Tt
 
 FIG_5.1 <- block_list(
-  fpar(ftext(paste0("Table 2. Minimum and maximum average annual values for selected climate variables from within ",SNameF,"."), fp_Fig)))
+  fpar(ftext(paste0("Table 1. Minimum and maximum average annual values for selected climate variables from within ",SNameF,"."), fp_Fig)))
 
-FIG_6.1 <- block_list(
-  fpar(ftext(paste0("Figure 8. Mean annual climate of ",SNameF,
-    " with area average shown in heading of each plot."), fp_Fig)))
+FIG_6.1 <- fig(paste0("Mean annual climate of ",SNameF,
+                      " with area average shown in heading of each plot."))
 
 #Climate Variable figures
 RF2file <- paste0(PROJECT_FILE_BASE, "Climate_less_RF.png")
@@ -887,9 +1036,6 @@ WSimg <- external_img(src = WSfile, height = 3, width = 3)
 si <- 1.65
 ###############   Slide 8 Average monthly rainfall
 debug_print("Slide 8 Average monthly rainfall")
-
-p <- p + 1
-p11 <- p
 
 S7_TIT <- block_list(
   fpar(ftext("Average Monthly Rainfall", FTXTT), fp_p = fp_par(text.align = "center")))
@@ -913,15 +1059,13 @@ RFx <- round(RFx, 0)
 RFn <- round(RFn, 0)
 
 CLIMO_RF <- paste0("Average monthly rainfall patterns vary over the course of the year. At ", SNameF, ", the highest monthly rainfall is received in ", MONLIST[RFxm], 
-  " (",RFx, RFUnit,".) and the lowest monthly rainfall is received in ", MONLIST[RFnm]," (",RFn, RFUnit,".).")
+                   " (",RFx, RFUnit,".) and the lowest monthly rainfall is received in ", MONLIST[RFnm]," (",RFn, RFUnit,".).")
 
 fp_CLIMO_RF <- fpar(ftext(CLIMO_RF, fp_Tx))
 
-FIG_6a <- block_list(
-  fpar(ftext(paste0("Figure 9. Average monthly rainfall at ", SNameF, "."), fp_Fig)))
+FIG_6a <- fig(paste0("Average monthly rainfall at ", SNameF, "."))
 
-FIG_7a <- block_list(
-  fpar(ftext(paste0("Figure 10. Average monthly rainfall maps for the wettest (top) and driest (bottom) months."), fp_Fig)))
+FIG_7a <- fig(paste0("Average monthly rainfall maps for the wettest (top) and driest (bottom) months."))
 
 #Monthly rainfall barchart
 RFBfile <- paste0(PROJECT_FILE_BASE, "Climograph_RF.png")
@@ -936,9 +1080,6 @@ RFDimg <- external_img(src = RFDfile, height = 3, width = 3)
 
 ###############   Slide 9 Average monthly air temperature
 debug_print("Slide 9 Average monthly air temperature")
-
-p <- p + 1
-p12 <- p
 
 S8a_TIT <- block_list(
   fpar(ftext("Average Monthly Temperature", FTXTT), fp_p = fp_par(text.align = "center")))
@@ -968,16 +1109,14 @@ TAv <- round(TAh - TAl, 2)
 TAv
 
 CLIMO_TA <- paste0("Average monthly air temperature patterns vary over the course of the year. At ", SNameF, " there is a ",TAv, TUnit2," annual variation in temperature,",
-  " with the warmest month of ",MONLIST[TAxm]," (", TAx, TUnit2,") and the coolest month in ",MONLIST[TAnm],
-  " (", TAn, TUnit2,").")
+                   " with the warmest month of ",MONLIST[TAxm]," (", TAx, TUnit2,") and the coolest month in ",MONLIST[TAnm],
+                   " (", TAn, TUnit2,").")
 
 fp_CLIMO_TA <- fpar(ftext(CLIMO_TA, fp_Tx))
 
-FIG_8a <- block_list(
-  fpar(ftext(paste0("Figure 11. Average monthly air temperature at ",SNameF," with monthly rainfall in the background."), fp_Fig)))
+FIG_8a <- fig(paste0("Average monthly air temperature at ",SNameF," with monthly rainfall in the background."))
 
-FIG_9a <- block_list(
-  fpar(ftext(paste0("Figure 12. Average monthly air temperature maps for the coldest (top) and hottest (bottom) months."), fp_Fig)))
+FIG_9a <- fig(paste0("Average monthly air temperature maps for the coldest (top) and hottest (bottom) months."))
 
 #Monthly temp line chart
 TALfile <- paste0(PROJECT_FILE_BASE, "Climograph_AT.png")
@@ -992,9 +1131,6 @@ TAHimg <- external_img(src = TAHfile, height = 3, width = 3)
 ###############   Slide 8 TA And RF
 debug_print("Slide 8 TA And RF")
 
-p <- p + 1
-p13 <- p
-
 S8_TIT<- block_list(
   fpar(ftext("Average Monthly Climate", FTXTT),fp_p = fp_par(text.align = "center")))
 
@@ -1005,19 +1141,14 @@ RFFfile <- paste0(PROJECT_FILE_BASE, "RF12.png")
 debug_print(paste0("RFFfile: ", RFFfile))
 RFFimg <- external_img(src = RFFfile, height = 3, width = 3)
 
-FIG_5 <- block_list(
-  fpar(ftext(paste0("Figure 13. Average monthly rainfall  ",SNameF,
-    " with area average shown in heading of each plot."), fp_Fig)))
+FIG_5 <- fig(paste0("Average monthly rainfall  ",SNameF,
+                    " with area average shown in heading of each plot."))
 
-FIG_6 <- block_list(
-  fpar(ftext(paste0("Figure 14. Average monthly temperature at ",SNameF,
-    " with area average shown in heading of each plot."), fp_Fig)))
+FIG_6 <- fig(paste0("Average monthly temperature at ",SNameF,
+                    " with area average shown in heading of each plot."))
 
 ###############   Slide 9 Seasonal Rainfall
 debug_print("Slide 9 Seasonal Rainfall")
-
-p <- p + 1
-p14 <- p
 
 S9_TIT<- block_list(
   fpar(ftext("Average Seasonal Rainfall", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -1060,17 +1191,16 @@ W_RF_P <- P[1, 1]
 RFUnit3
 
 SEA <- paste0("Hawaii has two distinct 6-month seasons of rainfall: Ho'oilo (Wet season: November to April) and Kau (Dry season: May to October).",
-  " Average Wet season monthly rainfall across ",SNameF," is ",WetM," ",RFUnit2," and Dry season is ",DryM," ",RFUnit2,
-  ". These monthly values are in the ",W_RF_P," and ",D_RF_P," percentiles for rainfall across the whole state, respectively.
+              " Average Wet season monthly rainfall across ",SNameF," is ",WetM," ",RFUnit2," and Dry season is ",DryM," ",RFUnit2,
+              ". These monthly values are in the ",W_RF_P," and ",D_RF_P," percentiles for rainfall across the whole state, respectively.
               
 Management plans should anticipate and minimize negative impacts of these seasonal rainfall variations.")
 
 fp_Tx19 <- fp_text(italic = TRUE, color = "black", font.size = 19)
 fp_SEA <- fpar(ftext(SEA, fp_Tx19))
 
-FIG_12.1 <- block_list(
-  fpar(ftext(paste0("Figure 15. Average monthly rainfall maps for the wet (top) and dry (bottom) seasons. ",
-    SNameF,"."), fp_Fig)))
+FIG_12.1 <- fig(paste0("Average monthly rainfall maps for the wet (top) and dry (bottom) seasons. ",
+                       SNameF,"."))
 
 #Mean CLIM Figure
 SEAfile <- paste0(PROJECT_FILE_BASE, "SeaMRF.png")
@@ -1080,9 +1210,6 @@ SEAimg <- external_img(src = SEAfile, height = 3, width = 3)
 
 ###############   Slide 10  Average Climate Table
 debug_print("Slide 10  Average Climate Table")
-
-p <- p + 1
-p15 <- p
 
 ACLIM <- read.csv(paste0(PROJECT_FILE_BASE, "Annual Climate.csv"), sep = ",")
 ACLIM
@@ -1101,16 +1228,13 @@ S10_TIT<- block_list(
 
 
 TAB1 <- block_list(
-  fpar(ftext(paste0("Table 3. Average monthly climate variables characteristics at ",NameF, ". Where, RF is rainfall; Min TA is average minimum air temperature",
-    " Mean TA is average air temperature; Max TA is average maximum air temperature; RH is relative humidity; CF is cloud frequency; ET is ",
-    "evapotranspiration; SM is soil moisture; S is shortwave downward radiation: ANN, is annual total for rainfall and annual average for all other variables."), fp_Fig)))
+  fpar(ftext(paste0("Table 2. Average monthly climate variables characteristics at ",NameF, ". Where, RF is rainfall; Min TA is average minimum air temperature",
+                    " Mean TA is average air temperature; Max TA is average maximum air temperature; RH is relative humidity; CF is cloud frequency; ET is ",
+                    "evapotranspiration; SM is soil moisture; S is shortwave downward radiation: ANN, is annual total for rainfall and annual average for all other variables."), fp_Fig)))
 
 
 ################ Slide 12
 debug_print("Slide 12")
-
-p <- p + 1
-p16 <- p
 
 P2_TIT<- block_list(
   fpar(ftext("Part 3: Climate Variability", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -1120,8 +1244,8 @@ fp_Txa <- fp_text(italic = TRUE, color = "black", font.size = 17)
 
 InterAn <-  block_list(
   fpar(ftext(paste0("Rainfall and temperature in Hawaii can vary greatly from year-to-year due to natural climatic systems such as the El Niño-Southern Oscillation (ENSO). ",
-    "ENSO is a periodic fluctuation of ocean temperatures in the tropical Pacific, and this has a strong influence on rainfall variability. ",
-    "ENSO consists of five phases, as shown in the graph below."),fp_Txa)))
+                    "ENSO is a periodic fluctuation of ocean temperatures in the tropical Pacific, and this has a strong influence on rainfall variability. ",
+                    "ENSO consists of five phases, as shown in the graph below."),fp_Txa)))
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 17)
 # fp_InterAn <- fpar(ftext(InterAn, fp_Tx))
@@ -1136,16 +1260,12 @@ ENSO2img <- external_img(src = ENSOfile, height = 1.2, width = 1.2)
 rf <- read.csv(paste0(PROJECT_FILE_BASE, "Annual_RF_in.csv"), sep = ",")
 yr <- rf[nrow(rf), ]$Date
 
-FIG_10.1 <- block_list(
-  fpar(ftext(paste0("Figure 16. Timeseries of changes in sea surface temperature (SST) and associated ENSO phase from 1950 - ",yr,"."), fp_Fig)))
+FIG_10.1 <- fig(paste0("Timeseries of changes in sea surface temperature (SST) and associated ENSO phase from 1950 - ",yr,"."))
 
 ft4 <- block_list(fpar(ftext(paste0("https://psl.noaa.gov/data/timeseries/month/"), fp_ft)))
 
 ################ Slide 13 Seasonal Rainfall and ENSO
 debug_print("Slide 13 Seasonal Rainfall and ENSO")
-
-p <- p + 1
-p17 <- p
 
 MEIRF <- read.csv(paste0(PROJECT_FILE_BASE, "MEI_S.csv"), sep = ",")
 MEIRF
@@ -1190,20 +1310,16 @@ MEI3 <-  block_list(
 MEISfile <- paste0(PROJECT_FILE_BASE, "ENSO_season_barplot.png")
 MEISimg <- external_img(src = MEISfile, height = 1, width = 2.5)
 
-FIG_14.1 <- block_list(
-  fpar(ftext(paste0("Figure 17. Barplot of average monthly rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1950 to ",yr," fell within each ENSO phase."), fp_Fig)))
+FIG_14.1 <- fig(paste0("Barplot of average monthly rainfall grouped by season and ENSO phase. Numbers above the bars are how many seasons from 1950 to ",yr," fell within each ENSO phase."))
 
 #################### Slide 14 ###############################
 debug_print("Slide 14")
-
-p <- p + 1
-p18 <- p
 
 S13_TIT<- block_list(
   fpar(ftext("Long-Term Trends in Rainfall", FTXTT),fp_p = fp_par(text.align = "center")))
 
 Trend <- paste0("Linear trends in annual and seasonal rainfall at ",SNameF," have been calculated over three different periods since 1920 ",
-  "to show long, mid, and short-term trends. The directions of change for the annual plot are shown below.")
+                "to show long, mid, and short-term trends. The directions of change for the annual plot are shown below.")
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20)
 fp_Trend <- fpar(ftext(Trend, fp_Tx))
@@ -1222,16 +1338,12 @@ RFT_T <- autofit(RFT_T)
 TAB2.1 <- block_list(
   fpar(ftext(paste0("Table 4. Direction of trendline for annual average monthly rainfall over three periods within the record."), fp_Fig2)))
 
-FIG_9 <- block_list(
-  fpar(ftext(paste0("Figure 18. Rainfall time series (1920-",yr,") at " ,SNameF," with ",
-    "linear trends. Trendlines with p-value < 0.05 are statistically significant."), fp_Fig2)))
+FIG_9 <- fig(paste0("Rainfall time series (1920-",yr,") at " ,SNameF," with ",
+                    "linear trends. Trendlines with p-value < 0.05 are statistically significant."))
 
 
 #################### Slide 14 (NEW) Air Temperature Monthly and Annual #########################
 debug_print("Slide 14 (NEW) Air Temperature Monthly and Annual")
-
-p <- p + 1
-p19 <- p
 
 S14_TIT <- block_list(
   fpar(ftext("Trends in Air Temperature", FTXTT), fp_p = fp_par(text.align = "center")))
@@ -1294,14 +1406,14 @@ if(hot$month == 11) {hot.m<-c("November")}
 if(hot$month == 12) {hot.m<-c("December")}
 
 AirTrend <- paste0("Trends in monthly air temperature have been calculated over a ",yrs,"-year record at ",SNameF,
-  ". From ",s," to ",e," average annual air temperature has ",airchange, " by ", airchange2)
+                   ". From ",s," to ",e," average annual air temperature has ",airchange, " by ", airchange2)
 AirTrend
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20)
 fp_AirTrend <- fpar(ftext(AirTrend, fp_Tx))
 
 AirTrend2 <- paste0("At this site there is an average range of ",ra,"°F between the highest and lowest temperatures experienced ",
-  "within a single year. The highest monthly temperature of ",mt2,"°F was recorded in ",hot.m," ",hot.y,".") 
+                    "within a single year. The highest monthly temperature of ",mt2,"°F was recorded in ",hot.m," ",hot.y,".") 
 fp_AirTrend2 <- fpar(ftext(AirTrend2, fp_Tx))
 
 Trendfile1 <- paste0(PROJECT_FILE_BASE, "monthly_airtemp.png")
@@ -1312,10 +1424,9 @@ Trendfile2 <- paste0(I_FOLDER, "airtemp_legend2.jpg")
 debug_print(paste("Trendfile2: ", Trendfile2))
 Trendimg2 <- external_img(src = Trendfile2, height = 1, width = 1)
 
-FIG_10_11 <- block_list(
-  fpar(ftext(paste0("Figure 19. ",yrs,"-year (",s," to ",e,") monthly air temperature time series at ",SNameF,
-    ". The linear trend is determined to be statistically significant when the ",
-    "p-value is less than 0.05."), fp_Fig2)))
+FIG_10_11 <- fig(paste0(yrs,"-year (",s," to ",e,") monthly air temperature time series at ",SNameF,
+                        ". The linear trend is determined to be statistically significant when the ",
+                        "p-value is less than 0.05."))
 
 ft5 <- block_list(fpar(ftext(paste0("https://www.hawaii.edu/climate-data-portal/"), fp_ft)))
 ft5a <- block_list(fpar(ftext(paste0("Kodama et al. 2024"), fp_ft)))
@@ -1323,38 +1434,26 @@ ft5a <- block_list(fpar(ftext(paste0("Kodama et al. 2024"), fp_ft)))
 ################ Slide 15 PART 4 Drought and Fire Occurrence ###############
 debug_print("Slide 15 PART 4 Drought and Fire Occurrence")
 
-#Today,
-#increased wildland fire activity,
-#and damage to terrestrial and aquatic habitats - all of which can contribute to substantial economic losses#
-p <- p + 1
-p20 <- p
-
 P3_TIT <- block_list(
   fpar(ftext("Part 4: Drought and Fire History", FTXTT)),
   fpar(ftext(SNameF, FTXTT3), fp_p = fp_par(text.align = "center")))
 
 Part3 <- paste0("Drought is a prominent feature of the climate system in Hawaii and can cause severe impacts across multiple sectors. ",
-  "Droughts in Hawaii often result in reduced crop yields, loss of livestock, drying of streams and reservoirs, depletion ",
-  "of groundwater, and increased wildland fire activity. These impacts can cause substantial economic ",
-  "losses as well as long-term damage to terrestrial and aquatic habitats.")
+                "Droughts in Hawaii often result in reduced crop yields, loss of livestock, drying of streams and reservoirs, depletion ",
+                "of groundwater, and increased wildland fire activity. These impacts can cause substantial economic ",
+                "losses as well as long-term damage to terrestrial and aquatic habitats.")
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
 fp_Part3 <- fpar(ftext(Part3, fp_Tx))
 
-
-
-
 ####################  SLIDE 16 FIVE TYPES OF DROUGHT ######################################
 debug_print("Slide 16 FIVE TYPES OF DROUGHT")
-
-p <- p + 1
-p21 <- p
 
 TIT_D <- fpar(ftext("Five Types of Drought", FTXTT), fp_p = fp_par(text.align = "center"))
 
 D_t <- paste0("There are five major types of drought. During droughts there is sometimes a progression from ",
-  "one type to the next. Depending on local factors, these drought types can also happen simultaneously ",
-  "and at different levels of severity.")
+              "one type to the next. Depending on local factors, these drought types can also happen simultaneously ",
+              "and at different levels of severity.")
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
 fp_D_t <- fpar(ftext(D_t, fp_Tx))
@@ -1362,35 +1461,28 @@ fp_D_t <- fpar(ftext(D_t, fp_Tx))
 #################### Slide 17 ###############################
 debug_print("Slide 17")
 
-p <- p + 1
-p22 <- p
-
 S15_TIT<- block_list(
   fpar(ftext("Identifying Droughts Using the", FTXTT),fp_p = fp_par(text.align = "center")),
   fpar(ftext("Standard Precipitation Index", FTXTT),fp_p = fp_par(text.align = "center")))
 
 
 SPI <- paste0("The Standardized Precipitation Index (SPI) is one of the most widely used indices for meteorological drought. SPI compares current rainfall with ",
-  "its multi-year average, so that droughts are defined relative to local average rainfall. This standardized index allows wet and dry climates ",
-  "to be represented on a common scale. Here, 100+ years of monthly rainfall are used to used to calculate SPI-12, which compares how ",
-  "a 12-month period compares with all 12-month periods in the record. SPI-12 is a good measure of sustained droughts that affect hydrological processes ",
-  "at ",SNameF, ".")
+              "its multi-year average, so that droughts are defined relative to local average rainfall. This standardized index allows wet and dry climates ",
+              "to be represented on a common scale. Here, 100+ years of monthly rainfall are used to used to calculate SPI-12, which compares how ",
+              "a 12-month period compares with all 12-month periods in the record. SPI-12 is a good measure of sustained droughts that affect hydrological processes ",
+              "at ",SNameF, ".")
 
 fp_SPI <- fpar(ftext(SPI, fp_Txa))
 
 SPIfile <- paste0(PROJECT_FILE_BASE, "SPI.png")
 SPIimg <- external_img(src = SPIfile, height = 2, width = 2)
 
-FIG_12 <- block_list(
-  fpar(ftext(paste0("Figure 20. SPI-12 time series (1920-", yr, ") at ", 
-    SNameF , "."), fp_Fig)))
+FIG_12 <- fig(paste0("SPI-12 time series (1920-", yr, ") at ", 
+                     SNameF , "."))
 
 
 #################### Slide 18 ###############################
 debug_print("Slide 18")
-
-p <- p + 1
-p23 <- p
 
 S16_TIT <- block_list(
   fpar(ftext("A 100+ Year History of Drought", FTXTT), fp_p = fp_par(text.align = "center")))
@@ -1440,10 +1532,10 @@ DrotT_T3 <- autofit(DrotT_T3)}
 
 
 DHist1 <- paste0("Negative SPI values (dry periods) are inverted to show a complete drought timeseries at ", SNameF, ". Dashed lines and corresponding color coding indicates instances ",
-  "of Moderate (SPI > 1), Severe (SPI > 1.5), and Extreme (SPI > 2) drought.") 
+                 "of Moderate (SPI > 1), Severe (SPI > 1.5), and Extreme (SPI > 2) drought.") 
 
 DHist2 <- paste0("A total of ",CNTDRT," droughts were observed over the entire record ",
-  "with a total of ", SoG, " drought events of severe strength or greater. The longest drought lasted for a total of ",LongD," months (see Annex IV).")
+                 "with a total of ", SoG, " drought events of severe strength or greater. The longest drought lasted for a total of ",LongD," months (see Annex IV).")
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18)
 
@@ -1455,16 +1547,12 @@ fp_DHist<- block_list(
 DHistfile <- paste0(PROJECT_FILE_BASE, "Drought_History.png")
 DHistimg <- external_img(src = DHistfile, height = 2, width = 4)
 
-FIG_13 <- block_list(
-  fpar(ftext(paste0("Figure 21. SPI-12 time series (1920-",yr,") (reversed axis) at ", SNameF ,
-    ". Dashed lines show, moderate (yellow), severe (red), and extreme (dark red), drought thresholds."), fp_Fig)))
+FIG_13 <- fig(paste0("SPI-12 time series (1920-",yr,") (reversed axis) at ", SNameF ,
+                     ". Dashed lines show, moderate (yellow), severe (red), and extreme (dark red), drought thresholds."))
 
 
 #################### Slide 20 ###############################
 debug_print("Slide 20")
-
-p <- p + 1
-p24 <- p
 
 SPI_NA <- read.csv(paste0(PROJECT_FILE_BASE, "SPI_NEGS_ALL.csv"), sep = ",")
 SPI_NA
@@ -1480,18 +1568,16 @@ SPI3_SMimg <- external_img(src = SPI_3_SMfile, height = 2, width = 4)
 SPI_12_SMfile <- paste0(PROJECT_FILE_BASE, "Drought_HistoryS_12.png")
 SPI12_SMimg <- external_img(src = SPI_12_SMfile, height = 2, width = 4)
 
-FIG_14 <- block_list(
-  fpar(ftext(paste0("Figure 22. SPI-3 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
-FIG_15 <- block_list(
-  fpar(ftext(paste0("Figure 23. SPI-12 time series (reversed axis) at ", NameF ,"."), fp_Fig)))
+FIG_14 <- fig(paste0("SPI-3 time series (reversed axis) at ", NameF ,"."))
+FIG_15 <- fig(paste0("SPI-12 time series (reversed axis) at ", NameF ,"."))
 
 fp_Txa15 <- fp_text(italic = TRUE, color = "black", font.size = 15)
 
 SPI3v12<- block_list(
   fpar(ftext(paste0("SPI-3 reflects short-term conditions (3-month intervals). ", 
-    "SPI-12 reflects long-term conditions (12-month intervals). It is important ",
-    "to consider both timescales for understanding drought conditions and impacts. ",
-    "See \"Five Types of Drought\" slide for more information."), fp_Txa15)))
+                    "SPI-12 reflects long-term conditions (12-month intervals). It is important ",
+                    "to consider both timescales for understanding drought conditions and impacts. ",
+                    "See \"Five Types of Drought\" slide for more information."), fp_Txa15)))
 
 # bring in monthly rainfall dataset to get dates
 MRF <- read.csv(paste0(PROJECT_FILE_BASE, "Monthly Rainfall_in.csv"), sep = ",")
@@ -1536,10 +1622,10 @@ spi3HRs <- spi3HC$Start
 spi3HRe <- spi3HC$End
 
 if(!is.na(spi3HC$End)) {spi3CT <- paste0("SPI-3: Currently not in drought. Most recently there was ",
-  spi3HRL," drought from ",spi3HRs," - ",spi3HRe,". Current drought intensity is ",
-  spi3C,".")}
+                                         spi3HRL," drought from ",spi3HRs," - ",spi3HRe,". Current drought intensity is ",
+                                         spi3C,".")}
 if(is.na(spi3HC$End)) {spi3CT <- paste0("SPI-3: Currently in ",spi3HRL, " drought since ",spi3HRs,". ",
-  "Current drought intensity is ",spi3C,".")}
+                                        "Current drought intensity is ",spi3C,".")}
 
 # SPI12
 # spi12A<-read.csv(paste0(PROJECT_FILE_BASE,"SPI_12.csv"),sep = ",")
@@ -1564,10 +1650,10 @@ spi12HRs <- spi12HC$Start2
 spi12HRe <- spi12HC$End2
 
 if(!is.na(spi12HC$End)) {spi12CT <- paste0("SPI-12: Currently not in drought. Most recently there was ",
-  spi12HRL," drought from ",spi12HRs," - ",spi12HRe,". Current drought intensity is ",
-  spi12C,".")}
+                                           spi12HRL," drought from ",spi12HRs," - ",spi12HRe,". Current drought intensity is ",
+                                           spi12C,".")}
 if(is.na(spi12HC$End)) {spi12CT <- paste0("SPI-12: Currently in ",spi12HRL, " drought since ",spi12HRs,". ",
-  "Current drought intensity is ",spi12C,".")}
+                                          "Current drought intensity is ",spi12C,".")}
 spi12CT
 
 SPI3v12.1<- block_list(
@@ -1590,17 +1676,14 @@ SPI3v12.3
 #################### Slide 21 ###############################
 debug_print("Slide 21")
 
-p <- p + 1
-p25 <- p
-
 S18_TIT<- block_list(
   fpar(ftext(paste("Fire Occurrence in ",ISL), FTXTT),fp_p = fp_par(text.align = "center")))
 
 
 FIRE <- paste0("Ecological drought often drives an increase in wildfire occurrence. In Hawaii, wildfires are most extensive in dry ",
-  "and mesic non-native grass and shrublands. During drought events, wildfire risk in these areas increases rapidly. ",
-  "Currently, agricultural abandonment is resulting in increased grass and shrublands. ",
-  "This combined with recurring incidences of drought is expected to increase the risk of future wildfire in Hawaii.")
+               "and mesic non-native grass and shrublands. During drought events, wildfire risk in these areas increases rapidly. ",
+               "Currently, agricultural abandonment is resulting in increased grass and shrublands. ",
+               "This combined with recurring incidences of drought is expected to increase the risk of future wildfire in Hawaii.")
 
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 20) 
@@ -1610,28 +1693,24 @@ FireMfile <- paste0(PROJECT_FILE_BASE, "Fire.png")
 FireMimg <- external_img(src = FireMfile)
 
 
-FIG_16 <- block_list(
-  fpar(ftext(paste0 ("Figure 24. The map shows wildfires that have occurred on the island of ", ISL, " between 1999 and 2022.") , fp_Fig)))
+FIG_16 <- fig(paste0 ("The map shows wildfires that have occurred on the island of ", ISL, " between 1999 and 2022."))
 
 
 ################ Slide 22 PART 5 Downscaling ###############
 debug_print("Slide 22 PART 5 Downscaling")
-
-p <- p + 1
-p26 <- p
 
 P4_TIT<- block_list(
   fpar(ftext("Part 5: Future Climate", FTXTT),fp_p = fp_par(text.align = "center")),
   fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
 
 Part4<- paste0("Global Climate Models are used to predict future changes in rainfall and temperature, simulating future conditions under different ",
-  "scenarios for how much carbon dioxide we emit into the air. Two common scenarios are RCP 4.5 which assumes we reduce our carbon ",
-  "emissions, and RCP 8.5, which is an increased emissions scenario.")
+               "scenarios for how much carbon dioxide we emit into the air. Two common scenarios are RCP 4.5 which assumes we reduce our carbon ",
+               "emissions, and RCP 8.5, which is an increased emissions scenario.")
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
 fp_Part4 <- fpar(ftext(Part4, fp_Tx))
 
 Part4.2<- paste0("Data downscaling is used make these models useful at the local management level. In Hawaii, two types of downscaled ",
-  "projections are available:")
+                 "projections are available:")
 fp_Part4.2 <- fpar(ftext(Part4.2, fp_Tx))
 
 Part4.3<- paste0("Statistical: Available for Mid & End-of-Century Dynamical: Only available for End-of-Century")
@@ -1639,24 +1718,12 @@ fp_Tx4.3 <- fp_text(italic = TRUE, bold = TRUE, color = "black", font.size = 18)
 fp_Part4.3 <- fpar(ftext(Part4.3, fp_Tx4.3))
 
 Part4.4<- paste0("Both downscaling projections are presented here. These two projections sometimes agree with each other, ",
-  "and other times they provide conflicting results. When viewing the maps, we can observe where these similarities ",
-  "and differences are, for example which areas show reduced rainfall under both projections.")
+                 "and other times they provide conflicting results. When viewing the maps, we can observe where these similarities ",
+                 "and differences are, for example which areas show reduced rainfall under both projections.")
 fp_Part4.4 <- fpar(ftext(Part4.4, fp_Tx))
-
-# M_Down <-  block_list(
-#   fpar(ftext("In Hawaii, two types of downscaled " , fp_NM3)),
-#   fpar(ftext("projections are available.", fp_NM3)),
-#   fpar(ftext("Dynamical Downscaling (End of Century)" , fp_NM3)),
-#   fpar(ftext("Statistical Downscaling (Mid & End of Century)" , fp_NM3)),
-#   fpar(ftext("Results for both types of downscaling ", fp_NM3)),
-#   fpar(ftext("and both scenarios will be shown here.", fp_NM3)))
-
 
 #################### Slide 23 ###############################
 debug_print("Slide 23")
-
-p <- p + 1
-p27 <- p
 
 S21_TIT<- block_list(
   fpar(ftext("Average Rainfall Change", FTXTT),fp_p = fp_par(text.align = "center")),
@@ -1694,8 +1761,8 @@ RF_Down4 <-  block_list(
   fpar(ftext(AnnualRM,fp_NM3)),
   fpar(ftext(        "                    ", fp_Fig2)),
   fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in rainfall under RCP 4.5 and 8.5 ",
-    "conditions. At ",SNameF,", annual rainfall is projected to ",RF40_4.5_ch," by ",abs(RF40_4.5)," inches (RCP 4.5), ",
-    "or ",RF40_8.5_ch," by ",abs(RF40_8.5)," inches (RCP 8.5) by mid-century."), fp_NM2)))
+                    "conditions. At ",SNameF,", annual rainfall is projected to ",RF40_4.5_ch," by ",abs(RF40_4.5)," inches (RCP 4.5), ",
+                    "or ",RF40_8.5_ch," by ",abs(RF40_8.5)," inches (RCP 8.5) by mid-century."), fp_NM2)))
 RF_Down4
 
 #RF40file <- paste0(PROJECT_FILE_BASE," StDsRF2040.png")
@@ -1704,17 +1771,13 @@ RF_Down4
 RF40file <- paste0(PROJECT_FILE_BASE, "StDsRF2040.png")
 RF40img <- external_img(src = RF40file)
 
-FIG_18<- block_list(
-  fpar(ftext(paste0("Figure 25. Downscaled future rainfall projections (% change from present) ",
-    "at ",SNameF," by mid-century (2040-2070) using Statistical Downscaling. RCP 4.5 ",
-    "(left) and RCP 8.5 (right)."), fp_Fig)))
+FIG_18<- fig(paste0("Downscaled future rainfall projections (% change from present) ",
+                    "at ",SNameF," by mid-century (2040-2070) using Statistical Downscaling. RCP 4.5 ",
+                    "(left) and RCP 8.5 (right)."))
 
 
 ##################### Slide 24 #################################################
 debug_print("Slide 24")
-
-p <- p + 1
-p28 <- p
 
 S20_TIT<- block_list(
   fpar(ftext("Average Rainfall Change", FTXTT),fp_p = fp_par(text.align = "center")),
@@ -1776,23 +1839,23 @@ ifelse(RFA_Thresh100_S8.5 >= 0, d <- 1, d <- 2)
 
 if(a==b && c==d)
 {RF2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
-  " inches (RCP 4.5), or ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
+                       "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
+                       " inches (RCP 4.5), or ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a!=b && c==d)
 {RF2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", the models do not agree on the direction of change for RCP 4.5. Annual ",
-  "rainfall is projected to ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
+                       "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", the models do not agree on the direction of change for RCP 4.5. Annual ",
+                       "rainfall is projected to ",RF100_8.5t," by ",abs(RF100_8.5a)," inches (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a==b && c!=d)
 {RF2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
-  " inches (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
+                       "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", annual rainfall is projected to ",RF100_4.5t," by ",abs(RF100_4.5a),
+                       " inches (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
 if(a!=b && c!=d)
 {RF2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
+                       "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
 AnnualR
 RF_Down <-  block_list(
   fpar(ftext("Rainfall in the Year 2100" , fp_NM5)),
@@ -1813,17 +1876,12 @@ RF_Down
 RF10085file <- paste0(PROJECT_FILE_BASE, "DS_RF_8.5_v2.png")
 RF10085img <- external_img(src = RF10085file, height = 4, width = 4)
 
-FIG_17<- block_list(
-  fpar(ftext(paste0("Figure 26. Downscaled future rainfall projections (% change from present) ",
-    "at ",SNameF," by end-of-century (2100), using both Dynamical and Statistical ",
-    "downscaling. RCP 4.5 (top row) and RCP 8.5 (bottom row)."), fp_Fig)))
-
+FIG_17<- fig(paste0("Downscaled future rainfall projections (% change from present) ",
+                    "at ",SNameF," by end-of-century (2100), using both Dynamical and Statistical ",
+                    "downscaling. RCP 4.5 (top row) and RCP 8.5 (bottom row)."))
 
 #################### Slide 25 Temperature 2040
 debug_print("Slide 25 Temperature 2040")
-
-p <- p + 1
-p29 <- p
 
 # S23_TIT<- block_list(
 #   fpar(ftext("Average Air Temperature Change", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -1861,23 +1919,19 @@ TA_Down4 <-  block_list(
   fpar(ftext(TAAnnualRM,fp_NM3)),
   fpar(ftext(        "                    ", fp_Fig2)),
   fpar(ftext(paste0("These Statistical Downscaling maps show the projected change in air temperature under RCP 4.5 and 8.5 ",
-    "conditions. At ",SNameF,", air temperature is projected to ",TA40_4.5_ch," by ",abs(TAA_Thresh40_4.5),"°F (RCP 4.5), ",
-    "or ",TA40_8.5_ch," by ",abs(TAA_Thresh40_8.5),"°F (RCP 8.5) by mid-century."), fp_NM2)))
+                    "conditions. At ",SNameF,", air temperature is projected to ",TA40_4.5_ch," by ",abs(TAA_Thresh40_4.5),"°F (RCP 4.5), ",
+                    "or ",TA40_8.5_ch," by ",abs(TAA_Thresh40_8.5),"°F (RCP 8.5) by mid-century."), fp_NM2)))
 TA_Down4
 
 TA40file <- paste0(PROJECT_FILE_BASE, "StDs_Temp2040.png")
 TA40img <- external_img(src = TA40file)
 
-FIG_20 <- block_list(
-  fpar(ftext(paste0("Figure 27. Downscaled future temperature projections (°F change from present) ",
-    "at ",SNameF," by mid-century (2040-2070) using Statistical Downscaling. ",
-    "RCP 4.5 (left) and RCP 8.5 (right)."), fp_Fig)))
+FIG_20 <- fig(paste0("Downscaled future temperature projections (°F change from present) ",
+                     "at ",SNameF," by mid-century (2040-2070) using Statistical Downscaling. ",
+                     "RCP 4.5 (left) and RCP 8.5 (right)."))
 
 #################### Slide 26 Temperature 2100
 debug_print("Slide 26")
-
-p <- p + 1
-p30 <- p
 
 S22_TIT<- block_list(
   fpar(ftext("Average Air Temperature Change", FTXTT),fp_p = fp_par(text.align = "center")),
@@ -1929,23 +1983,23 @@ ifelse(TAA_Thresh100_S8.5 >= 0, d <- 1, d <- 2)
 
 if(a==b && c==d)
 {TA2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in air temperature under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", air temperature is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
-  "°F (RCP 4.5), or ",TA100_8.5t," by ",abs(TA100_8.5c),"°F (RCP 8.5) by end-of-century."), fp_NM2)}
+                       "change in air temperature under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", air temperature is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
+                       "°F (RCP 4.5), or ",TA100_8.5t," by ",abs(TA100_8.5c),"°F (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a!=b && c==d)
 {TA2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", the models do not agree on the direction of change for RCP 4.5. Annual ",
-  "rainfall is projected to ",TA100_8.5t," by ",abs(TA100_8.5c),"°F (RCP 8.5) by end-of-century."), fp_NM2)}
+                       "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", the models do not agree on the direction of change for RCP 4.5. Annual ",
+                       "rainfall is projected to ",TA100_8.5t," by ",abs(TA100_8.5c),"°F (RCP 8.5) by end-of-century."), fp_NM2)}
 if(a==b && c!=d)
 {TA2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", annual rainfall is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
-  "°F (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
+                       "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", annual rainfall is projected to ",TA100_4.5t," by ",abs(TA100_4.5c),
+                       "°F (RCP 4.5). The models do not agree on the direction of change for RCP 8.5."), fp_NM2)}
 if(a!=b && c!=d)
 {TA2100t<-ftext(paste0("These downscaling maps show the projected ",
-  "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
-  ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
+                       "change in rainfall under RCP 4.5 and 8.5 conditions. At ",SNameF,
+                       ", the models do not agree on the overall direction of change for either RCP 4.5 or 8.5."), fp_NM2)}
 TA2100t
 
 TA_Down <-  block_list(
@@ -1964,47 +2018,136 @@ RF10085img <- external_img(src = RF10085file, height = 4, width = 4)
 TA100file <- paste0(PROJECT_FILE_BASE, "DS_Temp2100.png")
 TA100img <- external_img(src = TA100file)
 
-FIG_19<- block_list(
-  fpar(ftext(paste0("Figure 28. Downscaled future rainfall projections (% change from present) ",
-    "at ",SNameF," by end-of-century (2100), using both Dynamical and Statistical ",
-    "downscaling. RCP 4.5 (top row) and RCP 8.5 (bottom row)."), fp_Fig)))
+FIG_19<- fig(paste0("Downscaled future rainfall projections (% change from present) ",
+                    "at ",SNameF," by end-of-century (2100), using both Dynamical and Statistical ",
+                    "downscaling. RCP 4.5 (top row) and RCP 8.5 (bottom row)."))
+
+
+################ Slide 34 Future Groundwater Recharge
+debug_print("Slide 34 Groundwater Recharge Change")
+
+S22a_TIT<- block_list(
+  fpar(ftext("Groundwater Recharge Change", FTXTT),fp_p = fp_par(text.align = "center")),
+  fpar(ftext("End-of-Century (2071-2099)", FTXTT),fp_p = fp_par(text.align = "center")))
+
+if(file.exists(RC_file)) {
+  #Pull out future recharge values (mgal/year and pct)
+  RC
+  RCFv <- format(round(abs(RC$value[RC$GRC_tbl == "FGRC"]), 0), big.mark = ",", scientific = FALSE)
+  RCFv
+  RCFPv <- round(abs(RC$value[RC$GRC_tbl == "FGRCP"]), 0)
+  RCFPv
+  
+  #Pull out current average recharge value (mgal or kgal/day)
+  RCFvu <- if (RC[RC$GRC_tbl == "FGRC", "units"] == "mgal_d") {
+    "million gallons) total per day"
+  } else if (RC[RC$GRC_tbl == "FGRC", "units"] == "kgal_d") {
+    "thousand gallons) total per day"
+  } else {
+    "percent"
+  }
+  RCFvu
+  
+  #Slide text
+  RCF_Tt<- paste0("Future changes in rainfall will impact groundwater recharge rates. ",
+                  "Under a projected future dry climate scenario, ",SNameF," could experience a recharge reduction of ",RCFPv,
+                  "% (",RCFv," ",RCFvu,". Future severe drought conditions could futher impact recharge rates here.") 
+  
+  M_RCF <- block_list(
+    fpar(ftext(RCF_Tt, fp_NM2)))
+  M_RCF
+  
+  # map
+  RCFmapfile <- paste0(PROJECT_FILE_BASE, "FGRCPMap.png")
+  RCFmapimg <- external_img(src = RCFmapfile)
+  RCFmapimg <- image_read(RCFmapfile)
+  plot(RCFmapimg)
+  
+  # fix aspect ratio
+  img_info <- image_info(RCFmapimg)
+  original_width <- img_info$width
+  original_height <- img_info$height
+  
+  desired_width <- 5.2  # Your desired width
+  aspect_ratio <- original_height / original_width
+  desired_height <- desired_width * aspect_ratio  # Calculate height to maintain aspect ratio
+  
+  # Save the AQmapimg as a temporary file (PNG format)
+  tmpFGRC_file <- tempfile(fileext = ".png")
+  image_write(RCFmapimg, path = tmpFGRC_file)
+  
+  # Figure caption
+  FIG_FGRC <- fig(paste0("Estimated change in groundwater recharge for ",SNameF," under future projected climate conditions."))
+  FIG_FGRC
+  
+} else {
+  #Slide text
+  RCF_Tt<- paste0("No groundwater recharge data is available for this location.") 
+  M_RCF <- block_list(
+    fpar(ftext(RCF_Tt, fp_Tx)))
+  M_RCF
+}
 
 ################ Slide 27 Summary and Conclusions ###############
 debug_print("Slide 27 Summary and Conclusions")
-
-p <- p + 1
-p31 <- p
 
 S24_TIT<- block_list(
   fpar(ftext("Part 6: CCVD Summary", FTXTT),fp_p = fp_par(text.align = "center")),
   fpar(ftext(SNameF, FTXTT3),fp_p = fp_par(text.align = "center")))
 
-
 DecD <- (CNTDRT/10)
 
-Summary<- paste0(NameF," (",SNameF,") is located on the island of ", ISL, " at mean elevation of ", El_Mean, ELUnit," (",El_Min, " to ", El_Max,ELUnit,"). ",  
-  "Rainfall varies over the course of the year with a maximum of ",RFx, RFUnit3," occurring in ", MONLIST[RFxm], " and a minimum of ",RFn, RFUnit3,
-  " occurring in ", MONLIST[RFnm],". On average, Ho'oilo or wet season months (Nov-Apr) receive ",SeaD,RFUnit," more rainfall than Kau or dry season months (May-Oct). ",
-  "Seasonal rainfall can vary within the unit as well, with dry season rainfall ranging from ",D_RF_R, RFUnit3," and wet season rainfall ",
-  "ranging from ",W_RF_R, RFUnit3," across the ",EL_Dif,ELUnit, " elevation gradient. ",
-  "Rainfall can also vary considerably from year-to-year with the driest years occurring during a Strong El Niño event, when on ",
-  "average, ", DifWRF,"% less rainfall is received, relative to the long-term average. ",
-  "The average temperature at ",SNameF," is ", TAA,TUnit," but temperature ranges from ",TAn, TUnit, " to ", TAx, TUnit," over the course of the year. ",
-  "Drought is a reoccurring feature in the climate system of ", SNameF, " with a total of ",
-  CNTDRT, " occurring over the record which is approximately ",DecD," per decade. A total of ",SoG, " drought events were at severe strength ",
-  "or greater and the longest drought lasted for a total of ", LongD, " consecutive months. ",
-  "Future projections of rainfall are uncertain, with end-of-century annual changes ranging from ", min(RFA_Thresh100)," to " ,max(RFA_Thresh100),
-  ". Future projections of temperature suggest an increase of ", TAA_Thresh40_4.5,TUnit, 
-  " to ", TAA_Thresh40_8.5,TUnit," by mid century (2040-2070) ",
-  "and an increase of ", TAA_100m,TUnit," to ",  TAA_100ma, TUnit," by the end of the century (2100). ")
+# set sign for future rainfall max change
+if(max(RFA_Thresh100) > 0) {
+  FMRF <- paste0("+",max(RFA_Thresh100))
+} else {
+  FMRF <- RFA_Thresh100
+}
 
+if(file.exists(RC_file)) {
+  Summary<- paste0(NameF," (",SNameF,") is located on the island of ", ISL, " at mean elevation of ", El_Mean, ELUnit," (",El_Min, " to ", El_Max,ELUnit,"). ",  
+                   "The estimated groundwater recharge rate is ",RCv, " ",RCvu,", which may be reduced by ",RCDPv,"% in drought conditions. ",
+                   "Rainfall varies over the course of the year with a maximum of ",RFx, RFUnit3," occurring in ", MONLIST[RFxm], " and a minimum of ",RFn, RFUnit3,
+                   " occurring in ", MONLIST[RFnm],". On average, Ho'oilo or wet season months (Nov-Apr) receive ",SeaD,RFUnit," more rainfall than Kau or dry season months (May-Oct). ",
+                   "Seasonal rainfall can vary within the unit as well, with dry season rainfall ranging from ",D_RF_R, RFUnit3," and wet season rainfall ",
+                   "ranging from ",W_RF_R, RFUnit3," across the ",EL_Dif,ELUnit, " elevation gradient. ",
+                   "Rainfall can also vary considerably from year-to-year with the driest years occurring during a Strong El Niño event, when on ",
+                   "average, ", DifWRF,"% less rainfall is received, relative to the long-term average. ",
+                   "The average temperature at ",SNameF," is ", TAA,TUnit," but temperature ranges from ",TAn, TUnit, " to ", TAx, TUnit," over the course of the year, ",
+                   "and a maximum temperature of ",mt2,TUnit," has been recorded. ",
+                   "Drought is a reoccurring feature in the climate system of ", SNameF, " with a total of ",
+                   CNTDRT, " occurring over the record which is approximately ",DecD," per decade. A total of ",SoG, " drought events were at severe strength ",
+                   "or greater and the longest drought lasted for a total of ", LongD, " consecutive months. ",
+                   "Future projections of rainfall are uncertain, with end-of-century annual changes ranging from ", min(RFA_Thresh100)," to " ,FMRF,
+                   " inches and potential groundwater recharge reduction of ",RCFPv,"%. Future projections of temperature suggest an increase of ", TAA_Thresh40_4.5,TUnit, 
+                   " to ", TAA_Thresh40_8.5,TUnit," by mid century (2040-2070) ",
+                   "and an increase of ", TAA_100m,TUnit," to ",  TAA_100ma, TUnit," by the end of the century (2100). ")
+} else {
+  Summary<- paste0(NameF," (",SNameF,") is located on the island of ", ISL, " at mean elevation of ", El_Mean, ELUnit," (",El_Min, " to ", El_Max,ELUnit,"). ",  
+                   "Rainfall varies over the course of the year with a maximum of ",RFx, RFUnit3," occurring in ", MONLIST[RFxm], " and a minimum of ",RFn, RFUnit3,
+                   " occurring in ", MONLIST[RFnm],". On average, Ho'oilo or wet season months (Nov-Apr) receive ",SeaD,RFUnit," more rainfall than Kau or dry season months (May-Oct). ",
+                   "Seasonal rainfall can vary within the unit as well, with dry season rainfall ranging from ",D_RF_R, RFUnit3," and wet season rainfall ",
+                   "ranging from ",W_RF_R, RFUnit3," across the ",EL_Dif,ELUnit, " elevation gradient. ",
+                   "Rainfall can also vary considerably from year-to-year with the driest years occurring during a Strong El Niño event, when on ",
+                   "average, ", DifWRF,"% less rainfall is received, relative to the long-term average. ",
+                   "The average temperature at ",SNameF," is ", TAA,TUnit," but temperature ranges from ",TAn, TUnit, " to ", TAx, TUnit," over the course of the year, ",
+                   "and a maximum temperature of ",mt2,TUnit," has been recorded. ",
+                   "Drought is a reoccurring feature in the climate system of ", SNameF, " with a total of ",
+                   CNTDRT, " occurring over the record which is approximately ",DecD," per decade. A total of ",SoG, " drought events were at severe strength ",
+                   "or greater and the longest drought lasted for a total of ", LongD, " consecutive months. ",
+                   "Future projections of rainfall are uncertain, with end-of-century annual changes ranging from ", min(RFA_Thresh100)," to " ,FMRF,
+                   " inches. Future projections of temperature suggest an increase of ", TAA_Thresh40_4.5,TUnit, 
+                   " to ", TAA_Thresh40_8.5,TUnit," by mid century (2040-2070) ",
+                   "and an increase of ", TAA_100m,TUnit," to ",  TAA_100ma, TUnit," by the end of the century (2100). ")
+}
+# INSTEAD of using paste(collapse), just pick the first element:
+Summary <- Summary[1]
+
+# Now run your formatting on just that one paragraph
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 16) 
 fp_Summary <- fpar(ftext(Summary, fp_Tx))
 
-
 ################ Slide 28 Resource PAGE ###############
-p <- p + 1
-p32 <- p
 
 S25_TIT<- block_list(
   fpar(ftext("External Resources", FTXTT),fp_p = fp_par(text.align = "center")))
@@ -2050,17 +2193,14 @@ fp_RES <-  block_list(
 ################ Slide 29 Acknowledgements ###############
 debug_print("Slide 29 Acknowledgements")
 
-p <- p + 1
-p33 <- p
-
 S26_TIT <- block_list(
   fpar(ftext("Acknowledgements", FTXTT), fp_p = fp_par(text.align = "center")))
 
 
 Ack <- paste0( "Ryan Longman, Abby Frazier, Christian Giardina, Derek Ford, Keri Kodama (PDKE), Mari-Vaughn Johnson, Heather Kerkering, Patrick Grady (PI-CASC), Elliott Parsons (PI-RISCC), ",
-  "Clay Trauernicht, Melissa Kunz, Cherryle Heu (NREM, UH Manoa), Amanda Sheffield, Britt Parker, John Marra (NOAA), ",
-  "Sean Cleveland, Jared McLean (ITS, UH Manoa), Katie Kamelamela (Arizona State University), Thomas Giambelluca (WRRC, UH Manoa), ",
-  "Jim Poterma (SOEST, UH Manoa), Carolyn Auweloa (NRCS), Nicole Galase (Hawaii Cattlemen's Council), Mark Thorne (CTAHR, UH Manoa)")
+               "Clay Trauernicht, Melissa Kunz, Cherryle Heu (NREM, UH Manoa), Amanda Sheffield, Britt Parker, John Marra (NOAA), ",
+               "Sean Cleveland, Jared McLean (ITS, UH Manoa), Katie Kamelamela (Arizona State University), Thomas Giambelluca (WRRC, UH Manoa), ",
+               "Jim Poterma (SOEST, UH Manoa), Carolyn Auweloa (NRCS), Nicole Galase (Hawaii Cattlemen's Council), Mark Thorne (CTAHR, UH Manoa)")
 
 fp_Ack2 <- fp_text(color = "black", font.size = 15)
 fp_Ack <- fpar(ftext(Ack, fp_Ack2))
@@ -2073,8 +2213,8 @@ fp_CITA3 <- fp_text(color = "red", font.size = 14)
 CITA <- block_list(
   fpar(ftext       ("Suggested Citation", fp_CITA1)),
   fpar(ftext(paste0("Longman, R.J., Ford, D.J., Anderson, A., Frazier, A.G, Giardina, C.P (",yr,"). ",
-    "Climate Change, Climate Variability and Drought Portfolio ", NameF,
-    " Pacific Drought knowledge Exchange CCVD Series Version ",ver,"."), fp_CITA2)))
+                    "Climate Change, Climate Variability and Drought Portfolio ", NameF,
+                    " Pacific Drought knowledge Exchange CCVD Series Version ",ver,"."), fp_CITA2)))
 
 
 Draft <- block_list(
@@ -2083,27 +2223,54 @@ Draft <- block_list(
 ############## Slide 30 Works Cited ###########
 debug_print("Slide 30 Works Cited")
 
-p <- p + 1
-p34 <- p
-
 S27_TIT <- block_list(
   fpar(ftext("Works Cited", FTXTT), fp_p = fp_par(text.align = "center")))
 
-Worksfile <- paste0(I_FOLDER, "Works2.JPG")
-Worksimg <- external_img(src = Worksfile, height = 1, width = 1)
+works_cited <- c(
+  "Frazier, A. G., Giambelluca, T. W., Diaz, H. F., & Needham, H. L. (2016). Comparison of geostatistical approaches to spatially interpolate month‐year rainfall for the Hawaiian Islands. International Journal of Climatology, 36(3), 1459–1470.",
+  "Frazier, A. G., Deenik, J. L., Fujii, N. D., Funderburk, G. R., Giambelluca, T. W., Giardina, C. P., … & Trauernicht, C. (2019). Managing effects of drought in Hawai‘i and US-affiliated Pacific Islands. Effects of Drought on Forests and Rangelands in the United States: Translating Science into Management Responses, 95–121.",
+  "Frazier, A. G., Giardina, C. P., Giambelluca, T. W., Brewington, L., Chen, Y. L., Chu, P. S., … & Trauernicht, C. (2022). A century of spatial and temporal patterns of drought in Hawai'i across hydrological, ecological, and socioeconomic scales. Authorea Preprints.",
+  "Giambelluca, T. W., Chen, Q., Frazier, A. G., Price, J. P., Chen, Y. L., Chu, P. S., … & Delparte, D. M. (2013). Online rainfall atlas of Hawai‘i. Bulletin of the American Meteorological Society, 94(3), 313–316.",
+  "Giambelluca, T., Shuai, X., Barnes, M., Alliss, R. J., Longman, R. J., Miura, T., … & Businger, A. D. (2014). Evapotranspiration of Hawaii: Final report submitted to the US Army Corps of Engineers—Honolulu District, and the Commission on Water Resource Management. State of Hawaii.",
+  "Kāne, H.L., Mair, A., and Mifflin, J., 2024, Mean annual water-budget components for Kauaʻi, Oʻahu, Molokaʻi, Lānaʻi, Maui, and the Island of Hawaiʻi, for a set of recent and future climate conditions, and 2020 land cover: U.S. Geological Survey data release, https://doi.org/10.5066/P972KMSL.",
+  "Kodama, K., Kourkchi, E., Longman, R. J., Lucas, M. P., Bateni, S., Huang, Y. F., … & Giambelluca, T. W. (2024). Mapping daily air temperature over the Hawaiian Islands from 1990 to 2021 via an optimized piecewise linear regression technique. Earth and Space Science.",
+  "Longman, R. J., Frazier, A. G., Giardina, C. P., Parsons, E. W., & McDaniel, S. (2022). The Pacific Drought Knowledge Exchange: A Co-Production Approach to Deliver Climate Resources to User Groups. Sustainability, 14(17), 10554.",
+  "Longman, R. J., Lucas, M. P., McLean, J., Cleveland, S. B., Kodama, K., Frazier, A. G., … & Giambelluca, T. W. (2024). The Hawaiʻi Climate Data Portal (HCDP). Bulletin of the American Meteorological Society, 105(7), E1074–E1083.",
+  "Lucas, M. P., Longman, R. J., Giambelluca, T. W., Frazier, A. G., McLean, J., Cleveland, S. B., … & Lee, J. (2022). Optimizing automated kriging to improve spatial interpolation of monthly rainfall over complex terrain. Journal of Hydrometeorology, 23(4), 561–572.",
+  "Mair, A., 2024, Mean annual groundwater recharge rates for Kauaʻi, Oʻahu, Molokaʻi, Maui, and the Island of Hawaiʻi, for a set of drought and land-cover conditions: U.S. Geological Survey data release, https://doi.org/10.5066/P9DDP1C6.",
+  "Timm, O. E., Giambelluca, T. W., & Diaz, H. F. (2015). Statistical downscaling of rainfall changes in Hawai‘i based on the CMIP5 global model projections. Journal of Geophysical Research: Atmospheres, 120(1), 92–112.",
+  "Timm, O. E. (2017). Future warming rates over the Hawaiian Islands based on elevation‐dependent scaling factors. International Journal of Climatology, 37, 1093–1104.",
+  "Trauernicht, C. (2020). Hawaii Fire Occurrence Map (2000–2019). Unpublished.",
+  "Trauernicht, C., DeMaagd, N., & Lucas, M. P. (2023). Average Landscape Fire Risk for Hawai‘i. Available at Hawaii Climate Data Portal. https://www.hawaii.edu/climate-data-portal/"
+)
+
+fp_wc <- fp_text(
+  font.size = 10.5,
+  color = "black"
+)
+
+wc_blocks <- do.call(
+  block_list,
+  lapply(seq_along(works_cited), function(i) {
+    fpar(
+      ftext(paste0(i, ". "), fp_wc),
+      ftext(works_cited[i], fp_wc),
+      fp_p = fp_par(text.align = "left")
+    )
+  })
+)
 
 
+# Worksfile <- paste0(I_FOLDER, "Works2.JPG")
+# Worksimg <- external_img(src = Worksfile, height = 1, width = 1)
 
 ############### Slide 31 ANNEX I ###############
 debug_print("Slide 31 ANNEX I")
 
-p <- p + 1
-p35 <- p
-
 RF100 <- paste0("The 100+ year monthly rainfall dataset was drawn from two unique gridded products. We used data from Frazier et al. (2016) ",
-  "for the period 1920-1989 and Lucas et al. (2022) for the period 1990-",yr,". Given that two unique data sets and methods ",
-  "were used to make these two products we show the 1:1 Statistical relationship between the two products for a 23-year overlap ",
-  "(1990-2012) with the datasets and associated error metrics.")
+                "for the period 1920-1989 and Lucas et al. (2022) for the period 1990-",yr,". Given that two unique data sets and methods ",
+                "were used to make these two products we show the 1:1 Statistical relationship between the two products for a 23-year overlap ",
+                "(1990-2012) with the datasets and associated error metrics.")
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18) 
 fp_RF100 <- fpar(ftext(RF100, fp_Tx))
@@ -2113,40 +2280,27 @@ SCAimg <- external_img(src = SCAfile)
 
 FIG_A1 <- block_list(
   fpar(ftext(paste0("Figure A1: One to one comparison of 23-years (1990-2012) of monthly rainfall ",  
-    "from two unique datasets for ",SNameF,", and associated error metrics; R2, is the coefficient of determination, ",  
-    "MBE, is the mean bias error, MAE, mean absolute error."), fp_Fig)))
+                    "from two unique datasets for ",SNameF,", and associated error metrics; R2, is the coefficient of determination, ",  
+                    "MBE, is the mean bias error, MAE, mean absolute error."), fp_Fig)))
 
 
 
 ################ Slide 32 ANNEX II #############
 debug_print("Slide 32 ANNEX II")
 
-p <- p + 1
-p36 <- p
-
 DownA<- paste0("Two types of downscaling products were used in this analysis. Here we explain some of the nuances between the two. ",
-  "Dynamical Downscaling (Zhang et al., 2016), feeds GCM output into a regional model that can account for local topographic and ",
-  "atmospheric phenomena at much finer resolutions (e.g. 1 km). End-of-century projections (2100) encompass the period 2080-2099. ",
-  "Statistical Downscaling ",
-  "(Timm et al., 2015, Timm, 2017), develops a relationship between GCM model output and station data for a historical ",
-  "period and then uses this established relationship to make projections for two future scenarios. End-of-century projections (2100) ",
-  "encompass the period 2070-2099 (2100), Mid-century projections encompass the period 2040-2070.")
+               "Dynamical Downscaling (Zhang et al., 2016), feeds GCM output into a regional model that can account for local topographic and ",
+               "atmospheric phenomena at much finer resolutions (e.g. 1 km). End-of-century projections (2100) encompass the period 2080-2099. ",
+               "Statistical Downscaling ",
+               "(Timm et al., 2015, Timm, 2017), develops a relationship between GCM model output and station data for a historical ",
+               "period and then uses this established relationship to make projections for two future scenarios. End-of-century projections (2100) ",
+               "encompass the period 2070-2099 (2100), Mid-century projections encompass the period 2040-2070.")
 
 
 fp_Tx <- fp_text(italic = TRUE, color = "black", font.size = 18)
 fp_DownA <- fpar(ftext(DownA, fp_Tx))
 
 #################### Aquifers table
-
-p <- p + 1
-p37 <- p
-
-# AQ_TIT<- block_list(
-#   fpar(
-#     ftext(paste0("Aquifers", FTXTT),fp_p = fp_par(text.align = "center")),
-#   fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center"))))
-#
-# AQ_TIT
 
 AQ_TIT <- block_list(
   fpar(ftext(paste0("Aquifers"), FTXTT), fp_p = fp_par(text.align = "center")), 
@@ -2160,11 +2314,6 @@ TAB3.1 <- block_list(
 #################### History of Drought Events table
 debug_print("History of Drought Events table")
 
-p<-p+1
-if(AQc>15) {p<-p+1}
-if(AQc>30) {p<-p+1}
-p38<-p
-
 DT_TIT<- block_list(
   fpar(ftext(paste0("Drought Events (1920-",yr,")"), FTXTT),fp_p = fp_par(text.align = "center")),
   fpar(ftext(SNameF, FTXTT3),                      fp_p = fp_par(text.align = "center")))
@@ -2172,8 +2321,8 @@ DT_TIT
 
 TAB3 <- block_list(
   fpar(ftext(paste0("Table A2. SPI-12 drought characteristics at ",NameF, " identified in the SPI-12 timeseries. Duration is the number of months the drought persisted; ",
-    "Average Intensity is the average absolute SPI; Peak Intensity is the highest SPI value calculated during the drought ", 
-    "Magnitude is sum of absolute SPI values during the drought."), fp_Fig)))
+                    "Average Intensity is the average absolute SPI; Peak Intensity is the highest SPI value calculated during the drought ", 
+                    "Magnitude is sum of absolute SPI values during the drought."), fp_Fig)))
 
 #NOTE Try and do the Auto FIt for this table to see if you can get it on the slide
 #See Slide 10
@@ -2199,9 +2348,85 @@ if (!file.exists(P_FOLDER)) {
 final_filename = paste0(P_FOLDER, PROJECT_NAME, "_CCVD_Portfolio_v", ver, ".pptx")
 debug_print(paste0("Final filename: ", final_filename))
 
+# Map Figure Formatting Function
+make_external_img_keep_aspect <- function(file, desired_width_in) {
+  img <- magick::image_read(file)
+  info <- magick::image_info(img)
+  
+  aspect <- info$height / info$width
+  desired_height_in <- desired_width_in * aspect
+  
+  tmp <- tempfile(fileext = ".png")
+  magick::image_write(img, path = tmp, format = "png")
+  
+  list(
+    ext = officer::external_img(src = tmp),
+    width = desired_width_in,
+    height = desired_height_in
+  )
+}
+
+# Slide previewing function
+preview_ppt <- function(doc, slide = NULL) {
+  tmp <- tempfile(fileext = ".pptx")
+  print(doc, target = tmp)
+  
+  if (!is.null(slide)) {
+    # Windows: open PowerPoint at specific slide
+    shell.exec(tmp)
+  } else {
+    shell.exec(tmp)
+  }
+}
+
+# Slide numbering function
+.slide_num_env <- new.env(parent = emptyenv())
+.slide_num_env$n <- 0
+
+add_slide_auto_num <- function(doc,
+                               layout,
+                               master,
+                               show_num = TRUE,
+                               skip_first = TRUE,
+                               offset = 0,
+                               font_size = 12) {
+  
+  doc <- add_slide(doc, layout = layout, master = master)
+  
+  # our own counter (never depends on doc internals)
+  .slide_num_env$n <- .slide_num_env$n + 1
+  idx <- .slide_num_env$n
+  
+  if (show_num && !(skip_first && idx == 1)) {
+    
+    # get slide size so we always place it on-slide
+    ss <- slide_size(doc)
+    
+    num <- as.character(idx + offset)
+    
+    doc <- ph_with(
+      doc,
+      value = fpar(
+        ftext(num, fp_text(font.size = font_size, color = "black")),
+        fp_p = fp_par(text.align = "right")
+      ),
+      # bottom-right with padding
+      location = ph_location(
+        left = ss$width  - 1.0,
+        top  = ss$height - 0.45,
+        width = 0.9,
+        height = 0.3
+      )
+    )
+  }
+  
+  doc
+}
+
 #Slide 1
-mypowerpoint <- read_pptx() %>%
-  add_slide("Title Slide", "Office Theme") %>%
+mypowerpoint <- read_pptx() # %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title Slide", "Office Theme", show_num = FALSE) %>%
+  # add_slide("Title Slide", "Office Theme") %>%
   #Add Title
   ph_with(TIT, ph_location_type("ctrTitle")) %>%
   #Add dates left footer NOTE#Check ph_location_type
@@ -2209,301 +2434,346 @@ mypowerpoint <- read_pptx() %>%
   #Add subtitle
   ph_with(SUB, ph_location_type("subTitle")) %>%
   # #add logos
-  #    ph_with(value = EWCimg, location = ph_location(label = "my_name",
-  #                   left = 4.38, top = 6.0, width = 1.4, height = 1.4)) %>%
-  #    ph_with(value = CASCimg, location = ph_location(label = "my_name",
-  #                   left = 2.1, top = 6.2, width = 1, height = 1)) %>%
-  #    ph_with(value = FSimg, location = ph_location(label = "my_name",
-  #                   left = 6.9, top = 6.2, width = 1, height = 1)) %>%
   ph_with(value = PDKE_L, location = ph_location(label = "my_name",
-    left = 0, top = 0.3, width = 10, height = 2))%>%
-  # ph_with(value = EWClimg, location = ph_location(label = "my_name",
-  #   left = 6.6, top = 6.6, width = 2.9, height = 0.6))%>%
-  
-  
-  #Slide 2
-  add_slide("Title and Content", "Office Theme") %>%
+                                                 left = 0, top = 0.3, width = 10, height = 2))
+
+#Slide 2
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", 
+                                   show_num = TRUE) %>%
   #ph_with(S2_TIT, ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_HDKE, ph_location_type("body")) %>%
-  ph_with(value = p1, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p1, location = ph_location_type(type = "sldNum")) %>%
   
   ph_with(value = PDKE_L, location = ph_location(label = "my_name",
-    left = 0, top = 0, width = 10, height = 2))%>%
-  ph_with(value = "Longman et al. (2022)", location = ph_location_type(type = "dt"))%>%
-  
-  
-  #Slide 3
-  add_slide("Two Content","Office Theme") %>%
+                                                 left = 0, top = 0, width = 10, height = 2))%>%
+  ph_with(value = "Longman et al. (2022)", location = ph_location_type(type = "dt"))
+
+#Slide 3
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
+  #add_slide("Two Content","Office Theme") %>%
   ph_with(S3_TIT,         ph_location_type("title")) %>%
   # ph_with(fp_CCVD,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = fp_CCVD, location = ph_location(label = "my_name", left = 0.5, top = 1.1, width = 5.1, height = 6)) %>%
-  ph_with(value = p2, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p2, location = ph_location_type(type = "sldNum")) %>%
   # ph_with(value = MAPimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = D_AHimg, location = ph_location(label = "my_name",
-    left = 5.85, top = 1.75, height = 4.5, width = 3.3)) %>%
+                                                  left = 5.85, top = 1.75, height = 4.5, width = 3.3)) %>%
   ph_with(value = FIG_1, location = ph_location(label = "my_name",
-    left = 5.8, top = 6.05, width = 3.3, height = 0.77))%>%
-  
-  
-  #Slide 4 Land Divisions
-  add_slide("Title and Content","Office Theme") %>%
+                                                left = 5.8, top = 6.05, width = 3.3, height = 0.77))
+
+#Slide 4 Land Divisions
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S4a_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_HLD1, location = ph_location(label = "my_name",
-    left = 0.5, top = 1, width = 9, height = 2)) %>%
-  ph_with(value = p3, location = ph_location_type(type = "sldNum"))%>%
+                                          left = 0.5, top = 1, width = 9, height = 2)) %>%
+  #ph_with(value = p3, location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = D_HLDimg, location = ph_location(label = "my_name",
-    left = 0.39, top = 2.7, width = 9.3, height = 4.3)) %>%
+                                                   left = 0.39, top = 2.7, width = 9.3, height = 4.3)) %>%
   ph_with(value = MPmimg, location = ph_location(label = "my_name",
-    left = 0.565, top = 3.335, width = 2.83, height = 2.2)) %>%
+                                                 left = 0.565, top = 3.335, width = 2.83, height = 2.2)) %>%
   ph_with(value = MOmimg, location = ph_location(label = "my_name",
-    left = 3.6, top = 3.335, width = 2.83, height = 2.2)) %>%
+                                                 left = 3.6, top = 3.335, width = 2.83, height = 2.2)) %>%
   ph_with(value = AHmimg, location = ph_location(label = "my_name",
-    left = 6.68, top = 3.335, width = 2.83, height = 2.2)) %>%
+                                                 left = 6.68, top = 3.335, width = 2.83, height = 2.2)) %>%
   ph_with(value = MP, location = ph_location(label = "my_name",
-    left = 0.565, top = 4.6, width = 2.85, height = 3)) %>%
+                                             left = 0.565, top = 4.6, width = 2.85, height = 3)) %>%
   ph_with(value = MO, location = ph_location(label = "my_name",
-    left = 3.6, top = 4.6, width = 2.85, height = 3)) %>%
+                                             left = 3.6, top = 4.6, width = 2.85, height = 3)) %>%
   ph_with(value = AH, location = ph_location(label = "my_name",
-    left = 6.68, top = 4.6, width = 2.85, height = 3)) %>%
+                                             left = 6.68, top = 4.6, width = 2.85, height = 3)) %>%
   ph_with(value = ft1, location = ph_location(label = "my_name",
-    left = 0.5, top = 5.73, width = 3, height = 3)) %>%
-  
-  #Slide 5
-  add_slide("Two Content","Office Theme") %>%
+                                              left = 0.5, top = 5.73, width = 3, height = 3))
+
+#Slide 5
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S5_TIT,       ph_location_type("title")) %>%
   ph_with(M_Elev,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = p4, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p4, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = Elevimg, location = ph_location(label = "my_name",
-    left = 5, top = 1.7, height = 4.4, width = 4.4)) %>%
+                                                  left = 5, top = 1.7, height = 4.4, width = 4.4)) %>%
   ph_with(value = FIG_2, location = ph_location(label = "my_name",
-    left = 5.1, top = 5.6, width = 4.2, height = 1.4))%>%
+                                                left = 5.1, top = 5.6, width = 4.2, height = 1.4))%>%
   ph_with(value = ft2, location = ph_location(label = "my_name",
-    left = 0.5, top = 5.73, width = 3, height = 3)) %>%
-  
-  #Slide 6.1
-  add_slide("Two Content","Office Theme") %>%
+                                              left = 0.5, top = 5.73, width = 3, height = 3))
+
+#Slide 6.1
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S6.1_TIT,       ph_location_type("title")) %>%
   # ph_with(M_LAND,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = M_LAND, location = ph_location(label = "my_name", left = 0.5, top = 1.1, width = 4.65, height = 3)) %>%
-  ph_with(value = p5, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p5, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = LClegimg, location = ph_location(label = "my_name", left = 7.5, top = 1.4, width = 1.5, height = 1.5)) %>%
   ph_with(value = LCbarimg, location = ph_location(label = "my_name", left = 0.5, top = 3.75, width = 4.7, height = 2.8)) %>%
   ph_with(value = LCmapimg, location = ph_location(label = "my_name",
-    left = 5.5, top = 3.2)) %>%
+                                                   left = 5.5, top = 3.2)) %>%
   ph_with(value = FIG_3.1, location = ph_location(label = "my_name",
-    left = 0.5, top = 5.9, width = 4.2, height = 1.4))%>%
+                                                  left = 0.5, top = 5.9, width = 4.2, height = 1.4))%>%
   ph_with(value = FIG_3.2, location = ph_location(label = "my_name",
-    left = 5.5, top = 6, width = 3.5, height = 1.4))%>%
+                                                  left = 5.5, top = 6, width = 3.5, height = 1.4))%>%
   ph_with(value = ft3, location = ph_location(label = "my_name",
-    left = 0.5, top = 5.73, width = 4, height = 3)) %>%
-  
-  # Slide 7.1 Aquifers
-  add_slide("Two Content", "Office Theme") %>%
-  ph_with(S6.2_TIT, ph_location_type("title")) %>%
-  ph_with(value = p6, location = ph_location_type(type = "sldNum")) %>%
-  ph_with(value = M_AQ, location = ph_location(label = "my_name", left = 0.7, top = 1.8, width = 4.5, height = 5)) %>%
-  
-  # Use ph_with to insert the image from the file path
-  ph_with(value = external_img(tmp_file), location = ph_location(label = "my_name", left = 5.4, top = 1.7, width = desired_width, height = desired_height)) %>%
-  
-  ph_with(value = FIG_5.b, location = ph_location(label = "my_name", left = 6, top = 5.7, width = 3.2, height = 1.3)) %>%
-  ph_with(my_pres, value = "See Annex III", location = ph_location_type(type = "dt"))%>%
-  
-  
-  
-  #Slide 7.2 Streams
-  add_slide("Two Content","Office Theme") %>%
-  ph_with(S6.2_TIT,       ph_location_type("title")) %>%
+                                              left = 0.5, top = 5.73, width = 4, height = 3))
+
+#Slide 7.2 Streams
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+  ph_with(S6.2a_TIT,       ph_location_type("title")) %>%
   ph_with(value = M_HF, location = ph_location(label = "my_name", left = 0.5, top = 2, width = 5.4, height = 3)) %>%
-  ph_with(value = p7, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p7, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = HFlmapimg, location = ph_location(label = "my_name", left = 2, top = 5.2, width = 2.8, height = 1.9)) %>%
   ph_with(value = HFmapimg, location = ph_location(label = "my_name", left = 6.2, top = 2.3, width = 3.2)) %>%
   ph_with(value = FIG_6.b, location = ph_location(label = "my_name",
-    left = 6.2, top = 5.3, width = 3.2, height = 2))%>%
+                                                  left = 6.2, top = 5.3, width = 3.2, height = 2))
+
+# Slide 7.1 Aquifers
+#add_slide("Two Content", "Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+  ph_with(S6.2_TIT, ph_location_type("title")) %>%
+  #ph_with(value = p6, location = ph_location_type(type = "sldNum")) %>%
+  ph_with(value = M_AQ, location = ph_location(label = "my_name", left = 0.7, top = 1.8, width = 4.5, height = 5)) %>%
   
-  #Slide 7  PART 2
-  add_slide("Title and Content","Office Theme") %>%
+  # Use ph_with to insert the image from the file path
+  ph_with(value = AQ_ext, location = ph_location(left = 5.4, top = 1.9, width = AQ_w, height = AQ_h)) %>%
+  
+  ph_with(value = FIG_5.b, location = ph_location(label = "my_name", left = 6, top = 5.7, width = 3.2, height = 1.3)) %>%
+  ph_with(my_pres, value = "See Annex III", location = ph_location_type(type = "dt"))
+
+# Slide 8 Groundwater Recharge
+#add_slide("Two Content", "Office Theme") %>%
+if(file.exists(RC_file)) {
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(S6.3_TIT, ph_location_type("title")) %>%
+    
+    #slide text
+    ph_with(value = M_RC, location = ph_location(label = "my_name", left = 0.7, top = 1.4, width = 4.5, height = 5)) %>%
+    
+    #slide figure
+    ph_with(value = external_img(RC_ext), location = ph_location(label = "my_name", left = 5.7, top = 1.9, width = RC_w, height = RC_h)) %>%
+    ph_with(value = FIG_5.c, location = ph_location(label = "my_name", left = 6, top = 5.7, width = 3.2, height = 1.3)) %>%
+    ph_with(value = RC_asterisk, location = ph_location(label = "my_name", left = 0.7, top = 5.7, width = 5, height = 1.3)) %>%
+    
+    ph_with(my_pres, value = "Kane et al. 2024", location = ph_location_type(type = "dt"))
+  
+} else {
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(S6.3_TIT, ph_location_type("title")) %>%
+    #slide text
+    ph_with(value = M_RC, location = ph_location(left = 1.4, top = 1, width = 8, height = 5))
+}
+
+# Slide 9 Groundwater Recharge Change
+if(file.exists(RC_file)) {
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(S6.4_TIT, ph_location_type("title")) %>%
+    # Slide Figures
+    ph_with(value = RCDmapimg,  location = ph_location(left = 0.5, top = 2.5, width = RCD_w,  height = RCD_h)) %>%
+    ph_with(value = RCDPmapimg, location = ph_location(left = 5, top = 2.5, width = RCDP_w, height = RCDP_h)) %>%
+    # Slide text
+    ph_with(value = M_RCD, location = ph_location(left = 0.5, top = 1.1, width = 9, height = 3)) %>%
+    # Figure captions
+    ph_with(value = FIG_5.d, location = ph_location(left = 0.5, top = 5.7, width = 4.5, height = 1.4)) %>%
+    ph_with(value = FIG_5.e, location = ph_location(left = 5, top = 5.7, width = 4.5, height = 1.4)) %>%
+    ph_with(my_pres, value = "Mair 2024", location = ph_location_type(type = "dt"))
+  
+} else {
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(S6.4_TIT, ph_location_type("title")) %>%
+    # Slide text
+    ph_with(value = M_RCD, location = ph_location(left = 1.4, top = 1, width = 8, height = 5))
+}
+
+#Slide 7  PART 2
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(P1_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_PART1,ph_location_type("body"))%>%
-  ph_with(value = p8, location = ph_location_type(type = "sldNum"))%>%
+  #ph_with(value = p8, location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = MODimg, location = ph_location(label = "my_name",
-    left = 1.1, top = 4.5, width = 2.6, height = 2)) %>%
+                                                 left = 1.1, top = 4.5, width = 2.6, height = 2)) %>%
   ph_with(value = RGimg, location = ph_location(label = "my_name",
-    left = 3.8, top = 4.5, width = 2.4, height = 2)) %>%
+                                                left = 3.8, top = 4.5, width = 2.4, height = 2)) %>%
   ph_with(value = RFimg, location = ph_location(label = "my_name",
-    left = 6.4, top = 4.5, width = 2.4, height = 2))
-print(mypowerpoint, target = final_filename)
+                                                left = 6.4, top = 4.5, width = 2.4, height = 2))
 
-mypowerpoint <- mypowerpoint %>%
-  #Slide 8a
-  add_slide("Two Content","Office Theme") %>%
+#Slide 8a
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S8.0_TIT,           ph_location_type("title")) %>%
-  
   ph_with(value = RS_T, location = ph_location(label = "my_name",
-    left = 0.6, top = 4.9, width = 6, height = 1.4))%>%
+                                               left = 0.6, top = 4.9, width = 6, height = 1.4))%>%
   ph_with(value = RSimg, location = ph_location(label = "my_name",
-    left = 5.3, top = 1.5, width = 4.3, height = 3.2))%>%
+                                                left = 5.3, top = 1.5, width = 4.3, height = 3.2))%>%
   ph_with(value = fp_RS1, ph_location_type("body",position_right = FALSE)) %>%
   ph_with(value = FIG_5.a, location = ph_location(label = "my_name",
-    left = 8, top = 4.5, width = 1.5, height = 2))%>%
+                                                  left = 8, top = 4.5, width = 1.5, height = 2))%>%
   ph_with(value = FIG_6.a, location = ph_location(label = "my_name",
-    left = 0.5, top = 6.3, width = 7, height = 1.4))%>%
-  ph_with(value = p9, location = ph_location_type(type = "sldNum")) %>%
-  
+                                                  left = 0.5, top = 6.3, width = 7, height = 1.4))
+#ph_with(value = p9, location = ph_location_type(type = "sldNum")) %>%
 
-  #Slide 6 
-  add_slide("Two Content","Office Theme") %>%
+
+#Slide 6 
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S6_TIT,           ph_location_type("title")) %>%
   ph_with(value = M_ANNCLIM, location = ph_location(label = "my_name",
-    left = 0.5, top = 0.05, width = 4.7, height = 5))%>%
+                                                    left = 0.5, top = 0.05, width = 4.7, height = 5))%>%
   ph_with(value = Tt, location = ph_location(label = "my_name",
-    left = 0.8, top = 3.9, width = 1, height = 1))%>%
-  ph_with(value = p10, location = ph_location_type(type = "sldNum")) %>%
+                                             left = 0.8, top = 3.9, width = 1, height = 1))%>%
+  # ph_with(value = p10, location = ph_location_type(type = "sldNum")) %>%
   # ph_with(value = Climimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
   
   ph_with(value = RF2img, location = ph_location(label = "my_name",
-    left = 5.4, top = 1.2, width=si, height= si))%>%
+                                                 left = 5.4, top = 1.2, width=si, height= si))%>%
   ph_with(value = TAAimg, location = ph_location(label = "my_name",
-    left = 7.5, top = 1.2, width=si, height=si))%>%
+                                                 left = 7.5, top = 1.2, width=si, height=si))%>%
   ph_with(value = RHimg, location = ph_location(label = "my_name",
-    left = 5.4, top = 2.7, width=si, height=si))%>%
+                                                left = 5.4, top = 2.7, width=si, height=si))%>%
   ph_with(value = SRimg, location = ph_location(label = "my_name",
-    left = 7.5, top = 2.7, width=si, height=si))%>%
+                                                left = 7.5, top = 2.7, width=si, height=si))%>%
   ph_with(value = SMimg, location = ph_location(label = "my_name",
-    left = 5.4, top = 4.2, width=si, height=si))%>%
+                                                left = 5.4, top = 4.2, width=si, height=si))%>%
   ph_with(value = ETimg, location = ph_location(label = "my_name",
-    left = 7.5, top = 4.2, width=si, height=si))%>%
+                                                left = 7.5, top = 4.2, width=si, height=si))%>%
   ph_with(value = WSimg, location = ph_location(label = "my_name",
-    left = 5.4, top = 5.7, width=si, height=si))%>%
+                                                left = 5.4, top = 5.7, width=si, height=si))%>%
   
   ph_with(value = FIG_5.1, location = ph_location(label = "my_name",
-    left = 0.5, top = 6.1, width = 4.6, height = 1.4))%>%
+                                                  left = 0.5, top = 6.1, width = 4.6, height = 1.4))%>%
   
   ph_with(value = FIG_6.1, location = ph_location(label = "my_name",
-    left = 7.5, top = 5.6, width = si, height = si))%>%
-  
-  #Slide 8
-  add_slide("Two Content","Office Theme") %>%
+                                                  left = 7.5, top = 5.6, width = si, height = si))
+
+#Slide 8
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S7_TIT,          ph_location_type("title")) %>%
   ph_with(value = RFBimg, location = ph_location(label = "my_name",
-    left = 0.3, top = 3.2, width = 6.3, height = 3.7)) %>%
+                                                 left = 0.3, top = 3.2, width = 6.3, height = 3.7)) %>%
   ph_with(fp_CLIMO_RF, location = ph_location(label = "my_name",
-    left = 0.4, top = 1.1, width = 6.1, height = 3)) %>%
-  ph_with(value = p11, location = ph_location_type(type = "sldNum")) %>%
+                                              left = 0.4, top = 1.1, width = 6.1, height = 3)) %>%
+  #ph_with(value = p11, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = RFWimg, location = ph_location(label = "my_name",
-    left = 6.9, top = 1.35, width = 2.55, height = 2.55)) %>%
+                                                 left = 6.9, top = 1.35, width = 2.55, height = 2.55)) %>%
   ph_with(value = RFDimg, location = ph_location(label = "my_name",
-    left = 6.9, top = 3.9, width = 2.55, height = 2.55)) %>%
+                                                 left = 6.9, top = 3.9, width = 2.55, height = 2.55)) %>%
   ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
   ph_with(value = FIG_6a, location = ph_location(label = "my_name",
-    left = 0.7, top = 5.9, width = 4, height = 1.4))%>%
+                                                 left = 0.7, top = 5.9, width = 4, height = 1.4))%>%
   ph_with(value = FIG_7a, location = ph_location(label = "my_name",
-    left = 6.9, top = 6, width = 2.4, height = 1.4))%>%
-  
-  
-  #Slide 9
-  add_slide("Two Content","Office Theme") %>%
+                                                 left = 6.9, top = 6, width = 2.4, height = 1.4))
+
+
+#Slide 9
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S8a_TIT,          ph_location_type("title")) %>%
   ph_with(value = TALimg, location = ph_location(label = "my_name",
-    left = 0.3, top = 3.1, width = 6.3, height = 3.7)) %>%
+                                                 left = 0.3, top = 3.1, width = 6.3, height = 3.7)) %>%
   ph_with(fp_CLIMO_TA, location = ph_location(label = "my_name",
-    left = 0.4, top = 1.1, width = 6.1, height = 3)) %>%
-  ph_with(value = p12, location = ph_location_type(type = "sldNum")) %>%
+                                              left = 0.4, top = 1.1, width = 6.1, height = 3)) %>%
+  #ph_with(value = p12, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = TACimg, location = ph_location(label = "my_name",
-    left = 6.9, top = 1.35, width = 2.55, height = 2.55)) %>%
+                                                 left = 6.9, top = 1.35, width = 2.55, height = 2.55)) %>%
   ph_with(value = TAHimg, location = ph_location(label = "my_name",
-    left = 6.9, top = 3.9, width = 2.55, height = 2.55)) %>%
+                                                 left = 6.9, top = 3.9, width = 2.55, height = 2.55)) %>%
   ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
   ph_with(value = FIG_8a, location = ph_location(label = "my_name",
-    left = 0.7, top = 6.05, width = 4, height = 1.4))%>%
+                                                 left = 0.7, top = 6.05, width = 4, height = 1.4))%>%
   ph_with(value = FIG_9a, location = ph_location(label = "my_name",
-    left = 6.9, top = 6, width = 2.6, height = 1.4))%>%
-  
-  
-  #Slide 9
-  add_slide("Two Content","Office Theme") %>%
+                                                 left = 6.9, top = 6, width = 2.6, height = 1.4))
+
+
+#Slide 9
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S8_TIT, ph_location_type("title")) %>%
   ph_with(value = RFFimg, ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = p13, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p13, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = TAimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_5, location = ph_location(label = "my_name",
-    left = 0.5, top = 6.08, width = 4.5, height = 1.4))%>%
+                                                left = 0.5, top = 6.08, width = 4.5, height = 1.4))%>%
   ph_with(value = FIG_6, location = ph_location(label = "my_name",
-    left = 5.1, top = 6.08, width = 4.5, height = 1.4))%>%
-  ph_with(my_pres, value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
-  
-  #Slide 10 
-  
-  add_slide("Two Content","Office Theme") %>%
+                                                left = 5.1, top = 6.08, width = 4.5, height = 1.4))%>%
+  ph_with(my_pres, value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))
+
+#Slide 10 
+
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S9_TIT,      ph_location_type("title")) %>%
   ph_with(fp_SEA,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = p14, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p14, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = SEAimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_12.1, location = ph_location(label = "my_name",
-    left = 6, top = 6.2, width = 3, height = 1.4))%>%
-  ph_with(value = "Giambelluca et al. (2013)", location = ph_location_type(type = "dt"))%>%
-  
-  #################PROBLEM###################
+                                                   left = 6, top = 6.2, width = 3, height = 1.4))%>%
+  ph_with(value = "Giambelluca et al. (2013)", location = ph_location_type(type = "dt"))
+
+#################PROBLEM###################
 
 
-  #Slide 10
-  add_slide("Title and Content","Office Theme") %>%
+#Slide 10
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S10_TIT,      ph_location_type("title")) %>%
-  ph_with(value = p15, location = ph_location_type(type = "sldNum"))%>% 
+  #ph_with(value = p15, location = ph_location_type(type = "sldNum"))%>% 
   #ph_with(value = ACLIM_T, ph_location_type("body")) %>%
   ph_with(value = "Giambelluca et al. (2013;2014)", location = ph_location_type(type = "dt"))%>%
   ph_with(value =   TAB1, location = ph_location(label = "my_name",
-    left = 0.2, top = 4.45, width = 9.5, height = 4))%>%
+                                                 left = 0.2, top = 4.45, width = 9.5, height = 4))%>%
   ph_with(value =   ACLIM_T, location = ph_location(label = "my_name",
-    left = 0.3, top = 1.8, width = 7, height = 3.5))%>%
-  
-  
-  #Slide 12.1
-  add_slide("Two Content","Office Theme") %>%
+                                                    left = 0.3, top = 1.8, width = 7, height = 3.5))
+
+
+#Slide 12.1
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(P2_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(value = InterAn, location = ph_location(label = "my_name",
-    left = 0.6, top = 1.3, width = 5, height = 3)) %>%
-  ph_with(value = p16, location = ph_location_type(type = "sldNum"))%>%
+                                                  left = 0.6, top = 1.3, width = 5, height = 3)) %>%
+  #ph_with(value = p16, location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = ENSO2img, location = ph_location(label = "my_name",
-    left = 6, top = 1.5, width = 3.2, height = 4.4)) %>%
+                                                   left = 6, top = 1.5, width = 3.2, height = 4.4)) %>%
   ph_with(value = MEIimg, location = ph_location(label = "my_name",
-    left = .3, top = 4.15, width = 5.3, height = 2.7)) %>%
+                                                 left = .3, top = 4.15, width = 5.3, height = 2.7)) %>%
   ph_with(value = FIG_10.1, location = ph_location(label = "my_name",
-    left = 6, top = 5.9, width = 3.4, height = 1))%>%
+                                                   left = 6, top = 5.9, width = 3.4, height = 1))%>%
   ph_with(value = ft4, location = ph_location(label = "my_name",
-    left = 0.5, top = 5.73, width = 4, height = 3)) %>%
-  
-  #Slide 12.2
-  add_slide("Two Content","Office Theme") %>%
+                                              left = 0.5, top = 5.73, width = 4, height = 3))
+
+#Slide 12.2
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(EN_TIT,ph_location_type("title")) %>%
   ph_with(value = MEI3, location = ph_location(label = "my_name", left = 0.4, top = .25, width = 9, height = 5)) %>%
-  ph_with(value = p17, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p17, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = MEISimg, location = ph_location(label = "my_name",
-    left = 2, top = 4.15, width = 6, height = 2.5)) %>%
+                                                  left = 2, top = 4.15, width = 6, height = 2.5)) %>%
   ph_with(value = FIG_14.1, location = ph_location(label = "my_name",
-    left = 2, top = 6.45, width = 5.5, height = 1))%>%
-  
-  #Slide 14 
-  add_slide("Two Content","Office Theme") %>%
+                                                   left = 2, top = 6.45, width = 5.5, height = 1))
+
+#Slide 14 
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S13_TIT,         ph_location_type("title")) %>%
   ph_with(value = fp_Trend, location = ph_location(label = "my_name",
-    left = 0.5, top = 0.3, width = 4.5, height = 5.1)) %>%
+                                                   left = 0.5, top = 0.3, width = 4.5, height = 5.1)) %>%
   ph_with(value = Trendimg, location = ph_location(label = "my_name",
-    left = 5.2, top = 1.4, width = 4.5, height = 5.1))%>%
+                                                   left = 5.2, top = 1.4, width = 4.5, height = 5.1))%>%
   ph_with(value = RFT_T, location = ph_location(label = "my_name",
-    left = 1, top = 4.5, width = 4.5, height = 5.1))%>%
+                                                left = 1, top = 4.5, width = 4.5, height = 5.1))%>%
   ph_with(value = FIG_9, location = ph_location(label = "my_name",
-    left = 5.3, top = 6.1, width = 4.3, height = 1.4))%>%
+                                                left = 5.3, top = 6.1, width = 4.3, height = 1.4))%>%
   ph_with(value = TAB2.1, location = ph_location(label = "my_name",
-    left = 0.6, top = 5.9, width = 4, height = 1.4))%>%
-  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022); See Annex I", location = ph_location_type(type = "dt"))%>%
-  ph_with(value = p18, location = ph_location_type(type = "sldNum"))
-print(mypowerpoint, target = final_filename)
+                                                 left = 0.6, top = 5.9, width = 4, height = 1.4))%>%
+  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022); See Annex I", location = ph_location_type(type = "dt"))
+#ph_with(value = p18, location = ph_location_type(type = "sldNum"))
 
-mypowerpoint <- mypowerpoint %>%
-  #Slide 14 (NEW - Air Temp)  
-  add_slide("Two Content","Office Theme") %>%
+#Slide 14 (NEW - Air Temp)  
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S14_TIT,         ph_location_type("title")) %>%
   
   ph_with(value = fp_AirTrend, location = ph_location(label = "my_name", left = 0.5, top = 0, width = 6, height = 5)) %>%
@@ -2512,293 +2782,351 @@ mypowerpoint <- mypowerpoint %>%
   ph_with(value = Trendimg1, location = ph_location(label = "my_name", left = 4, top = 3.5, width = 5.5, height = 3)) %>%
   
   ph_with(value = FIG_10_11, location = ph_location(label = "my_name", 
-    left = 4.3, top = 6, width = 5, height = 1.4))%>%
-  ph_with(value = p19, location = ph_location_type(type = "sldNum"))%>%
+                                                    left = 4.3, top = 6, width = 5, height = 1.4))%>%
+  #ph_with(value = p19, location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = ft5a, location = ph_location(label = "my_name",
-    left = 0.5, top = 5.73, width = 4, height = 3)) %>%
+                                               left = 0.5, top = 5.73, width = 4, height = 3)) %>%
   ph_with(value = ft5, location = ph_location(label = "my_name",
-    left = 5.7, top = 5.73, width = 4, height = 3)) %>%
-  
-  #Slide 15 #Part 3
-  add_slide("Title and Content","Office Theme") %>%
+                                              left = 5.7, top = 5.73, width = 4, height = 3))
+
+#Slide 15 #Part 3
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(P3_TIT,ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_Part3,ph_location_type("body"))%>%
-  ph_with(value = p20, location = ph_location_type(type = "sldNum"))%>%
+  #ph_with(value = p20, location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = Droughtimg, location = ph_location(label = "my_name",
-    left = 1.9, top = 4.5, width = 3, height = 2)) %>%
+                                                     left = 1.9, top = 4.5, width = 3, height = 2)) %>%
   ph_with(value = Fireimg, location = ph_location(label = "my_name",
-    left = 5.45, top = 4.5, width = 3, height = 2)) %>%
-  
-  
-  ###  Slide 16    
-  add_slide("Title and Content","Office Theme") %>%
+                                                  left = 5.45, top = 4.5, width = 3, height = 2))
+
+###  Slide 16    
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(TIT_D,ph_location_type("title",position_left = TRUE)) %>%
   
   ph_with(value = D_fiveimg, location = ph_location(label = "my_name",
-    left = 0.65, top = 2.4, width = 8.8, height = 4.9))%>%
+                                                    left = 0.65, top = 2.4, width = 8.8, height = 4.9))%>%
   ph_with(value = fp_D_t, location = ph_location(label = "my_name",
-    left = 0.5, top = 1, width = 9.1, height = 2))%>%
-  ph_with(value = "Frazier et al. (2019)", location = ph_location_type(type = "dt"))%>%
-  
-  ph_with(value = p21, location = ph_location_type(type = "sldNum"))%>%
-  
-  #Slide 17 
-  add_slide("Two Content","Office Theme") %>%
+                                                 left = 0.5, top = 1, width = 9.1, height = 2))%>%
+  ph_with(value = "Frazier et al. (2019)", location = ph_location_type(type = "dt"))
+
+#ph_with(value = p21, location = ph_location_type(type = "sldNum"))%>%
+
+#Slide 17 
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S15_TIT,       ph_location_type("title")) %>%
   ph_with(fp_SPI,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = p22, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p22, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = SPIimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_12, location = ph_location(label = "my_name",
-    left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
+                                                 left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
   ph_with(value = SPIimg, location = ph_location(label = "my_name",
-    left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
-  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022)", location = ph_location_type(type = "dt"))%>%
-  
-  
-  #Slide 18
-  add_slide("Two Content","Office Theme") %>%
+                                                 left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
+  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022)", location = ph_location_type(type = "dt"))
+
+#Slide 18
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S16_TIT,         ph_location_type("title")) %>%
   ph_with(fp_DHist,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = p23, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p23, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = DHistimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_13, location = ph_location(label = "my_name",
-    left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
+                                                 left = 5.3, top = 5, width = 4.5, height = 1.4))%>%
   ph_with(value = DHistimg, location = ph_location(label = "my_name",
-    left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
-  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022)", location = ph_location_type(type = "dt"))%>% 
-  
-  #Slide 19
-  add_slide("Title and Content","Office Theme") %>%
+                                                   left = 5, top = 2.5, width = 4.42, height = 2.72))%>%
+  ph_with(my_pres, value = "Frazier et al. (2016); Lucas et al. (2022)", location = ph_location_type(type = "dt"))
+
+#Slide 19
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(SP_TIT,ph_location_type("title",position_left = TRUE)) %>%
   #ph_with(value = "Lucas et al. (2022)", location = ph_location_type(type = "dt"))%>%
-  ph_with(value = p24, location = ph_location_type(type = "sldNum"))%>%
+  #ph_with(value = p24, location = ph_location_type(type = "sldNum"))%>%
   ph_with(value = SPI3_SMimg, location = ph_location(label = "my_name",
-    left = 0.4, top = 1.7, width = 4.2, height = 2.58)) %>%
+                                                     left = 0.4, top = 1.7, width = 4.2, height = 2.58)) %>%
   ph_with(value = SPI12_SMimg , location = ph_location(label = "my_name",
-    left = 5.1, top = 1.7, width = 4.2, height = 2.58)) %>%
+                                                       left = 5.1, top = 1.7, width = 4.2, height = 2.58)) %>%
   ph_with(value = FIG_14, location = ph_location(label = "my_name",
-    left = 0.5, top = 4.1, width = 4.2, height = 0.5)) %>%
+                                                 left = 0.5, top = 4.1, width = 4.2, height = 0.5)) %>%
   ph_with(value = FIG_15, location = ph_location(label = "my_name",
-    left = 5.2, top = 4.1, width = 4.2, height = 0.5)) %>%
+                                                 left = 5.2, top = 4.1, width = 4.2, height = 0.5)) %>%
   ph_with(value = SPI3v12, location = ph_location(label = "my_name",
-    left = 0.4, top = 3.9, width = 9, height = 2.5)) %>%
+                                                  left = 0.4, top = 3.9, width = 9, height = 2.5)) %>%
   ph_with(value = SPI3v12.1, location = ph_location(label = "my_name",
-    left = 0.4, top = 4.5, width = 9, height = 2.5)) %>%
+                                                    left = 0.4, top = 4.5, width = 9, height = 2.5)) %>%
   ph_with(value = SPI3v12.2, location = ph_location(label = "my_name",
-    left = 0.4, top = 5, width = 9, height = 2.5)) %>%
+                                                    left = 0.4, top = 5, width = 9, height = 2.5)) %>%
   ph_with(value = SPI3v12.3, location = ph_location(label = "my_name",
-    left = 0.4, top = 5.7, width = 9, height = 2.5)) %>%
-  
-  #Slide 20
-  add_slide("Two Content","Office Theme") %>%
+                                                    left = 0.4, top = 5.7, width = 9, height = 2.5))
+
+#Slide 20
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S18_TIT,  ph_location_type("title")) %>%
   ph_with(fp_Fire,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = p25, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p25, location = ph_location_type(type = "sldNum")) %>%
   # ph_with(value = FireMimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FireMimg, location = ph_location(label = "my_name",
-    left = 5.2, top = 1.7, height = 4.5, width = 4.5)) %>%
+                                                   left = 5.2, top = 1.7, height = 4.5, width = 4.5)) %>%
   ph_with(value = FIG_16, location = ph_location(label = "my_name",
-    left = 5.2, top = 6.1, width = 4.3, height = 1.4))%>%
-  ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (2022)", location = ph_location_type(type = "dt"))%>% 
-  
-  #Slide 21 #Part 4
-  add_slide("Title and Content","Office Theme") %>%
+                                                 left = 5.2, top = 6.1, width = 4.3, height = 1.4))%>%
+  ph_with(my_pres, value = "Trauernicht, 2019; Frazier et al. (2022)", location = ph_location_type(type = "dt"))
+
+#Slide 21 #Part 4
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(P4_TIT, ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_Part4,ph_location_type("body"))%>%
   ph_with(fp_Part4.2, location = ph_location(label = "my_name",
-    left = 0.45, top = 2.9, width = 6, height = 2)) %>%
+                                             left = 0.45, top = 2.9, width = 6, height = 2)) %>%
   ph_with(fp_Part4.3, location = ph_location(label = "my_name",
-    left = 0.45, top = 4, width = 6, height = 2)) %>%
+                                             left = 0.45, top = 4, width = 6, height = 2)) %>%
   ph_with(fp_Part4.4, location = ph_location(label = "my_name",
-    left = 0.45, top = 4.8, width = 9, height = 3)) %>%
-  ph_with(value = p26, location = ph_location_type(type = "sldNum"))%>%
+                                             left = 0.45, top = 4.8, width = 9, height = 3)) %>%
+  #ph_with(value = p26, location = ph_location_type(type = "sldNum"))%>%
   ph_with(my_pres, value = "See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = Downimg, location = ph_location(label = "my_name",
-    left = 6.5, top = 3.4, width = 3, height = 2)) %>%
-  # ph_with(value = M_Down, location = ph_location(label = "my_name",
-  #                                                    left = 0.5, top = 4.5, width = 6.3, height = 2)) %>%
-  
-  #Slide 22
-  add_slide("Two Content","Office Theme") %>%
+                                                  left = 6.5, top = 3.4, width = 3, height = 2))
+# ph_with(value = M_Down, location = ph_location(label = "my_name",
+#                                                    left = 0.5, top = 4.5, width = 6.3, height = 2)) %>%
+
+#Slide 22
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S21_TIT,         ph_location_type("title")) %>%
   # ph_with(RF_Down4,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(RF_Down4, location = ph_location(label = "my_name",
-    left = 0.5, top = 1.7, width = 4, height = 5))%>%
-  ph_with(value = p27, location = ph_location_type(type = "sldNum")) %>%
+                                           left = 0.5, top = 1.7, width = 4, height = 5))%>%
+  #ph_with(value = p27, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = RF40img, ph_location_type("body",position_right = TRUE))  %>%
   ph_with(value = FIG_18, location = ph_location(label = "my_name",
-    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
+                                                 left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Timm et al., 2015; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = RF40img, location = ph_location(label = "my_name",
-    left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
-  
-  #Slide 23
-  add_slide("Two Content","Office Theme") %>%
+                                                  left = 4.6, top = 2, width = 5.17, height = 3.51))
+
+#Slide 23
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S20_TIT,   ph_location_type("title")) %>%
   # ph_with(RF_Down,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(RF_Down, location = ph_location(label = "my_name",
-    left = 0.5, top = 1.7, width = 4, height = 5))%>%
-  ph_with(value = p28, location = ph_location_type(type = "sldNum")) %>%
+                                          left = 0.5, top = 1.7, width = 4, height = 5))%>%
+  #ph_with(value = p28, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = RF10085img, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_17, location = ph_location(label = "my_name",
-    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
+                                                 left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Timm et al., 2015; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = RF10085img, location = ph_location(label = "my_name",
-    left = 4.6, top = 2, width = 5.3, height = 3.6))
-print(mypowerpoint, target = final_filename)
+                                                     left = 4.6, top = 2, width = 5.3, height = 3.6))
 
-mypowerpoint <- mypowerpoint %>%
-  #Slide 24
-  add_slide("Two Content","Office Theme") %>%
+#Slide 24
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S23_TIT,         ph_location_type("title")) %>%
   # ph_with(TA_Down4,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(TA_Down4, location = ph_location(label = "my_name",
-    left = 0.5, top = 1.7, width = 4, height = 5))%>%
-  ph_with(value = p29, location = ph_location_type(type = "sldNum")) %>%
+                                           left = 0.5, top = 1.7, width = 4, height = 5))%>%
+  #ph_with(value = p29, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = TA40img, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_20, location = ph_location(label = "my_name",
-    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
+                                                 left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Timm 2017; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = TA40img, location = ph_location(label = "my_name",
-    left = 4.6, top = 2, width = 5.17, height = 3.51)) %>%
-  
-  #Slide 25
-  add_slide("Two Content","Office Theme") %>%
+                                                  left = 4.6, top = 2, width = 5.17, height = 3.51))
+
+#Slide 25
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S22_TIT,       ph_location_type("title")) %>%
   # ph_with(TA_Down,        ph_location_type("body",position_right = FALSE)) %>%
   ph_with(TA_Down, location = ph_location(label = "my_name",
-    left = 0.5, top = 1.7, width = 4, height = 5))%>%
-  ph_with(value = p30, location = ph_location_type(type = "sldNum")) %>%
+                                          left = 0.5, top = 1.7, width = 4, height = 5))%>%
+  #ph_with(value = p30, location = ph_location_type(type = "sldNum")) %>%
   #ph_with(value = TA100img, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_19, location = ph_location(label = "my_name",
-    left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
+                                                 left = 5.2, top = 5.5, width = 4, height = 1.4))%>%
   ph_with(my_pres, value = "Timm 2017; Zhang et al., 2016; See Annex II", location = ph_location_type(type = "dt"))%>% 
   ph_with(value = TA100img, location = ph_location(label = "my_name",
-    left = 4.6, top = 2, width = 5.3, height = 3.6)) %>%
+                                                   left = 4.6, top = 2, width = 5.3, height = 3.6))
+
+# Slide 8 Future Groundwater Recharge
+#add_slide("Two Content", "Office Theme") %>%
+if(file.exists(RC_file)) {
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    #slide figure
+    ph_with(value = external_img(tmpFGRC_file), 
+            location = ph_location(label = "my_name", left = 4.8, top = 1.4, width = desired_width, height = desired_height)) %>%
+    
+    ph_with(S22a_TIT, ph_location_type("title")) %>%
+    #slide text
+    ph_with(value = M_RCF, location = ph_location(label = "my_name", left = 0.6, top = 1.3, width = 4, height = 5)) %>%
+    
+    ph_with(value = FIG_FGRC, location = ph_location(label = "my_name", left = 5, top = 5.7, width = 4, height = 1.3)) %>%
+    
+    ph_with(my_pres, value = "Kane et al. 2024", location = ph_location_type(type = "dt"))
   
-  #Slide 26 #Summary
-  add_slide("Title and Content","Office Theme") %>%
+} else {
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(S22a_TIT, ph_location_type("title")) %>%
+    #slide text
+    ph_with(value = M_RCF, location = ph_location(left = 1.4, top = 1, width = 8, height = 5))
+}
+
+#Slide 26 #Summary
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S24_TIT,   ph_location_type("title",position_left = TRUE)) %>%
-  ph_with(fp_Summary,ph_location_type("body"))%>%
-  ph_with(value = p31, location = ph_location_type(type = "sldNum"))%>%
-  
-  #Slide 27 #External Resources
-  add_slide("Title and Content","Office Theme") %>%
+  ph_with(fp_Summary,ph_location_type("body"))
+#ph_with(value = p31, location = ph_location_type(type = "sldNum"))%>%
+
+#Slide 27 #External Resources
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S25_TIT, ph_location_type("title",position_left = TRUE)) %>%
   # ph_with(fp_RES, ph_location_type("body"))%>%
   ph_with(value =  fp_RES , location = ph_location(label = "my_name",
-    left = 0.5, top = 0.4, width = 10, height = 8))%>%
-  ph_with(value = p32, location = ph_location_type(type = "sldNum"))%>%
-  # ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
-  #                                              left = 7.3, top = 1.9, width = 2.3, height = 2.83))%>%
-  
-  #Slide 28 #Acknowledgements
-  add_slide("Title and Content","Office Theme") %>%
+                                                   left = 0.5, top = 0.4, width = 10, height = 8))
+#ph_with(value = p32, location = ph_location_type(type = "sldNum"))%>%
+# ph_with(value =  DPlanimg , location = ph_location(label = "my_name",
+#                                              left = 7.3, top = 1.9, width = 2.3, height = 2.83))%>%
+
+#Slide 28 #Acknowledgements
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(S26_TIT, ph_location_type("title",position_left = TRUE)) %>%
   ph_with(fp_Ack, location = ph_location(label = "myname",
-    left = 0.5, top = 0.08, width = 9, height = 5))%>%
-  ph_with(value = p33, location = ph_location_type(type = "sldNum"))%>%
+                                         left = 0.5, top = 0.08, width = 9, height = 5))%>%
+  #ph_with(value = p33, location = ph_location_type(type = "sldNum"))%>%
   
   ph_with(value = CITA, location = ph_location(label = "my_name",
-    left = 0.85, top = 5.1, width = 8, height = 1.4))%>%
+                                               left = 0.85, top = 5.1, width = 8, height = 1.4))%>%
   ph_with(value = Draft, location = ph_location(label = "my_name",
-    left = 0.85, top = 6.6, width = 8, height = 0.75))%>%
+                                                left = 0.85, top = 6.6, width = 8, height = 0.75))%>%
   ph_with(value = PDKE_S, location = ph_location(label = "my_name",
-    left = 0, top = 0, width = 1.5, height = 1.5))%>%
+                                                 left = 0, top = 0, width = 1.5, height = 1.5))%>%
   
   ph_with(value = FLimg, location = ph_location(label = "my_name",
-    left = 0.5, top = 3.55, width = 9, height = 1.55))%>%
-  
-  
-  #Slide 29  ########## References 
-  
-  add_slide("Title Only","Office Theme") %>%
-  ph_with(S27_TIT,  ph_location_type("title",position_left = TRUE)) %>%
-  ph_with(value = Worksimg, location = ph_location(label = "my_name",
-    left = 1, top = 1.5, width = 7.9, height = 5.3)) %>%
-  ph_with(value = p34, location = ph_location_type(type = "sldNum"))%>%
-  
-  #Slide 30  ############## Annex I
-  
-  add_slide("Two Content","Office Theme") %>%
+                                                left = 0.5, top = 3.55, width = 9, height = 1.55))
+
+
+#Slide 29  ########## References 
+
+#add_slide("Title Only","Office Theme") %>%
+#   mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title Only", "Office Theme", show_num = TRUE) %>%
+# ph_with(S27_TIT,  ph_location_type("title",position_left = TRUE)) %>%
+# ph_with(value = Worksimg, location = ph_location(label = "my_name",
+#   left = 1, top = 1.5, width = 7.9, height = 5.3))
+#ph_with(value = p34, location = ph_location_type(type = "sldNum"))%>%
+
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+  ph_with(S27_TIT, ph_location_type("title",position_left = TRUE)) %>%
+  ph_with(
+    wc_blocks,
+    ph_location(
+      left   = 0.5,
+      top    = 1.6,   # move up/down (smaller = higher)
+      width  = 9.0,
+      height = 5.3
+    )
+  )
+
+#Slide 30  ############## Annex I
+
+#add_slide("Two Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Two Content", "Office Theme", show_num = TRUE) %>%
   ph_with("Annex I: 100+ Year Rainfall ",ph_location_type("title")) %>%
   ph_with(fp_RF100,        ph_location_type("body",position_right = FALSE)) %>%
   #ph_with(value = p33, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = SCAimg, ph_location_type("body",position_right = TRUE)) %>%
   ph_with(value = FIG_A1, location = ph_location(label = "my_name",
-    left = 5, top = 6.3, width = 4.8, height = 1.4))%>%
-  ph_with(my_pres, value = "Frazier et al., 2016; Lucas et al., (2022)", location = ph_location_type(type = "dt"))%>% 
-  
-  
-  #Slide 31  ############## Annex II
-  
-  add_slide("Title and Content","Office Theme") %>%
+                                                 left = 5, top = 6.3, width = 4.8, height = 1.4))%>%
+  ph_with(my_pres, value = "Frazier et al., 2016; Lucas et al., (2022)", location = ph_location_type(type = "dt"))
+
+#Slide 31  ############## Annex II
+
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with("Annex II: Climate Downscaling in Hawaii ",ph_location_type("title")) %>%
   ph_with(fp_DownA,        ph_location_type("body",position_right = FALSE)) %>%
-  ph_with(value = p36, location = ph_location_type(type = "sldNum")) %>%
+  #ph_with(value = p36, location = ph_location_type(type = "sldNum")) %>%
   ph_with(value = Downimg, location = ph_location(label = "my_name",
-    left = 3.5, top = 5, width = 3, height = 2)) %>%
-  
-  #Slide 32 ############### Annex III
-  
-  add_slide("Title and Content","Office Theme") %>%
+                                                  left = 3.5, top = 5, width = 3, height = 2))
+
+#Slide 32 ############### Annex III
+
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
-  ph_with(value = p37, location = ph_location_type(type = "sldNum"))%>% 
+  #ph_with(value = p37, location = ph_location_type(type = "sldNum"))%>% 
   ph_with(value = AQT_T1, ph_location(label = "my_name",
-    left = 1.5, top = 1.8))%>%
+                                      left = 1.5, top = 1.8))%>%
   ph_with(value = TAB3.1, location = ph_location(label = "my_name",
-    left = 7.6, top = 4, width = 2, height = 4)) %>%
-  
-  {if(AQc>15) add_slide(.,"Title and Content", "Office Theme") %>% 
-      ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
-      ph_with(value = (p37+1), location = ph_location_type(type = "sldNum"))%>%
-      ph_with(value = AQT_T2, ph_location(label = "my_name",
-        left = 1.5, top = 1.8))%>%
-      ph_with(value = TAB3.1, location = ph_location(label = "my_name",
-        left = 7.6, top = 4, width = 2, height = 4)) else .} %>%
-  
-  {if(AQc>30) add_slide(.,"Title and Content", "Office Theme") %>% 
-      ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
-      ph_with(value = (p37+2), location = ph_location_type(type = "sldNum"))%>%
-      ph_with(value = AQT_T3, ph_location(label = "my_name",
-        left = 1.5, top = 1.8))%>%
-      ph_with(value = TAB3.1, location = ph_location(label = "my_name",
-        left = 7.6, top = 4, width = 2, height = 4)) else .} %>%
-  {if(AQc>45) ph_with(value = AQT_end, 
-    location = ph_location(label = "my_name",
-      left = 1, top = 6, width = 5)) else .} %>%
-  
-  
-  #Slide 32 ############### Annex IV
-  
-  add_slide("Title and Content","Office Theme") %>%
+                                                 left = 7.6, top = 4, width = 2, height = 4))
+
+if(AQc>15) {
+  #add_slide(.,"Title and Content", "Office Theme") %>% 
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
+    #ph_with(value = (p37+1), location = ph_location_type(type = "sldNum"))%>%
+    ph_with(value = AQT_T2, ph_location(label = "my_name",
+                                        left = 1.5, top = 1.8))%>%
+    ph_with(value = TAB3.1, location = ph_location(label = "my_name",
+                                                   left = 7.6, top = 4, width = 2, height = 4))}
+
+if(AQc>30) {
+  #add_slide(.,"Title and Content", "Office Theme") %>% 
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(paste0("Annex III: Aquifers"),ph_location_type("title")) %>%
+    #ph_with(value = (p37+2), location = ph_location_type(type = "sldNum"))%>%
+    ph_with(value = AQT_T3, ph_location(label = "my_name",
+                                        left = 1.5, top = 1.8))%>%
+    ph_with(value = TAB3.1, location = ph_location(label = "my_name",
+                                                   left = 7.6, top = 4, width = 2, height = 4))}
+if(AQc>45) {
+  ph_with(value = AQT_end, 
+          location = ph_location(label = "my_name",
+                                 left = 1, top = 6, width = 5))}
+
+#Slide 32 ############### Annex IV
+
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
   ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
-  ph_with(value = p38, location = ph_location_type(type = "sldNum"))%>% 
+  #ph_with(value = p38, location = ph_location_type(type = "sldNum"))%>% 
   ph_with(value = DrotT_T1, ph_location_type("body")) %>%
   ph_with(value = TAB3, location = ph_location(label = "my_name",
-    left = 7.85, top = 2.5, width = 2, height = 4)) %>%
-  
-  {if(Drot_ct>12) add_slide(.,"Title and Content", "Office Theme") %>% 
-      ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
-      ph_with(value = (p38+1), location = ph_location_type(type = "sldNum"))%>%
-      ph_with(value = DrotT_T2, ph_location_type("body"))%>%
-      ph_with(value = TAB3,
-        location = ph_location(label = "my_name",
-          left = 7.85, top = 2.5, width = 2, height = 4)) else .} %>%
-  
-  {if(Drot_ct>24) add_slide(.,"Title and Content", "Office Theme") %>% 
-      ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
-      ph_with(value = (p38+2), location = ph_location_type(type = "sldNum"))%>%
-      ph_with(value = DrotT_T3, ph_location_type("body"))%>%
-      ph_with(value = TAB3,
-        location = ph_location(label = "my_name",
-          left = 7.85, top = 2.5, width = 2, height = 4)) else .} %>%
-  
-  #Slide 33 (or whatever the last slide is)  ############## PDKE 
-  
-  add_slide("Title and Content","Office Theme") %>%
+                                               left = 7.85, top = 2.5, width = 2, height = 4))
+
+if(Drot_ct>12) {
+  #add_slide(.,"Title and Content", "Office Theme") %>% 
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
+    #ph_with(value = (p38+1), location = ph_location_type(type = "sldNum"))%>%
+    ph_with(value = DrotT_T2, ph_location_type("body"))%>%
+    ph_with(value = TAB3,
+            location = ph_location(label = "my_name",
+                                   left = 7.85, top = 2.5, width = 2, height = 4))}
+
+if(Drot_ct>24) {
+  #add_slide(.,"Title and Content", "Office Theme") %>% 
+  mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = TRUE) %>%
+    ph_with(paste0("Annex IV: Drought Events (1920 - ",yr,")"),ph_location_type("title")) %>%
+    #ph_with(value = (p38+2), location = ph_location_type(type = "sldNum"))%>%
+    ph_with(value = DrotT_T3, ph_location_type("body"))%>%
+    ph_with(value = TAB3,
+            location = ph_location(label = "my_name",
+                                   left = 7.85, top = 2.5, width = 2, height = 4))}
+
+#Slide 33 (or whatever the last slide is)  ############## PDKE 
+
+#add_slide("Title and Content","Office Theme") %>%
+mypowerpoint <- add_slide_auto_num(mypowerpoint, "Title and Content", "Office Theme", show_num = FALSE) %>%
   ph_with(value = PDKE_S, location = ph_location(label = "my_name",
-    left = 2, top = 1, width = 6, height = 6))
+                                                 left = 2, top = 1, width = 6, height = 6))
 
 # don't put any print statements between the %>%> section and the print line, it will fail
 
@@ -2815,17 +3143,17 @@ convert_to_pdf <- function(input_file) {
   # Command for different operating systems
   if (Sys.info()["sysname"] == "Windows") {
     cmd <- sprintf('"%s" --headless --convert-to pdf --outdir "%s" "%s"',
-                  "C:/Program Files/LibreOffice/program/soffice.exe",  # Adjust path as needed
-                  dirname(input_file),
-                  input_file)
+                   "C:/Program Files/LibreOffice/program/soffice.exe",  # Adjust path as needed
+                   dirname(input_file),
+                   input_file)
   } else if (Sys.info()["sysname"] == "Darwin") {  # macOS
     cmd <- sprintf('/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to pdf --outdir "%s" "%s"',
-                  dirname(input_file),
-                  input_file)
+                   dirname(input_file),
+                   input_file)
   } else {  # Linux
     cmd <- sprintf('libreoffice --headless --convert-to pdf --outdir "%s" "%s"',
-                  dirname(input_file),
-                  input_file)
+                   dirname(input_file),
+                   input_file)
   }
   
   debug_print(paste("Running command:", cmd))
@@ -2947,16 +3275,16 @@ req <- list(
   "type" = "Info",
   "source" = "CCVD Portfolio",
   "message" = paste0("<html><body>",
-    "Your Climate Change, Climate Variability and Drought (CCVD) Portfolio is ready for download at:<br>", 
-    "<a href='", URLencode(ppt_link, reserved = FALSE), "'>", ppt_link, "</a>",
-    "<br><br>You may also download the shapefile of your area of interest here:<br>", 
-    "<a href='", URLencode(shp_link, reserved = FALSE), "'>", shp_link, "</a>",
-    "<br><br>CCVD generator tool:<br>",
-    "<a href='", URLencode(ccvd_link, reserved = FALSE), "'>", ccvd_link, "</a>",
-    "<br><br>Pacific Drought Knowledge Exchange website:<br>",
-    "<a href='", URLencode(pdke_link, reserved = FALSE), "'>", pdke_link, "</a>",
-    "<br><br>All links expire in 7 days, so please be sure to retrieve your data before that time.  If you experience any issues with your download, please forward this message to djford@hawaii.edu and include a brief description of the issues.",
-    "</body></html>")
+                     "Your Climate Change, Climate Variability and Drought (CCVD) Portfolio is ready for download at:<br>", 
+                     "<a href='", URLencode(ppt_link, reserved = FALSE), "'>", ppt_link, "</a>",
+                     "<br><br>You may also download the shapefile of your area of interest here:<br>", 
+                     "<a href='", URLencode(shp_link, reserved = FALSE), "'>", shp_link, "</a>",
+                     "<br><br>CCVD generator tool:<br>",
+                     "<a href='", URLencode(ccvd_link, reserved = FALSE), "'>", ccvd_link, "</a>",
+                     "<br><br>Pacific Drought Knowledge Exchange website:<br>",
+                     "<a href='", URLencode(pdke_link, reserved = FALSE), "'>", pdke_link, "</a>",
+                     "<br><br>All links expire in 7 days, so please be sure to retrieve your data before that time.  If you experience any issues with your download, please forward this message to djford@hawaii.edu and include a brief description of the issues.",
+                     "</body></html>")
 )
 
 debug_print("pre json")
@@ -2969,7 +3297,7 @@ json_data <- fromJSON(paste0(BASE_DIR,"/credentials.json"))
 bearer_value <- paste0("Bearer ", json_data$bearer)
 
 response <- POST(
-  url = "https://api.hcdp.ikewai.org/notify/emails",
+  url = "https://api.hcdp.ikewai.org/notify",
   body = req_json,
   encode = "json",
   add_headers(
@@ -3011,5 +3339,5 @@ debug_print(paste0("Execution time: ", end_time - start_time))
 # }
 # office_shot(file = paste0(P_FOLDER,NameF,"_CCVD_Portfolio_v",ver,".pptx"))
 
-
+preview_ppt(mypowerpoint)
 
