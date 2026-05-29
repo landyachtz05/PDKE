@@ -134,8 +134,20 @@ def get_last_sorted_directory(directory_path):
 #print("temperature_directory_path: ", temperature_directory_path)
 #print("rainfall_directory_path: ", rainfall_directory_path)
 
-# get the most recent rainfall file
-last_rain_file = list_files_sorted(rainfall_directory_path)
+# # get the most recent rainfall file
+# rainfall_directory_path
+# last_rain_file = list_files_sorted(rainfall_directory_path)
+# get the most recent rainfall file (dynamically checks newest subfolder, falls back to root)
+last_rain_dir = get_last_sorted_directory(rainfall_directory_path)
+if last_rain_dir and last_rain_dir.isdigit():
+    # If a year folder (like 2026) exists, look inside it
+    target_rain_dir = os.path.join(rainfall_directory_path, last_rain_dir) + "/"
+    last_rain_file = list_files_sorted(target_rain_dir)
+    # Redirect path so download_data saves to the correct parent folder hierarchy
+    rainfall_directory_path = target_rain_dir
+else:
+    # Fallback to root if no numeric year folders exist yet
+    last_rain_file = list_files_sorted(rainfall_directory_path)
 #print("Last file in the directory:", last_rain_file)
 
 # get the most recent temperature file
